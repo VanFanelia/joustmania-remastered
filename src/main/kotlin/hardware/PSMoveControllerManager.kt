@@ -1,9 +1,10 @@
-package de.vanfanel.joustmania
+package de.vanfanel.joustmania.hardware
 
 
-import de.vanfanel.joustmania.BlueToothControllerManager.pairedDevices
-import de.vanfanel.joustmania.BluetoothCommands.restartBluetooth
-import de.vanfanel.joustmania.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
+import de.vanfanel.joustmania.hardware.BluetoothCommands.restartBluetooth
+import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.types.PairedDevice
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
 import io.thp.psmove.PSMove
@@ -53,7 +54,7 @@ object PSMoveControllerManager {
 
                 if (move.connection_type == ConnectionType.Conn_USB.swigValue() && !pairedMoveController.map { it.macAddress.uppercase() }
                         .contains(move.getMacAddress())) {
-                    val adapter = BlueToothControllerManager.getAdapterForPairing()
+                    val adapter = BluetoothControllerManager.getAdapterForPairing()
 
                     logger.info { "Try to pair new device: ${move.getMacAddress()} to ${adapter?.macAddress ?: "unknown"}"}
                     if (adapter?.macAddress == null) {
@@ -98,7 +99,7 @@ object PSMoveControllerManager {
         CoroutineScope(Dispatchers.IO).launch {
             pairedMoveController.map {
                 logger.info { "Try to disconnect and forget Move Controller with Mac: ${it.macAddress}" }
-                BlueToothControllerManager.clearBluetoothDeviceFromAdapter(it.macAddress)
+                BluetoothControllerManager.clearBluetoothDeviceFromAdapter(it.macAddress)
             }
             pairedMoveController.clear()
             restartBluetooth()
@@ -121,5 +122,5 @@ suspend fun PSMove.indicatePairingComplete() {
 }
 
 fun PSMove.trust() {
-    BlueToothControllerManager.trustBluetoothDevice(this.getMacAddress())
+    BluetoothControllerManager.trustBluetoothDevice(this.getMacAddress())
 }

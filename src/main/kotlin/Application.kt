@@ -1,5 +1,9 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.hardware.BluetoothControllerManager
+import de.vanfanel.joustmania.hardware.PSMoveControllerManager
+import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher
+import de.vanfanel.joustmania.os.dependencies.NativeLoader
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
@@ -19,7 +23,7 @@ fun main() {
 
     // init single Objects
     val usbDevicesChangeWatcher = USBDevicesChangeWatcher
-    val bluetoothControllerManager = BlueToothControllerManager
+    val bluetoothControllerManager = BluetoothControllerManager
     val hardwareController = PSMoveControllerManager
 
     CoroutineScope(Dispatchers.IO).launch {

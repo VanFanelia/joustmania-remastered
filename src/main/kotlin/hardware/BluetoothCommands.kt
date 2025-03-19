@@ -1,6 +1,7 @@
-package de.vanfanel.joustmania
+package de.vanfanel.joustmania.hardware
 
-import de.vanfanel.joustmania.NativeLoader.getOSType
+import de.vanfanel.joustmania.os.dependencies.NativeLoader.getOSType
+import de.vanfanel.joustmania.os.dependencies.OSType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

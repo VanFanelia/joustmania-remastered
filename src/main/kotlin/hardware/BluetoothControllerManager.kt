@@ -1,6 +1,10 @@
-package de.vanfanel.joustmania
+package de.vanfanel.joustmania.hardware
 
-import de.vanfanel.joustmania.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.types.AdapterId
+import de.vanfanel.joustmania.types.BlueToothController
+import de.vanfanel.joustmania.types.MacAddress
+import de.vanfanel.joustmania.types.PairedDevice
+import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +19,6 @@ import org.freedesktop.dbus.interfaces.DBusInterface
 import org.freedesktop.dbus.interfaces.ObjectManager
 import org.freedesktop.dbus.types.Variant
 
-typealias AdapterId = String
 
 // Magic adapter interface
 @DBusInterfaceName("org.bluez.Adapter1")
@@ -29,7 +32,7 @@ interface DBusProperties : DBusInterface {
     fun Set(interfaceName: String, propertyName: String, value: Variant<*>)
 }
 
-object BlueToothControllerManager {
+object BluetoothControllerManager {
     private val logger = KotlinLogging.logger {}
     private val blueToothController = mutableMapOf<AdapterId, BlueToothController>()
 
@@ -107,7 +110,7 @@ object BlueToothControllerManager {
                     continue
                 }
 
-                this.logger.info { "Trying to trust device at path: $devicePath" }
+                logger.info { "Trying to trust device at path: $devicePath" }
 
                 val properties = connection.getRemoteObject(
                     "org.bluez",

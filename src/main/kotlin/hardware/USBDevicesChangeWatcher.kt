@@ -1,5 +1,6 @@
-package de.vanfanel.joustmania
+package de.vanfanel.joustmania.hardware
 
+import de.vanfanel.joustmania.types.BluetoothInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow

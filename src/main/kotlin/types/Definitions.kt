@@ -1,6 +1,6 @@
-package de.vanfanel.joustmania
+package de.vanfanel.joustmania.types
 
-
+typealias AdapterId = String
 typealias MacAddress = String
 
 data class PairedDevice(
@@ -21,7 +21,6 @@ data class BlueToothController(
         return "$adapterId ($macAddress) - MotionController(${pairedMotionController.size}) ${pairedMotionController.map { it.macAddress }}"
     }
 }
-
 
 data class BluetoothInfo(
     val bus: String,

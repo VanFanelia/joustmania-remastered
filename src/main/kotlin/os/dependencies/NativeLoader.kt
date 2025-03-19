@@ -1,8 +1,7 @@
-package de.vanfanel.joustmania
+package de.vanfanel.joustmania.os.dependencies
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.Locale
-
 
 enum class Architecture {
     X86,
