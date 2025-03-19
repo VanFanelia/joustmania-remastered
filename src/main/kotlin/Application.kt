@@ -1,6 +1,7 @@
 package de.vanfanel.joustmania
 
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
+import de.vanfanel.joustmania.hardware.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.PSMoveControllerManager
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher
 import de.vanfanel.joustmania.os.dependencies.NativeLoader
@@ -23,11 +24,23 @@ fun main() {
 
     // init single Objects
     val usbDevicesChangeWatcher = USBDevicesChangeWatcher
+    val psMoveBluetoothConnectionWatcher = PSMoveBluetoothConnectionWatcher
     val bluetoothControllerManager = BluetoothControllerManager
     val hardwareController = PSMoveControllerManager
 
     CoroutineScope(Dispatchers.IO).launch {
         usbDevicesChangeWatcher.startEndlessLoopWithUSBDevicesScan()
+    }
+
+    CoroutineScope(Dispatchers.IO).launch {
+        psMoveBluetoothConnectionWatcher.startEndlessLoopWithPSMoveConnectionScan()
+    }
+
+    CoroutineScope(Dispatchers.IO).launch {
+        psMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moves ->
+            logger.info { "List of bluetooth connected PSMove Controller changed: " }
+            logger.info { moves.map { move -> move._serial }}
+        }
     }
 
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module).start(wait = true)

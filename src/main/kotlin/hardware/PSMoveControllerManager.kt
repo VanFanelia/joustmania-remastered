@@ -21,7 +21,7 @@ object PSMoveControllerManager {
 
     private val logger = KotlinLogging.logger {}
     private val pairedMoveController = mutableSetOf<PairedDevice>()
-    private val currentActiveMoveController = mutableMapOf<Int, PSMove>()
+    private var lastCountOfConnectedMoves = 0
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -46,9 +46,11 @@ object PSMoveControllerManager {
 
     private fun newMotionControllerViaUSBConnected() {
         logger.info { "try to connect new psmove controller" }
-        logger.info { "Found ${psmoveapi.psmove_count_connected()} motion controller" }
-        if (currentActiveMoveController.size < psmoveapi.psmove_count_connected()) {
-            for (i in 0..<psmoveapi.psmove_count_connected()) {
+        val currentCount = psmoveapi.psmove_count_connected();
+        logger.info { "Found $currentCount motion controller" }
+        if (lastCountOfConnectedMoves != currentCount) {
+            lastCountOfConnectedMoves = currentCount;
+            for (i in 0..<currentCount) {
                 val move = PSMove(i)
                 logger.info { "New move found: ${move.getMacAddress()}" }
 
@@ -56,7 +58,7 @@ object PSMoveControllerManager {
                         .contains(move.getMacAddress())) {
                     val adapter = BluetoothControllerManager.getAdapterForPairing()
 
-                    logger.info { "Try to pair new device: ${move.getMacAddress()} to ${adapter?.macAddress ?: "unknown"}"}
+                    logger.info { "Try to pair new device: ${move.getMacAddress()} to ${adapter?.macAddress ?: "unknown"}" }
                     if (adapter?.macAddress == null) {
                         logger.error { "Cannot pair motion controller ${move.getMacAddress()} because no adapter to pair found" }
                         continue
@@ -90,7 +92,7 @@ object PSMoveControllerManager {
     fun blinkRed() {
         for (i in 0..<psmoveapi.psmove_count_connected()) {
             val move = PSMove(i)
-            move.set_leds(255,0,0)
+            move.set_leds(255, 0, 0)
             move.update_leds();
         }
     }

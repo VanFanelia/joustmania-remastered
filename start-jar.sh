@@ -10,6 +10,8 @@ java --version
 JAVA_PATH=$JAVA_HOME
 CURRENT_PATH=$(dirname "$(realpath $0)")
 
+echo "My PID: $$"
+
 sudo $JAVA_PATH/bin/java --version
 
 sudo LD_LIBRARY_PATH=/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:$JAVA_PATH/lib:$CURRENT_PATH/libs:$LD_LIBRARY_PATH \
