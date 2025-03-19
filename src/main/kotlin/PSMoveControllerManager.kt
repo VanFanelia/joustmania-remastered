@@ -100,6 +100,7 @@ object PSMoveControllerManager {
                 logger.info { "Try to disconnect and forget Move Controller with Mac: ${it.macAddress}" }
                 BlueToothControllerManager.clearBluetoothDeviceFromAdapter(it.macAddress)
             }
+            pairedMoveController.clear()
             restartBluetooth()
         }
 
