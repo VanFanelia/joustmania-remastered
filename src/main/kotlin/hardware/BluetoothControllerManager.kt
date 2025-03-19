@@ -102,7 +102,7 @@ object BluetoothControllerManager {
         for (adapterId in blueToothController.keys) {
             val connection = DBusConnectionBuilder.forSystemBus().build()
             try {
-                val devicePath = getDevicePath(adapterId = adapterId, macAddress = macAddress);
+                val devicePath = getDevicePath(adapterId = adapterId, macAddress = macAddress)
                 logger.info { "Try to trust device with path: $devicePath" }
 
                 if (!getAllManagedAdapterKeys().contains(devicePath)) {
@@ -225,7 +225,7 @@ object BluetoothControllerManager {
 }
 
 private fun getAdapterPath(adapterId: AdapterId): String {
-    return "/org/bluez/$adapterId";
+    return "/org/bluez/$adapterId"
 }
 
 private fun getDevicePath(adapterId: AdapterId, macAddress: MacAddress): String {

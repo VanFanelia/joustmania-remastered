@@ -46,10 +46,10 @@ object PSMoveControllerManager {
 
     private fun newMotionControllerViaUSBConnected() {
         logger.info { "try to connect new psmove controller" }
-        val currentCount = psmoveapi.psmove_count_connected();
+        val currentCount = psmoveapi.psmove_count_connected()
         logger.info { "Found $currentCount motion controller" }
         if (lastCountOfConnectedMoves != currentCount) {
-            lastCountOfConnectedMoves = currentCount;
+            lastCountOfConnectedMoves = currentCount
             for (i in 0..<currentCount) {
                 val move = PSMove(i)
                 logger.info { "New move found: ${move.getMacAddress()}" }
@@ -93,7 +93,7 @@ object PSMoveControllerManager {
         for (i in 0..<psmoveapi.psmove_count_connected()) {
             val move = PSMove(i)
             move.set_leds(255, 0, 0)
-            move.update_leds();
+            move.update_leds()
         }
     }
 

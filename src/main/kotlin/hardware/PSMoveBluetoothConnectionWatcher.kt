@@ -1,6 +1,5 @@
 package de.vanfanel.joustmania.hardware
 
-import de.vanfanel.joustmania.types.BluetoothInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
 import io.thp.psmove.PSMove
@@ -9,8 +8,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.lang.Thread.sleep
 
 object PSMoveBluetoothConnectionWatcher {
