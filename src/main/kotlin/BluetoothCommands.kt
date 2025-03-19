@@ -36,9 +36,9 @@ object BluetoothCommands {
         logger.info { "try to restart bluetooth ..." }
 
         when (getOSType()) {
-            OSType.ANDROID -> TODO()
+            OSType.ANDROID -> logger.warn { "Detect Android. Cannot restart bluetooth on Android yet :(" }
             OSType.LINUX -> runCommand("systemctl restart bluetooth.service")
-            OSType.MAC -> TODO()
+            OSType.MAC -> logger.warn { "Detect MAC OS. Cannot restart bluetooth on MAC OS yet :(" }
             OSType.WINDOWS -> {
                 runCommand("cmd /c net stop bthserv")
                 runCommand("cmd /c net start bthserv")
