@@ -37,6 +37,8 @@ data class MoveColor(
     companion object {
         val BLACK = MoveColor(0,0,0)
         val RED = MoveColor(255,0,0)
+        val ORANGE_ACTIVE = MoveColor(105,67,0)
+        val ORANGE_INACTIVE = MoveColor(20,11,1)
     }
 
 }

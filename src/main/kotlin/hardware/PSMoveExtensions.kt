@@ -22,7 +22,7 @@ fun PSMove.trust() {
 }
 
 fun PSMove.setNotActivatedInLobbyColor() {
-        this.currentColor = MoveColor(105,67,0)
+        this.currentColor = MoveColor.ORANGE_INACTIVE
 }
 
 fun PSMove.refreshColor(){
