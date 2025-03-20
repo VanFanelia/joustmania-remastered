@@ -1,9 +1,11 @@
 package de.vanfanel.joustmania
 
-import de.vanfanel.joustmania.hardware.PSMoveControllerManager
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import de.vanfanel.joustmania.hardware.PSMoveBroadcaster
+import de.vanfanel.joustmania.hardware.PSMovePairingManager
+import io.ktor.server.application.Application
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
 
 fun Application.configureRouting() {
     routing {
@@ -12,11 +14,11 @@ fun Application.configureRouting() {
         }
 
         get("/clear-devices") {
-            PSMoveControllerManager.disconnectAndForgetAllPairedPSMove()
+            PSMovePairingManager.disconnectAndForgetAllPairedPSMove()
         }
 
         get("/blink-red") {
-            PSMoveControllerManager.blinkRed()
+            PSMoveBroadcaster.setAllMoveControllerToRed()
         }
     }
 }

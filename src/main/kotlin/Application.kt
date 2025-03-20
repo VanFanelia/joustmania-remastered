@@ -1,8 +1,9 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.game.GameStateManager
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.PSMoveControllerManager
+import de.vanfanel.joustmania.hardware.PSMovePairingManager
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher
 import de.vanfanel.joustmania.os.dependencies.NativeLoader
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -26,7 +27,8 @@ fun main() {
     val usbDevicesChangeWatcher = USBDevicesChangeWatcher
     val psMoveBluetoothConnectionWatcher = PSMoveBluetoothConnectionWatcher
     val bluetoothControllerManager = BluetoothControllerManager
-    val hardwareController = PSMoveControllerManager
+    val hardwareController = PSMovePairingManager
+    val GameStateManager = GameStateManager
 
     CoroutineScope(Dispatchers.IO).launch {
         usbDevicesChangeWatcher.startEndlessLoopWithUSBDevicesScan()

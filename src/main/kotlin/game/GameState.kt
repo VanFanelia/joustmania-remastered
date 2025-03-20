@@ -1,0 +1,65 @@
+package de.vanfanel.joustmania.game
+
+import de.vanfanel.joustmania.hardware.PSMoveBluetoothConnectionWatcher
+import de.vanfanel.joustmania.hardware.getMacAddress
+import de.vanfanel.joustmania.hardware.setNotActivatedInLobbyColor
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.thp.psmove.PSMove
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+
+
+enum class GameState {
+    LOBBY,
+    GAME_STARTING,
+    GAME_RUNNING,
+    GAME_FINISHED,
+    GAME_INTERRUPTED
+}
+
+object GameStateManager {
+
+    private val logger = KotlinLogging.logger {}
+
+    //private val currentGameState: GameState = LOBBY
+
+    private val _currentGameState: MutableStateFlow<GameState> = MutableStateFlow(GameState.LOBBY)
+    val currentGameState: Flow<GameState> = _currentGameState
+
+    private val movesInLobby: MutableMap<String, PSMove> = mutableMapOf()
+
+    private val lobbyLoop = LobbyLoop
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
+
+                when (_currentGameState.value) {
+                    GameState.LOBBY -> handleConnectedMovesChangeDuringGameStateLobby(newMoves)
+                    GameState.GAME_STARTING -> TODO()
+                    GameState.GAME_RUNNING -> TODO()
+                    GameState.GAME_FINISHED -> TODO()
+                    GameState.GAME_INTERRUPTED -> TODO()
+                }
+            }
+        }
+    }
+
+    private fun handleConnectedMovesChangeDuringGameStateLobby(newMoves: Set<PSMove>) {
+        val newMovesMacAddresses = newMoves.map { it.getMacAddress() }
+        newMoves.forEach { newMove ->
+            if (!movesInLobby.containsKey(newMove.getMacAddress())) {
+                movesInLobby[newMove.getMacAddress()] = newMove
+                newMove.setNotActivatedInLobbyColor()
+                newMove.poll()
+                //newMove.startWatchButtons()
+                logger.info { "Added new PSMove controller ${newMove.getMacAddress()} to lobby" }
+            }
+            movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }
+        }
+    }
+
+}

@@ -4,6 +4,7 @@ package de.vanfanel.joustmania.hardware
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
 import de.vanfanel.joustmania.hardware.BluetoothCommands.restartBluetooth
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.PairedDevice
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
@@ -11,13 +12,12 @@ import io.thp.psmove.PSMove
 import io.thp.psmove.psmoveapi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 const val PLAYSTATION_MOTION_CONTROLLER_USB_DEVICE_NAME = "PlayStation Move motion controller"
 const val PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME = "Motion Controller"
 
-object PSMoveControllerManager {
+object PSMovePairingManager {
 
     private val logger = KotlinLogging.logger {}
     private val pairedMoveController = mutableSetOf<PairedDevice>()
@@ -89,14 +89,6 @@ object PSMoveControllerManager {
         }
     }
 
-    fun blinkRed() {
-        for (i in 0..<psmoveapi.psmove_count_connected()) {
-            val move = PSMove(i)
-            move.set_leds(255, 0, 0)
-            move.update_leds()
-        }
-    }
-
     fun disconnectAndForgetAllPairedPSMove() {
         CoroutineScope(Dispatchers.IO).launch {
             pairedMoveController.map {
@@ -109,20 +101,4 @@ object PSMoveControllerManager {
 
     }
 
-}
-
-fun PSMove.getMacAddress(): String {
-    return this._serial.uppercase()
-}
-
-suspend fun PSMove.indicatePairingComplete() {
-    this.set_leds(255, 255, 255)
-    this.update_leds()
-    delay(3000)
-    this.set_leds(0, 0, 0)
-    this.update_leds()
-}
-
-fun PSMove.trust() {
-    BluetoothControllerManager.trustBluetoothDevice(this.getMacAddress())
 }

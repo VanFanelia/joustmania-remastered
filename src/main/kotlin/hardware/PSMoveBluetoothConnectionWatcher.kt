@@ -52,5 +52,9 @@ object PSMoveBluetoothConnectionWatcher {
             }
         }
     }
+
+    fun getCurrentConnectedPSMove(): Set<PSMove> {
+        return _bluetoothConnectedPSMoves.value
+    }
 }
 

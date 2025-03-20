@@ -28,3 +28,16 @@ data class BluetoothInfo(
     val id: String,
     val nameWithType: String,
 )
+
+data class MoveColor(
+    val red: Int,
+    val green: Int,
+    val blue: Int
+) {
+    companion object {
+        val BLACK = MoveColor(0,0,0)
+        val RED = MoveColor(255,0,0)
+    }
+
+}
+
