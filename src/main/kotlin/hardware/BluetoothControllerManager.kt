@@ -32,6 +32,10 @@ interface DBusProperties : DBusInterface {
     fun Set(interfaceName: String, propertyName: String, value: Variant<*>)
 }
 
+/**
+ * Object observes the devices connected via usb and publish
+ * all connected bluetooth adapters and there paired devices
+ */
 object BluetoothControllerManager {
     private val logger = KotlinLogging.logger {}
     private val blueToothController = mutableMapOf<AdapterId, BlueToothController>()
@@ -219,7 +223,7 @@ object BluetoothControllerManager {
         return blueToothController.minWithOrNull(compareBy { it.value.pairedMotionController.size })?.value
     }
 
-    fun getAllPairedMotionControllers(): Set<PairedDevice> {
+    private fun getAllPairedMotionControllers(): Set<PairedDevice> {
         return blueToothController.values.map { it.pairedMotionController }.flatten().toSet()
     }
 }

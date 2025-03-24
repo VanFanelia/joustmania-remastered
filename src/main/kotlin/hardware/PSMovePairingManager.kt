@@ -4,7 +4,6 @@ package de.vanfanel.joustmania.hardware
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
 import de.vanfanel.joustmania.hardware.BluetoothCommands.restartBluetooth
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
-import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.PairedDevice
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
@@ -17,6 +16,9 @@ import kotlinx.coroutines.launch
 const val PLAYSTATION_MOTION_CONTROLLER_USB_DEVICE_NAME = "PlayStation Move motion controller"
 const val PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME = "Motion Controller"
 
+/**
+ * Object observe via usb connected devices and auto pair usb connected Move controller
+ */
 object PSMovePairingManager {
 
     private val logger = KotlinLogging.logger {}

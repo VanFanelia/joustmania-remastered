@@ -1,9 +1,14 @@
 package de.vanfanel.joustmania.hardware
 
 import de.vanfanel.joustmania.types.MoveColor
+import io.github.oshai.kotlinlogging.KotlinLogging
 
-
+/**
+ * Object sends commands to every connected PSMove Controller
+ */
 object PSMoveBroadcaster {
+    private val logger = KotlinLogging.logger {}
+
     fun setAllMoveControllerToRed() {
         PSMoveBluetoothConnectionWatcher.getCurrentConnectedPSMove().map { move ->
             move.currentColor = MoveColor.RED

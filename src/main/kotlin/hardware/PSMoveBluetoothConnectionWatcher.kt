@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.Thread.sleep
 
+/**
+ * Object observes the amount of connected psmove controller and publishes the actual set of PSMoveController via flow
+ */
 object PSMoveBluetoothConnectionWatcher {
+    private val logger = KotlinLogging.logger {}
 
     private const val PS_MOVE_BLUETOOTH_SCAN_INTERVAL = 2000L
     private var lastCountOfConnectedMoves = 0
-
-    private val logger = KotlinLogging.logger {}
 
     private val _bluetoothConnectedPSMoves: MutableStateFlow<Set<PSMove>> = MutableStateFlow(emptySet())
     val bluetoothConnectedPSMoves: Flow<Set<PSMove>> = _bluetoothConnectedPSMoves

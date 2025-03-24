@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
+/**
+ * Object contains raw bluetooth commands. E.g. restart system bluetooth service
+ */
 object BluetoothCommands {
 
     private val logger = KotlinLogging.logger {}

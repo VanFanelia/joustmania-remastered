@@ -9,6 +9,9 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.Thread.sleep
 
+/**
+ * Object observe usb ports via lsusb command
+ */
 object USBDevicesChangeWatcher {
 
     private val logger = KotlinLogging.logger {}
