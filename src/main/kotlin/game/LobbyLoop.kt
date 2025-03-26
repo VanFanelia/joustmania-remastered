@@ -61,7 +61,7 @@ object LobbyLoop {
                         .onCompletion { logger.debug { "Move ${move.macAddress} stop sending button stuff." } }
                 }
             }.collect {
-                logger.info { "Lobby Move: ${it.first.macAddress} has button press on buttons: ${it.second.toList()}" }
+                logger.debug { "Lobby Move: ${it.first.macAddress} has button press on buttons: ${it.second.toList()}" }
             }
         }
 
@@ -71,6 +71,7 @@ object LobbyLoop {
                     // check if move get lost
                     if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
                         isActive.remove(oldMove)
+                        logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                     }
                 }
             }
@@ -82,13 +83,15 @@ object LobbyLoop {
                 newMoves.asFlow().flatMapMerge { move ->
                     move.getTriggerClickFlow.map { move }
                 }
-            }.collect {
-                if (!isActive.containsKey(it)) {
-                    isActive[it] = true
+            }.collect { moveStub ->
+                if (!isActive.containsKey(moveStub)) {
+                    isActive[moveStub] = true
+                    logger.info { "Move with ${moveStub.macAddress} was set to active" }
                 } else {
-                    isActive[it] = ! isActive[it]!!
+                    isActive[moveStub] = ! isActive[moveStub]!!
+                    logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
                 }
-                logger.info { "Click happend to state: $it" }
+
                 updateActiveColors()
             }
 
