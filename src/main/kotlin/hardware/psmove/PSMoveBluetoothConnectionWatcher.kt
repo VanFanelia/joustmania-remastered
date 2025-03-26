@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania.hardware.psmove
 
+import de.vanfanel.joustmania.types.MacAddress
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
 import io.thp.psmove.PSMove
@@ -9,9 +10,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.Thread.sleep
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Object observes the amount of connected psmove controller and publishes the actual set of PSMoveController via flow
+ *
+ * Important! Duo to native Exceptions we do not publish PSMove classes outside this package.
+ * We use the MACAddress as an identifier and if someone outside want to do stuff with a PSMove
+ * PSMoveApi is the entry point / api to call
  */
 object PSMoveBluetoothConnectionWatcher {
     private val logger = KotlinLogging.logger {}
@@ -19,13 +25,14 @@ object PSMoveBluetoothConnectionWatcher {
     private const val PS_MOVE_BLUETOOTH_SCAN_INTERVAL = 2000L
     private var lastCountOfConnectedMoves = 0
 
-    private val _bluetoothConnectedPSMoves: MutableStateFlow<Set<PSMove>> = MutableStateFlow(emptySet())
-    val bluetoothConnectedPSMoves: Flow<Set<PSMove>> = _bluetoothConnectedPSMoves
+    private val _bluetoothConnectedPSMoves: MutableStateFlow<Set<PSMoveStub>> = MutableStateFlow(emptySet())
+    val bluetoothConnectedPSMoves: Flow<Set<PSMoveStub>> = _bluetoothConnectedPSMoves
+
+    private val _psmoveControllerMap: MutableMap<MacAddress, PSMove> = ConcurrentHashMap()
 
     suspend fun startEndlessLoopWithPSMoveConnectionScan() {
         coroutineScope {
             while (true) {
-
                 try {
                     val currentCount = psmoveapi.psmove_count_connected()
                     if (lastCountOfConnectedMoves == currentCount) {
@@ -34,18 +41,22 @@ object PSMoveBluetoothConnectionWatcher {
                         continue
                     }
                     lastCountOfConnectedMoves = currentCount
-                    val moves = mutableSetOf<PSMove>()
+                    val moveStubs = mutableSetOf<PSMoveStub>()
+                    val moves = mutableMapOf<MacAddress, PSMove>()
                     for (i in 0..< currentCount) {
                         val move = PSMove(i)
                         if (move.connection_type == ConnectionType.Conn_USB.swigValue()) {
                             logger.info { "Ignore via usb connected ps move controller with mac: ${move._serial}" }
                             continue
                         }
-                        moves.add(move)
+                        moves[move.getMacAddress()] = move
+                        moveStubs.add(PSMoveStub(macAddress = move.getMacAddress()))
 
                         logger.info { "New move found: ${move.getMacAddress()}" }
                     }
-                    _bluetoothConnectedPSMoves.emit(moves)
+                    _bluetoothConnectedPSMoves.emit(moveStubs)
+                    _psmoveControllerMap.clear()
+                    _psmoveControllerMap.putAll(moves)
                 } catch (e: Exception) {
                     logger.error(e) { "Error while watching for new connected PSMove Hardware via bluetooth" }
                 }
@@ -55,8 +66,16 @@ object PSMoveBluetoothConnectionWatcher {
         }
     }
 
-    fun getCurrentConnectedPSMove(): Set<PSMove> {
+    fun getCurrentConnectedPSMove(): Set<PSMoveStub> {
         return _bluetoothConnectedPSMoves.value
+    }
+
+    fun getMove(address: MacAddress): PSMove? {
+        return _psmoveControllerMap[address]
+    }
+
+    fun getAllMoves(): Set<PSMove> {
+        return _psmoveControllerMap.values.toSet()
     }
 }
 

@@ -1,6 +1,6 @@
 package de.vanfanel.joustmania
 
-import de.vanfanel.joustmania.hardware.psmove.PSMoveBroadcaster
+import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
 import io.ktor.server.application.Application
 import io.ktor.server.response.respondText
@@ -18,7 +18,7 @@ fun Application.configureRouting() {
         }
 
         get("/blink-red") {
-            PSMoveBroadcaster.setAllMoveControllerToRed()
+            PSMoveApi.setAllMoveControllerToRed()
         }
     }
 }

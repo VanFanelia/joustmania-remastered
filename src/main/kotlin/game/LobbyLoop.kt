@@ -1,11 +1,10 @@
 package de.vanfanel.joustmania.game
 
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.psmove.PSMoveBroadcaster
-import de.vanfanel.joustmania.hardware.psmove.buttonPressFlow
+import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
+import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.hardware.psmove.currentColor
 import de.vanfanel.joustmania.hardware.psmove.getMacAddress
-import de.vanfanel.joustmania.hardware.psmove.getTriggerClickFlow
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -28,14 +28,14 @@ object LobbyLoop {
 
     private val lobbyTicker = Ticker(1.seconds)
 
-    private val isActive: MutableMap<PSMove, Boolean> = mutableMapOf()
+    private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
 
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
             lobbyTicker.tick.collect {
                 logger.debug { "Lobby tick tick" }
-                PSMoveBroadcaster.refreshColor()
+                PSMoveApi.refreshColor()
             }
         }
 
@@ -57,11 +57,11 @@ object LobbyLoop {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
                 newMoves.asFlow().flatMapMerge { move ->
                     move.buttonPressFlow.map { buttons -> Pair(move, buttons) }
-                        .onStart { logger.debug { "Move ${move.getMacAddress()} start sending button stuff." } }
-                        .onCompletion { logger.debug { "Move ${move.getMacAddress()} stop sending button stuff." } }
+                        .onStart { logger.debug { "Move ${move.macAddress} start sending button stuff." } }
+                        .onCompletion { logger.debug { "Move ${move.macAddress} stop sending button stuff." } }
                 }
             }.collect {
-                logger.info { "Lobby Move: ${it.first.getMacAddress()} has button press on buttons: ${it.second.toList()}" }
+                logger.info { "Lobby Move: ${it.first.macAddress} has button press on buttons: ${it.second.toList()}" }
             }
         }
 
@@ -69,7 +69,7 @@ object LobbyLoop {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
                 isActive.keys.forEach { oldMove ->
                     // check if move get lost
-                    if (!newMoves.map { move -> move.getMacAddress() }.contains(oldMove.getMacAddress())) {
+                    if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
                         isActive.remove(oldMove)
                     }
                 }
@@ -80,7 +80,7 @@ object LobbyLoop {
         CoroutineScope(Dispatchers.IO).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
                 newMoves.asFlow().flatMapMerge { move ->
-                    move.getTriggerClickFlow().map { move }
+                    move.getTriggerClickFlow.map { move }
                 }
             }.collect {
                 if (!isActive.containsKey(it)) {
@@ -88,6 +88,7 @@ object LobbyLoop {
                 } else {
                     isActive[it] = ! isActive[it]!!
                 }
+                logger.info { "Click happend to state: $it" }
                 updateActiveColors()
             }
 
@@ -96,7 +97,8 @@ object LobbyLoop {
 
     private fun updateActiveColors() {
         isActive.entries.forEach {
-            it.key.currentColor = if(it.value) MoveColor.ORANGE_ACTIVE else MoveColor.ORANGE_INACTIVE
+            val colorToSet = if(it.value) MoveColor.ORANGE_ACTIVE else MoveColor.ORANGE_INACTIVE
+            it.key.setCurrentColor(colorToSet)
         }
     }
 

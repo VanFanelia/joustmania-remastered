@@ -1,10 +1,8 @@
 package de.vanfanel.joustmania.game
 
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.psmove.getMacAddress
-import de.vanfanel.joustmania.hardware.psmove.setNotActivatedInLobbyColor
+import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.thp.psmove.PSMove
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +27,7 @@ object GameStateManager {
     private val _currentGameState: MutableStateFlow<GameState> = MutableStateFlow(GameState.LOBBY)
     val currentGameState: Flow<GameState> = _currentGameState
 
-    private val movesInLobby: MutableMap<String, PSMove> = mutableMapOf()
+    private val movesInLobby: MutableMap<String, PSMoveStub> = mutableMapOf()
 
     private val lobbyLoop = LobbyLoop
 
@@ -48,15 +46,13 @@ object GameStateManager {
         }
     }
 
-    private fun handleConnectedMovesChangeDuringGameStateLobby(newMoves: Set<PSMove>) {
-        val newMovesMacAddresses = newMoves.map { it.getMacAddress() }
+    private fun handleConnectedMovesChangeDuringGameStateLobby(newMoves: Set<PSMoveStub>) {
+        val newMovesMacAddresses = newMoves.map { it.macAddress }
         newMoves.forEach { newMove ->
-            if (!movesInLobby.containsKey(newMove.getMacAddress())) {
-                movesInLobby[newMove.getMacAddress()] = newMove
+            if (!movesInLobby.containsKey(newMove.macAddress)) {
+                movesInLobby[newMove.macAddress] = newMove
                 newMove.setNotActivatedInLobbyColor()
-                newMove.poll()
-                //newMove.startWatchButtons()
-                logger.info { "Added new PSMove controller ${newMove.getMacAddress()} to lobby" }
+                logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
             }
             movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }
         }
