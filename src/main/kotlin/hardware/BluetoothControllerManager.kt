@@ -5,6 +5,7 @@ import de.vanfanel.joustmania.types.BlueToothController
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.PairedDevice
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.hardware.psmove.PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

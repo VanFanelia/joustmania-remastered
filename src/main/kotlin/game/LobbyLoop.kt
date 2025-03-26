@@ -1,11 +1,11 @@
 package de.vanfanel.joustmania.game
 
-import de.vanfanel.joustmania.hardware.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.PSMoveBroadcaster
-import de.vanfanel.joustmania.hardware.buttonPressFlow
-import de.vanfanel.joustmania.hardware.currentColor
-import de.vanfanel.joustmania.hardware.getMacAddress
-import de.vanfanel.joustmania.hardware.getTriggerClickFlow
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBroadcaster
+import de.vanfanel.joustmania.hardware.psmove.buttonPressFlow
+import de.vanfanel.joustmania.hardware.psmove.currentColor
+import de.vanfanel.joustmania.hardware.psmove.getMacAddress
+import de.vanfanel.joustmania.hardware.psmove.getTriggerClickFlow
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging

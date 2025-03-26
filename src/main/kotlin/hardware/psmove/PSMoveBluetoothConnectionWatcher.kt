@@ -1,4 +1,4 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.psmove
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType

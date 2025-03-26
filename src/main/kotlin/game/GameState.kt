@@ -1,8 +1,8 @@
 package de.vanfanel.joustmania.game
 
-import de.vanfanel.joustmania.hardware.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.getMacAddress
-import de.vanfanel.joustmania.hardware.setNotActivatedInLobbyColor
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
+import de.vanfanel.joustmania.hardware.psmove.getMacAddress
+import de.vanfanel.joustmania.hardware.psmove.setNotActivatedInLobbyColor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.PSMove
 import kotlinx.coroutines.CoroutineScope

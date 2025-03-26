@@ -2,9 +2,9 @@ package de.vanfanel.joustmania
 
 import de.vanfanel.joustmania.game.GameStateManager
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
-import de.vanfanel.joustmania.hardware.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.PSMoveButtonObserver
-import de.vanfanel.joustmania.hardware.PSMovePairingManager
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
+import de.vanfanel.joustmania.hardware.psmove.PSMoveButtonObserver
+import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher
 import de.vanfanel.joustmania.os.dependencies.NativeLoader
 import io.github.oshai.kotlinlogging.KotlinLogging

@@ -1,5 +1,6 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.psmove
 
+import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import io.thp.psmove.PSMove

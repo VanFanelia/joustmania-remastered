@@ -1,4 +1,4 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.psmove
 
 import de.vanfanel.joustmania.types.MoveColor
 import io.github.oshai.kotlinlogging.KotlinLogging

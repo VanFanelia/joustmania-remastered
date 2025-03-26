@@ -1,6 +1,6 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.psmove
 
-import de.vanfanel.joustmania.hardware.PSMoveButton.Companion.calculatedPressedButtons
+import de.vanfanel.joustmania.hardware.psmove.PSMoveButton.Companion.calculatedPressedButtons
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -146,4 +146,6 @@ val PSMove.buttonPressFlow: Flow<Set<PSMoveButton>>
         return getPressedButtonFLow(this.getMacAddress()).distinctUntilChanged()
     }
 
-fun PSMove.getTriggerClickFlow(): Flow<Unit> = getClickButtonFlow(this.getMacAddress()).filter { it.contains(PSMoveButton.TRIGGER) }.map { }
+fun PSMove.getTriggerClickFlow(): Flow<Unit> = getClickButtonFlow(this.getMacAddress()).filter { it.contains(
+    PSMoveButton.TRIGGER
+) }.map { }

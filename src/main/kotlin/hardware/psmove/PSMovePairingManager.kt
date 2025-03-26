@@ -1,8 +1,9 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.psmove
 
 
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
 import de.vanfanel.joustmania.hardware.BluetoothCommands.restartBluetooth
+import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
 import de.vanfanel.joustmania.types.PairedDevice
 import io.github.oshai.kotlinlogging.KotlinLogging
