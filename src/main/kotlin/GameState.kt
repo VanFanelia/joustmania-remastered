@@ -1,7 +1,9 @@
-package de.vanfanel.joustmania.game
+package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.lobby.LobbyLoop
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,8 +23,6 @@ enum class GameState {
 object GameStateManager {
 
     private val logger = KotlinLogging.logger {}
-
-    //private val currentGameState: GameState = LOBBY
 
     private val _currentGameState: MutableStateFlow<GameState> = MutableStateFlow(GameState.LOBBY)
     val currentGameState: Flow<GameState> = _currentGameState
@@ -55,6 +55,16 @@ object GameStateManager {
                 logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
             }
             movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }
+        }
+    }
+
+    suspend fun startGame(game: Game) {
+        val currentGameState = _currentGameState.value
+        if (currentGameState == GameState.LOBBY) {
+            _currentGameState.emit(GameState.GAME_STARTING)
+            game.startGameStart()
+        } else {
+            logger.warn { "Cannot start game while another game is running" }
         }
     }
 

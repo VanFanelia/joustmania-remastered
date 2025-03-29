@@ -1,14 +1,20 @@
-package de.vanfanel.joustmania.game
+package de.vanfanel.joustmania.lobby
 
+import de.vanfanel.joustmania.GameState
+import de.vanfanel.joustmania.GameStateManager
+import de.vanfanel.joustmania.games.FreeForAll
+import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
@@ -26,7 +32,11 @@ object LobbyLoop {
     private val lobbyTicker = Ticker(1.seconds)
 
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
-    private val isAdmin: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
+    private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
+
+    private val selectedGame: Game = FreeForAll()
+
+    private val lobbyJobs: MutableSet<Job> = mutableSetOf()
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -42,14 +52,19 @@ object LobbyLoop {
                 logger.info { "Lobby got game state: $newState" }
                 if (newState == GameState.LOBBY && lastGameState != GameState.LOBBY) {
                     lobbyTicker.start()
+                    initLobbyCoroutines()
                 } else {
                     lobbyTicker.stop()
+                    lobbyJobs.forEach { job -> job.cancel() }
                 }
                 lastGameState = newState
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+    }
+
+    private fun initLobbyCoroutines() {
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             // for debug: Observe pressed state
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
                 newMoves.asFlow().flatMapMerge { move ->
@@ -60,19 +75,29 @@ object LobbyLoop {
             }.collect {
                 logger.debug { "Lobby Move: ${it.first.macAddress} has button press on buttons: ${it.second.toList()}" }
             }
-        }
+        })
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moves ->
+                moves.forEach { move ->
+                    if (!isActive.containsKey(move)) {
+                        isActive[move] = false
+                    }
+                }
+            }
+        })
+
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             removeControllerFromLobbyOnDisconnect()
-        }
+        })
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             changeActiveStateOnTriggerClicked()
-        }
+        })
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             changeAdminStateWhen4FrontButtonsGotClicked()
-        }
+        })
     }
 
     private suspend fun changeAdminStateWhen4FrontButtonsGotClicked() {
@@ -81,11 +106,11 @@ object LobbyLoop {
                 move.getSquareCrossTriangleCircleClickFlow.map { move }
             }
         }.collect { moveStub ->
-            if (!isAdmin.containsKey(moveStub)) {
-                isAdmin[moveStub] = true
+            if (!admins.contains(moveStub)) {
+                admins.add(moveStub)
                 logger.info { "Move with ${moveStub.macAddress} granted admin privileges" }
             } else {
-                isAdmin.remove(moveStub)
+                admins.remove(moveStub)
                 logger.info { "Move with ${moveStub.macAddress} lost its admin privileges" }
             }
 
@@ -99,11 +124,15 @@ object LobbyLoop {
                 move.getTriggerClickFlow.map { move }
             }
         }.collect { moveStub ->
-            if (!isActive.containsKey(moveStub)) {
+            if (isActive[moveStub] == false) {
                 isActive[moveStub] = true
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
+                if (isActive.all { it.value }) {
+                    logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
+                    GameStateManager.startGame(selectedGame)
+                }
             } else {
-                isActive[moveStub] = !isActive[moveStub]!!
+                isActive[moveStub] = false
                 logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
             }
 
@@ -116,7 +145,7 @@ object LobbyLoop {
             isActive.keys.forEach { oldMove ->
                 if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
                     isActive.remove(oldMove)
-                    isAdmin.remove(oldMove)
+                    admins.remove(oldMove)
                     logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                 }
             }
@@ -127,7 +156,7 @@ object LobbyLoop {
         isActive.entries.forEach {
 
             val colorToSet = when {
-                isAdmin.containsKey(it.key) -> if (it.value) MoveColor.ADMIN_BLUE_ACTIVE else MoveColor.ADMIN_BLUE_INACTIVE
+                admins.contains(it.key) -> if (it.value) MoveColor.ADMIN_BLUE_ACTIVE else MoveColor.ADMIN_BLUE_INACTIVE
                 it.value -> MoveColor.ORANGE_ACTIVE
                 else -> MoveColor.ORANGE_INACTIVE
             }

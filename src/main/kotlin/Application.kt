@@ -1,6 +1,5 @@
 package de.vanfanel.joustmania
 
-import de.vanfanel.joustmania.game.GameStateManager
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
