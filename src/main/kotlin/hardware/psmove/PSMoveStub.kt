@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.util.Date
 import kotlin.time.Duration.Companion.milliseconds
 
 class PSMoveStub(val macAddress: MacAddress) {
@@ -64,7 +65,7 @@ class PSMoveStub(val macAddress: MacAddress) {
     val buttonPressFlow: Flow<Set<PSMoveButton>>
         get() {
             return _buttonPressedFlow.distinctUntilChanged().onStart {
-                delay(50);
+                delay(50)
                 buttonObserverTicker.start()
             }
         }
@@ -75,6 +76,29 @@ class PSMoveStub(val macAddress: MacAddress) {
         )
     }.map { }
 
+    private val lasClicksTimestamps: MutableMap<PSMoveButton, Long> = mutableMapOf(
+        PSMoveButton.SQUARE to 0L,
+        PSMoveButton.CROSS to 0L,
+        PSMoveButton.TRIANGLE to 0L,
+        PSMoveButton.CIRCLE to 0L,
+        PSMoveButton.MOVE_MENU to 0L,
+        PSMoveButton.PLAYSTATION to 0L,
+        PSMoveButton.START to 0L,
+        PSMoveButton.SELECT to 0L,
+        PSMoveButton.TRIANGLE to 0L,
+    )
+
+    val getSquareCrossTriangleCircleClickFlow: Flow<Unit> = _buttonClickFlow.filter { buttonSet ->
+        val now = Date().time
+        buttonSet.forEach { button ->
+            lasClicksTimestamps[button] = now
+        }
+
+        return@filter (now - (lasClicksTimestamps[PSMoveButton.SQUARE] ?: 0)) < 200 &&
+                (now - (lasClicksTimestamps[PSMoveButton.CROSS] ?: 0)) < 200 &&
+                (now - (lasClicksTimestamps[PSMoveButton.TRIANGLE] ?: 0)) < 200 &&
+                (now - (lasClicksTimestamps[PSMoveButton.CIRCLE] ?: 0)) < 200
+    }.map { }
 
     fun setCurrentColor(colorToSet: MoveColor) {
         PSMoveApi.setColor(macAddress = this.macAddress, colorToSet = colorToSet)
@@ -84,4 +108,14 @@ class PSMoveStub(val macAddress: MacAddress) {
         PSMoveApi.setColor(macAddress = this.macAddress, colorToSet = MoveColor.ORANGE_INACTIVE)
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        return this.macAddress == (other as PSMoveStub).macAddress
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
 }

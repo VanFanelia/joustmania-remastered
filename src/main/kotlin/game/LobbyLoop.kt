@@ -1,14 +1,11 @@
 package de.vanfanel.joustmania.game
 
-import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
-import de.vanfanel.joustmania.hardware.psmove.currentColor
-import de.vanfanel.joustmania.hardware.psmove.getMacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.thp.psmove.PSMove
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,7 +26,7 @@ object LobbyLoop {
     private val lobbyTicker = Ticker(1.seconds)
 
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
-
+    private val isAdmin: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -66,41 +63,75 @@ object LobbyLoop {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
-                isActive.keys.forEach { oldMove ->
-                    // check if move get lost
-                    if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
-                        isActive.remove(oldMove)
-                        logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
-                    }
-                }
-            }
+            removeControllerFromLobbyOnDisconnect()
         }
 
+        CoroutineScope(Dispatchers.IO).launch {
+            changeActiveStateOnTriggerClicked()
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
-            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
-                newMoves.asFlow().flatMapMerge { move ->
-                    move.getTriggerClickFlow.map { move }
-                }
-            }.collect { moveStub ->
-                if (!isActive.containsKey(moveStub)) {
-                    isActive[moveStub] = true
-                    logger.info { "Move with ${moveStub.macAddress} was set to active" }
-                } else {
-                    isActive[moveStub] = ! isActive[moveStub]!!
-                    logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
-                }
-
-                updateActiveColors()
-            }
-
+            changeAdminStateWhen4FrontButtonsGotClicked()
         }
     }
 
-    private fun updateActiveColors() {
+    private suspend fun changeAdminStateWhen4FrontButtonsGotClicked() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+            newMoves.asFlow().flatMapMerge { move ->
+                move.getSquareCrossTriangleCircleClickFlow.map { move }
+            }
+        }.collect { moveStub ->
+            if (!isAdmin.containsKey(moveStub)) {
+                isAdmin[moveStub] = true
+                logger.info { "Move with ${moveStub.macAddress} granted admin privileges" }
+            } else {
+                isAdmin.remove(moveStub)
+                logger.info { "Move with ${moveStub.macAddress} lost its admin privileges" }
+            }
+
+            updateLobbyColorByState()
+        }
+    }
+
+    private suspend fun changeActiveStateOnTriggerClicked() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+            newMoves.asFlow().flatMapMerge { move ->
+                move.getTriggerClickFlow.map { move }
+            }
+        }.collect { moveStub ->
+            if (!isActive.containsKey(moveStub)) {
+                isActive[moveStub] = true
+                logger.info { "Move with ${moveStub.macAddress} was set to active" }
+            } else {
+                isActive[moveStub] = !isActive[moveStub]!!
+                logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
+            }
+
+            updateLobbyColorByState()
+        }
+    }
+
+    private suspend fun removeControllerFromLobbyOnDisconnect() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
+            isActive.keys.forEach { oldMove ->
+                if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
+                    isActive.remove(oldMove)
+                    isAdmin.remove(oldMove)
+                    logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
+                }
+            }
+        }
+    }
+
+    private fun updateLobbyColorByState() {
         isActive.entries.forEach {
-            val colorToSet = if(it.value) MoveColor.ORANGE_ACTIVE else MoveColor.ORANGE_INACTIVE
+
+            val colorToSet = when {
+                isAdmin.containsKey(it.key) -> if (it.value) MoveColor.ADMIN_BLUE_ACTIVE else MoveColor.ADMIN_BLUE_INACTIVE
+                it.value -> MoveColor.ORANGE_ACTIVE
+                else -> MoveColor.ORANGE_INACTIVE
+            }
+
             it.key.setCurrentColor(colorToSet)
         }
     }
