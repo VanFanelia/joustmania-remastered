@@ -2,6 +2,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+    application
 }
 
 group = "de.vanfanel.joustmania"
@@ -11,7 +12,7 @@ application {
     mainClass.set("de.vanfanel.joustmania.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
+    applicationDefaultJvmArgs = listOf("--add-modules=javafx.media,javafx.controls", "-Dio.ktor.development=$isDevelopment", )
 }
 
 kotlin {
@@ -59,4 +60,7 @@ dependencies {
 
     // Logging framework
     implementation ("io.github.oshai:kotlin-logging-jvm:7.0.3")
+
+    // used for sound
+    implementation("javazoom:jlayer:1.0.1")
 }

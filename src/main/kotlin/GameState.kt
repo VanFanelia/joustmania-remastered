@@ -51,7 +51,7 @@ object GameStateManager {
         newMoves.forEach { newMove ->
             if (!movesInLobby.containsKey(newMove.macAddress)) {
                 movesInLobby[newMove.macAddress] = newMove
-                newMove.setNotActivatedInLobbyColor()
+                lobbyLoop.newControllerConnected(newMove)
                 logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
             }
             movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }

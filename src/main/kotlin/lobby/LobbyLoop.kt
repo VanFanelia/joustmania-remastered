@@ -7,6 +7,13 @@ import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.sound.SoundId.ADMIN_GRANTED
+import de.vanfanel.joustmania.sound.SoundId.ADMIN_REVOKED
+import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_DISCONNECTED
+import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_JOINED
+import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_LEFT
+import de.vanfanel.joustmania.sound.SoundId.NEW_CONTROLLER
+import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -28,6 +35,7 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalCoroutinesApi::class)
 object LobbyLoop {
     private val logger = KotlinLogging.logger {}
+    private val soundManager = SoundManager
 
     private val lobbyTicker = Ticker(1.seconds)
 
@@ -65,26 +73,7 @@ object LobbyLoop {
 
     private fun initLobbyCoroutines() {
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
-            // for debug: Observe pressed state
-            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
-                newMoves.asFlow().flatMapMerge { move ->
-                    move.buttonPressFlow.map { buttons -> Pair(move, buttons) }
-                        .onStart { logger.debug { "Move ${move.macAddress} start sending button stuff." } }
-                        .onCompletion { logger.debug { "Move ${move.macAddress} stop sending button stuff." } }
-                }
-            }.collect {
-                logger.debug { "Lobby Move: ${it.first.macAddress} has button press on buttons: ${it.second.toList()}" }
-            }
-        })
-
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
-            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moves ->
-                moves.forEach { move ->
-                    if (!isActive.containsKey(move)) {
-                        isActive[move] = false
-                    }
-                }
-            }
+            observeButtonPressForDebugging()
         })
 
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
@@ -100,6 +89,18 @@ object LobbyLoop {
         })
     }
 
+    private suspend fun observeButtonPressForDebugging() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+            newMoves.asFlow().flatMapMerge { move ->
+                move.buttonPressFlow.map { buttons -> Pair(move, buttons) }
+                    .onStart { logger.debug { "Move ${move.macAddress} start sending button stuff." } }
+                    .onCompletion { logger.debug { "Move ${move.macAddress} stop sending button stuff." } }
+            }
+        }.collect {
+            logger.debug { "Lobby Move: ${it.first.macAddress} has button press on buttons: ${it.second.toList()}" }
+        }
+    }
+
     private suspend fun changeAdminStateWhen4FrontButtonsGotClicked() {
         PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
             newMoves.asFlow().flatMapMerge { move ->
@@ -108,9 +109,11 @@ object LobbyLoop {
         }.collect { moveStub ->
             if (!admins.contains(moveStub)) {
                 admins.add(moveStub)
+                soundManager.addSoundToQueue(ADMIN_GRANTED)
                 logger.info { "Move with ${moveStub.macAddress} granted admin privileges" }
             } else {
                 admins.remove(moveStub)
+                soundManager.addSoundToQueue(ADMIN_REVOKED)
                 logger.info { "Move with ${moveStub.macAddress} lost its admin privileges" }
             }
 
@@ -127,12 +130,14 @@ object LobbyLoop {
             if (isActive[moveStub] == false) {
                 isActive[moveStub] = true
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
+                soundManager.addSoundToQueue(CONTROLLER_JOINED)
                 if (isActive.all { it.value }) {
                     logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
                     GameStateManager.startGame(selectedGame)
                 }
             } else {
                 isActive[moveStub] = false
+                soundManager.addSoundToQueue(CONTROLLER_LEFT)
                 logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
             }
 
@@ -146,6 +151,7 @@ object LobbyLoop {
                 if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
                     isActive.remove(oldMove)
                     admins.remove(oldMove)
+                    soundManager.addSoundToQueue(CONTROLLER_DISCONNECTED)
                     logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                 }
             }
@@ -163,6 +169,14 @@ object LobbyLoop {
 
             it.key.setCurrentColor(colorToSet)
         }
+    }
+
+    fun newControllerConnected(move: PSMoveStub) {
+        if (!isActive.containsKey(move)) {
+            isActive[move] = false
+        }
+        move.setNotActivatedInLobbyColor()
+        soundManager.addSoundToQueue(NEW_CONTROLLER)
     }
 
 
