@@ -13,14 +13,21 @@ import javax.sound.sampled.Clip
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.FloatControl
 import javax.sound.sampled.SourceDataLine
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
+data class SoundQueueEntry(
+    val soundFile: SoundFile,
+    val onSoundFilePlayed: (() -> Unit) = {},
+)
 
 object SoundManager {
     private val logger = KotlinLogging.logger {}
-    private val queue = LinkedBlockingQueue<SoundFile>()
+    private val queue = LinkedBlockingQueue<SoundQueueEntry>()
     private var isPlaying = false
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
 
-    fun addSoundToQueue(id: SoundId) {
+    fun asyncAddSoundToQueue(id: SoundId, onSoundFilePlayed: () -> Unit = {}) {
         val soundFile = getSoundBy(id, locale)
         if (soundFile == null) {
             logger.error { "Cannot find sound with id: $id . No item was added to sound play queue." }
@@ -28,9 +35,15 @@ object SoundManager {
         }
         logger.info { "Adding sound to queue: $id" }
 
-        queue.offer(soundFile)
+        queue.offer(SoundQueueEntry(soundFile = soundFile, onSoundFilePlayed = onSoundFilePlayed))
         if (!isPlaying) {
             playNext()
+        }
+    }
+
+    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId) = suspendCoroutine { continuation ->
+        this.asyncAddSoundToQueue(id = id) {
+            continuation.resume(Unit)
         }
     }
 
@@ -40,8 +53,9 @@ object SoundManager {
             while (queue.isNotEmpty()) {
                 try {
                     val nextSound = queue.poll()
-                    logger.info { "Playing ${nextSound.getWavSoundPath()}" }
-                    playResource(nextSound.getWavSoundPath())
+                    logger.info { "Playing ${nextSound.soundFile.getWavSoundPath()}" }
+                    playResource(nextSound.soundFile.getWavSoundPath())
+                    nextSound.onSoundFilePlayed()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -49,7 +63,6 @@ object SoundManager {
             isPlaying = false
         }
     }
-
 
     private suspend fun playResource(resourcePath: String, deviceIndex: Int = 0) {
         withContext(Dispatchers.IO) {
@@ -90,7 +103,7 @@ object SoundManager {
             val clip = selectedMixer.getLine(info) as Clip
             clip.open(originalAudioInputStream)
             setVolume(clip)
-            logger.debug {("Clip opened successfully. length: ${clip.microsecondLength / 1000} ms")}
+            logger.debug { ("Clip opened successfully. length: ${clip.microsecondLength / 1000} ms") }
 
             clip.start()
             logger.debug { "Clip started successfully." }
@@ -109,7 +122,7 @@ object SoundManager {
     private fun getMixersWithAudioOutput() = AudioSystem.getMixerInfo().filter { mixerInfo ->
         val mixer = AudioSystem.getMixer(mixerInfo)
         val lineInfo = DataLine.Info(SourceDataLine::class.java, null)
-        mixer.isLineSupported(lineInfo) // Prüft, ob der Mixer Ausgabe unterstützt
+        mixer.isLineSupported(lineInfo)
     }
 
     private fun setVolume(clip: Clip, volume: Float = 1.0f) {

@@ -1,8 +1,10 @@
 package de.vanfanel.joustmania.games
 
+import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+
 interface Game {
-
     val name: String
+    val currentPlayingController: MutableSet<PSMoveStub>
 
-    fun startGameStart()
+    suspend fun startGameStart(players: Set<PSMoveStub>)
 }

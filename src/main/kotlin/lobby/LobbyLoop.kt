@@ -109,11 +109,11 @@ object LobbyLoop {
         }.collect { moveStub ->
             if (!admins.contains(moveStub)) {
                 admins.add(moveStub)
-                soundManager.addSoundToQueue(ADMIN_GRANTED)
+                soundManager.asyncAddSoundToQueue(ADMIN_GRANTED)
                 logger.info { "Move with ${moveStub.macAddress} granted admin privileges" }
             } else {
                 admins.remove(moveStub)
-                soundManager.addSoundToQueue(ADMIN_REVOKED)
+                soundManager.asyncAddSoundToQueue(ADMIN_REVOKED)
                 logger.info { "Move with ${moveStub.macAddress} lost its admin privileges" }
             }
 
@@ -129,19 +129,19 @@ object LobbyLoop {
         }.collect { moveStub ->
             if (isActive[moveStub] == false) {
                 isActive[moveStub] = true
+                updateLobbyColorByState()
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
-                soundManager.addSoundToQueue(CONTROLLER_JOINED)
+                soundManager.asyncAddSoundToQueue(CONTROLLER_JOINED)
                 if (isActive.all { it.value }) {
                     logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
-                    GameStateManager.startGame(selectedGame)
+                    GameStateManager.startGame(selectedGame, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys)
                 }
             } else {
                 isActive[moveStub] = false
-                soundManager.addSoundToQueue(CONTROLLER_LEFT)
+                updateLobbyColorByState()
+                soundManager.asyncAddSoundToQueue(CONTROLLER_LEFT)
                 logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
             }
-
-            updateLobbyColorByState()
         }
     }
 
@@ -151,7 +151,7 @@ object LobbyLoop {
                 if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
                     isActive.remove(oldMove)
                     admins.remove(oldMove)
-                    soundManager.addSoundToQueue(CONTROLLER_DISCONNECTED)
+                    soundManager.asyncAddSoundToQueue(CONTROLLER_DISCONNECTED)
                     logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                 }
             }
@@ -162,8 +162,8 @@ object LobbyLoop {
         isActive.entries.forEach {
 
             val colorToSet = when {
-                admins.contains(it.key) -> if (it.value) MoveColor.ADMIN_BLUE_ACTIVE else MoveColor.ADMIN_BLUE_INACTIVE
-                it.value -> MoveColor.ORANGE_ACTIVE
+                admins.contains(it.key) -> if (it.value) MoveColor.VIOLET else MoveColor.VIOLET_INACTIVE
+                it.value -> MoveColor.ORANGE
                 else -> MoveColor.ORANGE_INACTIVE
             }
 
@@ -176,7 +176,7 @@ object LobbyLoop {
             isActive[move] = false
         }
         move.setNotActivatedInLobbyColor()
-        soundManager.addSoundToQueue(NEW_CONTROLLER)
+        soundManager.asyncAddSoundToQueue(NEW_CONTROLLER)
     }
 
 

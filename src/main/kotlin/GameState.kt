@@ -58,14 +58,20 @@ object GameStateManager {
         }
     }
 
-    suspend fun startGame(game: Game) {
+    suspend fun startGame(game: Game, players: Set<PSMoveStub>) {
         val currentGameState = _currentGameState.value
         if (currentGameState == GameState.LOBBY) {
+            CoroutineScope(Dispatchers.IO).launch {
+                game.startGameStart(players = players)
+            }
             _currentGameState.emit(GameState.GAME_STARTING)
-            game.startGameStart()
         } else {
             logger.warn { "Cannot start game while another game is running" }
         }
+    }
+
+    suspend fun setGameRunning() {
+        _currentGameState.emit(GameState.GAME_RUNNING)
     }
 
 }

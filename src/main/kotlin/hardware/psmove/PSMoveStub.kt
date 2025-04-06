@@ -15,12 +15,48 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.util.Date
+import kotlin.math.floor
+import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
+
+data class ColorAnimation(
+    val colorToSet: List<MoveColor>,
+    val durationInMS: Long
+) {
+    fun calculateNextColor(elapsedTime: Long): MoveColor {
+        val relativeElapsedTime = elapsedTime % durationInMS
+        val percentOfTime: Float = relativeElapsedTime.toFloat() / durationInMS.toFloat()
+        val position: Float = percentOfTime * colorToSet.size.toFloat()
+        val lowerIndex = floor(position).toInt()
+        val upperIndex = (lowerIndex + 1) % colorToSet.size
+        val upperWeight: Float = position - lowerIndex
+
+        val redChange: Int = colorToSet[upperIndex].red - colorToSet[lowerIndex].red
+        val newRed = (colorToSet[lowerIndex].red + floor(redChange * upperWeight).toInt()).min(255)
+
+        val greenChange: Int = colorToSet[upperIndex].green - colorToSet[lowerIndex].green
+        val newGreen = (colorToSet[lowerIndex].green + floor(greenChange * upperWeight).toInt()).min(255)
+
+        val blueChange: Int = colorToSet[upperIndex].blue - colorToSet[lowerIndex].blue
+        val newBlue = (colorToSet[lowerIndex].blue + floor(blueChange * upperWeight).toInt()).min(255)
+
+        return MoveColor(red = newRed, green = newGreen, blue = newBlue)
+    }
+}
+
+private fun Int.min(min: Int): Int {
+    return min(this, min)
+}
 
 class PSMoveStub(val macAddress: MacAddress) {
     private val logger = KotlinLogging.logger {}
     private val buttonObserverTicker = Ticker(5.milliseconds)
+    private val colorChangeTicker = Ticker(50.milliseconds)
+    private var colorAnimation: ColorAnimation? = null
+    private var animationStarted: Long = 0
+    private var lastTick: Long = 0
 
     private val buttonsWithPressedState: MutableSet<PSMoveButton> = mutableSetOf()
     private val _buttonPressedFlow: MutableSharedFlow<Set<PSMoveButton>> = MutableSharedFlow(
@@ -48,6 +84,28 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
+            colorChangeTicker.tick.collect {
+                try {
+                    colorAnimation?.let { animation ->
+                        if (lastTick == 0L) {
+                            setCurrentColor(colorToSet = animation.colorToSet.firstOrNull() ?: MoveColor.BLACK, clearAnimation = false)
+                            val now = Instant.now().toEpochMilli()
+                            lastTick = now
+                            animationStarted = now
+                        } else {
+                            val color = animation.calculateNextColor(elapsedTime = lastTick - animationStarted)
+                            setCurrentColor(colorToSet = color, clearAnimation = false)
+                            lastTick = Instant.now().toEpochMilli()
+                        }
+                    }
+                } catch (e: MoveNotFoundException) {
+                    logger.error(e) { "Could not set color animation for $macAddress. start cancel stub" }
+                    cancel()
+                }
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
             _buttonPressedFlow.collect {
                 val oldButtonPressList = buttonsWithPressedState
                 val newButtonPressList = it
@@ -67,6 +125,7 @@ class PSMoveStub(val macAddress: MacAddress) {
             return _buttonPressedFlow.distinctUntilChanged().onStart {
                 delay(50)
                 buttonObserverTicker.start()
+                colorChangeTicker.start()
             }
         }
 
@@ -100,8 +159,17 @@ class PSMoveStub(val macAddress: MacAddress) {
                 (now - (lasClicksTimestamps[PSMoveButton.CIRCLE] ?: 0)) < 200
     }.map { }
 
-    fun setCurrentColor(colorToSet: MoveColor) {
+    fun setCurrentColor(colorToSet: MoveColor, clearAnimation: Boolean = true) {
+        if (clearAnimation) {
+            colorAnimation = null
+            lastTick = 0L
+        }
         PSMoveApi.setColor(macAddress = this.macAddress, colorToSet = colorToSet)
+    }
+
+    fun setColorAnimation(animation: ColorAnimation) {
+        colorAnimation = animation
+        lastTick = 0L
     }
 
     fun setNotActivatedInLobbyColor() {

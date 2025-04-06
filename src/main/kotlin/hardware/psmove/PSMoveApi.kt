@@ -16,6 +16,11 @@ object PSMoveApi {
         PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = MoveColor.RED}
     }
 
+    fun setColorOnAllMoveController(color: MoveColor) {
+        logger.debug { "Setting all move controllers to red" }
+        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = color}
+    }
+
     fun refreshColor() {
         PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.refreshColor() }
     }
