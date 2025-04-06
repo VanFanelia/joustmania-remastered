@@ -1,0 +1,10 @@
+ALL_PLAYERS_READY=All players ready. Start game.
+GAME_MODE_FFA=Game Mode: Free For All
+GAME_MODE_ZOMBIE=Game Mode: Zombie
+GAME_MODE_TODDLERS=Game Mode: Sort Toddlers
+THREE=3
+TWO=two
+ONE=1
+GO=GO!
+GAME_MODE_FFA_EXPLANATION:DE=Eine neue Runde "Jeder gegen Jeden" wird gestartet. Beschütze deinen Controller und versuche gleichzeitig die Controller deiner Gegner zu Beschleunigen. Beschleunigst du zu schnell bist du raus. Der letzte Spieler gewinnt. Alle Bereit? Das spiel startet in:
+GAME_MODE_FFA_EXPLANATION:EN=A new round of "Free for all" is started. Protect your controller and try to accelerate your opponents' controllers at the same time. If you accelerate too quickly, you are out. The last player wins. Everyone ready? The game starts in:
