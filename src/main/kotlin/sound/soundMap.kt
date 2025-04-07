@@ -141,7 +141,7 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
         id = THREE, soundFiles = mapOf(
             EN to SoundFile(
                 language = EN,
-                file = "3",
+                file = "three",
                 localizedText = "3"
             )
         )
@@ -150,7 +150,7 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
         id = TWO, soundFiles = mapOf(
             EN to SoundFile(
                 language = EN,
-                file = "2",
+                file = "two",
                 localizedText = "two"
             )
         )
@@ -159,7 +159,7 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
         id = TWO, soundFiles = mapOf(
             EN to SoundFile(
                 language = EN,
-                file = "1",
+                file = "one",
                 localizedText = "1"
             )
         )

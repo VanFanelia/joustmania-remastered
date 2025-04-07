@@ -58,3 +58,10 @@ Neeed for Install:
 ```
 Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=false" instead of the default of true does (after restarting bluez) eliminate this issue, making it possible to connect controllers without issue, and without compiling my own bluez!
 ```
+
+
+## todos:
+- colored logs
+- save variables in external file
+- select audio output
+- play example file in audio output

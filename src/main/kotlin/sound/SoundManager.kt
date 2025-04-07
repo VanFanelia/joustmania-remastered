@@ -3,6 +3,8 @@ package de.vanfanel.joustmania.sound
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,12 +22,14 @@ data class SoundQueueEntry(
     val soundFile: SoundFile,
     val onSoundFilePlayed: (() -> Unit) = {},
 )
+const val DEFAULT_SOUND_DEVICE_INDEX: Int = 0
 
 object SoundManager {
     private val logger = KotlinLogging.logger {}
     private val queue = LinkedBlockingQueue<SoundQueueEntry>()
     private var isPlaying = false
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
+    private var waitForSoundPlayed: Job? = null
 
     fun asyncAddSoundToQueue(id: SoundId, onSoundFilePlayed: () -> Unit = {}) {
         val soundFile = getSoundBy(id, locale)
@@ -41,7 +45,7 @@ object SoundManager {
         }
     }
 
-    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId) = suspendCoroutine { continuation ->
+    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId, minDelay: Long = 0L) = suspendCoroutine { continuation ->
         this.asyncAddSoundToQueue(id = id) {
             continuation.resume(Unit)
         }
@@ -64,7 +68,7 @@ object SoundManager {
         }
     }
 
-    private suspend fun playResource(resourcePath: String, deviceIndex: Int = 0) {
+    private suspend fun playResource(resourcePath: String, deviceIndex: Int = DEFAULT_SOUND_DEVICE_INDEX) {
         withContext(Dispatchers.IO) {
             val inputStream = javaClass.getResourceAsStream(resourcePath)
 
@@ -108,8 +112,15 @@ object SoundManager {
             clip.start()
             logger.debug { "Clip started successfully." }
 
-
-            delay(clip.microsecondLength / 1000)
+            try {
+                // TODO fix wait for sound play
+                //waitForSoundPlayed = launch { delay(clip.microsecondLength / 1000) }
+                delay(clip.microsecondLength / 1000)
+            }catch (e: InterruptedException) {
+                logger.info { "Interrupted while waiting for player finished current sound play" }
+            } finally {
+                waitForSoundPlayed = null
+            }
             clip.stop()
             logger.debug { "Clip stopped" }
             clip.close()
@@ -130,5 +141,16 @@ object SoundManager {
         val dB = (gainControl.maximum - gainControl.minimum) * volume + gainControl.minimum
         gainControl.value = dB
         logger.debug { "Volume set to: $volume (${gainControl.value} dB)" }
+    }
+
+    fun clearSoundQueue() {
+        logger.info { "Clearing sound queue" }
+        queue.clear()
+    }
+
+    fun stopSoundPlay() {
+        logger.info { "Force stop for sound" }
+        queue.clear()
+        waitForSoundPlayed?.cancel()
     }
 }

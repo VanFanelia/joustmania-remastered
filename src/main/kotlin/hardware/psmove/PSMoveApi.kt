@@ -2,7 +2,13 @@ package de.vanfanel.joustmania.hardware.psmove
 
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
+import de.vanfanel.joustmania.util.withLock
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 
 /**
  * Object sends commands to connected PSMove Controller
@@ -10,15 +16,16 @@ import io.github.oshai.kotlinlogging.KotlinLogging
  */
 object PSMoveApi {
     private val logger = KotlinLogging.logger {}
+    private val globalHardwareLock = Mutex()
 
     fun setAllMoveControllerToRed() {
         logger.debug { "Setting all move controllers to red" }
-        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = MoveColor.RED}
+        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = MoveColor.RED }
     }
 
     fun setColorOnAllMoveController(color: MoveColor) {
         logger.debug { "Setting all move controllers to red" }
-        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = color}
+        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = color }
     }
 
     fun refreshColor() {
@@ -31,7 +38,16 @@ object PSMoveApi {
     }
 
     fun setColor(macAddress: MacAddress, colorToSet: MoveColor) {
-        PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.currentColor = colorToSet
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                withLock(globalHardwareLock) {
+                    PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.currentColor = colorToSet
+                }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to set color. Reason: ${e.message}" }
+        }
+
     }
 }
 

@@ -1,14 +1,16 @@
 package de.vanfanel.joustmania.games
 
-import de.vanfanel.joustmania.hardware.BluetoothCommands
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MoveColor
+import de.vanfanel.joustmania.types.RainbowAnimation
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 
 class FreeForAll: Game {
+    private val logger = KotlinLogging.logger {}
 
     override val name = "FreeForAll"
     override val currentPlayingController: MutableSet<PSMoveStub> = mutableSetOf()
@@ -20,18 +22,22 @@ class FreeForAll: Game {
 
         PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
 
-        /*
-        currentPlayingController.forEach {
-            it.setCurrentColor()
+        currentPlayingController.forEach { player ->
+            player.setColorAnimation(RainbowAnimation)
         }
 
-        PSMoveApi.setBlinkColorToController(players, listOf<MoveColor>(MoveColor.ORANGE_INACTIVE, MoveColor.ORANGE_INACTIVE))
-
         SoundManager.clearSoundQueue()
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GAME_FFA_INTRODUCTION)
+        logger.info { "play explanation..." }
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GAME_MODE_FFA_EXPLANATION)
+        logger.info { "explanation played" }
 
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.Gam)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.THREE)
 
-         */
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.TWO)
+
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.ONE)
+
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GO)
+
     }
 }

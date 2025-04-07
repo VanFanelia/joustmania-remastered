@@ -9,6 +9,7 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId.ADMIN_GRANTED
 import de.vanfanel.joustmania.sound.SoundId.ADMIN_REVOKED
+import de.vanfanel.joustmania.sound.SoundId.ALL_PLAYERS_READY
 import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_DISCONNECTED
 import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_JOINED
 import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_LEFT
@@ -40,9 +41,10 @@ object LobbyLoop {
     private val lobbyTicker = Ticker(1.seconds)
 
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
-    private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
 
+    private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
     private val selectedGame: Game = FreeForAll()
+    private var freezeLobby = false
 
     private val lobbyJobs: MutableSet<Job> = mutableSetOf()
 
@@ -127,6 +129,7 @@ object LobbyLoop {
                 move.getTriggerClickFlow.map { move }
             }
         }.collect { moveStub ->
+            if (freezeLobby) return@collect
             if (isActive[moveStub] == false) {
                 isActive[moveStub] = true
                 updateLobbyColorByState()
@@ -134,6 +137,8 @@ object LobbyLoop {
                 soundManager.asyncAddSoundToQueue(CONTROLLER_JOINED)
                 if (isActive.all { it.value }) {
                     logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
+                    freezeLobby = true
+                    SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(ALL_PLAYERS_READY)
                     GameStateManager.startGame(selectedGame, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys)
                 }
             } else {
