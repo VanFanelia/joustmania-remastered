@@ -23,12 +23,14 @@ import kotlin.time.Duration.Companion.milliseconds
 
 data class ColorAnimation(
     val colorToSet: List<MoveColor>,
-    val durationInMS: Long
+    val durationInMS: Long,
+    val loop: Boolean = true
 ) {
     fun calculateNextColor(elapsedTime: Long): MoveColor {
         val relativeElapsedTime = elapsedTime % durationInMS
         val percentOfTime: Float = relativeElapsedTime.toFloat() / durationInMS.toFloat()
-        val position: Float = percentOfTime * colorToSet.size.toFloat()
+        val positionModifier = if (loop) 0 else 1
+        val position: Float = percentOfTime * (colorToSet.size.toFloat() - positionModifier)
         val lowerIndex = floor(position).toInt()
         val upperIndex = (lowerIndex + 1) % colorToSet.size
         val upperWeight: Float = position - lowerIndex
@@ -87,8 +89,17 @@ class PSMoveStub(val macAddress: MacAddress) {
             colorChangeTicker.tick.collect {
                 try {
                     colorAnimation?.let { animation ->
+                        if (!animation.loop && animationStarted > 0 && Instant.now()
+                                .toEpochMilli() > (animationStarted + animation.durationInMS)
+                        ) {
+                            clearAnimation()
+                            return@collect
+                        }
                         if (lastTick == 0L) {
-                            setCurrentColor(colorToSet = animation.colorToSet.firstOrNull() ?: MoveColor.BLACK, clearAnimation = false)
+                            setCurrentColor(
+                                colorToSet = animation.colorToSet.firstOrNull() ?: MoveColor.BLACK,
+                                clearAnimation = false
+                            )
                             val now = Instant.now().toEpochMilli()
                             lastTick = now
                             animationStarted = now
@@ -159,17 +170,26 @@ class PSMoveStub(val macAddress: MacAddress) {
                 (now - (lasClicksTimestamps[PSMoveButton.CIRCLE] ?: 0)) < 200
     }.map { }
 
+    private fun clearAnimation() {
+        colorAnimation = null
+        lastTick = 0L
+        animationStarted = 0L
+    }
+
     fun setCurrentColor(colorToSet: MoveColor, clearAnimation: Boolean = true) {
         if (clearAnimation) {
-            colorAnimation = null
-            lastTick = 0L
+            clearAnimation()
         }
         PSMoveApi.setColor(macAddress = this.macAddress, colorToSet = colorToSet)
     }
 
     fun setColorAnimation(animation: ColorAnimation) {
+        clearAnimation()
+        PSMoveApi.setColor(
+            macAddress = this.macAddress,
+            colorToSet = animation.colorToSet.firstOrNull() ?: MoveColor.BLACK
+        )
         colorAnimation = animation
-        lastTick = 0L
     }
 
     fun setNotActivatedInLobbyColor() {

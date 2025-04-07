@@ -133,7 +133,7 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
             EN to SoundFile(
                 language = EN,
                 file = "all_players_ready",
-                localizedText = "All players ready. Start game."
+                localizedText = "All players are ready."
             )
         )
     ),

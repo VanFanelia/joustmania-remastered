@@ -51,7 +51,6 @@ object LobbyLoop {
     init {
         CoroutineScope(Dispatchers.IO).launch {
             lobbyTicker.tick.collect {
-                logger.debug { "Lobby tick tick" }
                 PSMoveApi.refreshColor()
             }
         }

@@ -36,7 +36,6 @@ object PSMoveBluetoothConnectionWatcher {
                 try {
                     val currentCount = psmoveapi.psmove_count_connected()
                     if (lastCountOfConnectedMoves == currentCount) {
-                        logger.debug { "no new devices found" }
                         delay(PS_MOVE_BLUETOOTH_SCAN_INTERVAL)
                         continue
                     }

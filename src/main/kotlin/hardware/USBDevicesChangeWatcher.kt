@@ -24,7 +24,6 @@ object USBDevicesChangeWatcher {
         coroutineScope {
             while (true) {
                 try {
-                    logger.debug { "Try to find new connected usb devices" }
                     val process =
                         ProcessBuilder(listOf("lsusb")).start()
 
@@ -50,7 +49,9 @@ object USBDevicesChangeWatcher {
                     }
                     process.waitFor()
 
-                    logger.debug { "Old USB Devices list #${lastFoundDevices.size}, new USB list #${currentDevices.size}" }
+                    if (lastFoundDevices.size != currentDevices.size) {
+                        logger.debug { "Old USB Devices list #${lastFoundDevices.size}, new USB list #${currentDevices.size}" }
+                    }
 
                     if (lastFoundDevices != currentDevices) {
                         lastFoundDevices.clear()

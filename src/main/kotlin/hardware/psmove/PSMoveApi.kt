@@ -6,7 +6,6 @@ import de.vanfanel.joustmania.util.withLock
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 
@@ -17,6 +16,7 @@ import kotlinx.coroutines.sync.Mutex
 object PSMoveApi {
     private val logger = KotlinLogging.logger {}
     private val globalHardwareLock = Mutex()
+    //TODO add mutex for every macAddress()
 
     fun setAllMoveControllerToRed() {
         logger.debug { "Setting all move controllers to red" }

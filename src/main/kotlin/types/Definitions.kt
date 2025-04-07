@@ -38,17 +38,17 @@ data class MoveColor(
 ) {
     companion object {
         val BLACK = MoveColor(0, 0, 0)
-        val RED = MoveColor(255, 1, 1)
-        val RED_INACTIVE = MoveColor(55, 1, 1)
-        val GREEN = MoveColor(1, 255, 1)
-        val GREEN_INACTIVE = MoveColor(1, 22, 1)
+        val RED = MoveColor(255, 0, 0)
+        val RED_INACTIVE = MoveColor(55, 0, 0)
+        val GREEN = MoveColor(0, 255, 0)
+        val GREEN_INACTIVE = MoveColor(0, 22, 0)
         val BLUE = MoveColor(0, 0, 255)
         val BLUE_INACTIVE = MoveColor(0, 0, 63)
         val YELLOW = MoveColor(255, 255, 0)
         val YELLOW_INACTIVE = MoveColor(35, 35, 0)
 
-        val ORANGE = MoveColor(210, 134, 1)
-        val ORANGE_INACTIVE = MoveColor(40, 22, 1)
+        val ORANGE = MoveColor(210, 134, 0)
+        val ORANGE_INACTIVE = MoveColor(40, 22, 0)
         val VIOLET = MoveColor(160, 32, 240)
         val VIOLET_INACTIVE = MoveColor(35, 7, 42)
 

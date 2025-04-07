@@ -4,11 +4,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
+import java.time.Instant
 import java.util.concurrent.LinkedBlockingQueue
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
@@ -20,7 +20,7 @@ import kotlin.coroutines.suspendCoroutine
 
 data class SoundQueueEntry(
     val soundFile: SoundFile,
-    val onSoundFilePlayed: (() -> Unit) = {},
+    val onSoundFilePlayed: suspend () -> Unit = {},
 )
 const val DEFAULT_SOUND_DEVICE_INDEX: Int = 0
 
@@ -31,7 +31,7 @@ object SoundManager {
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
     private var waitForSoundPlayed: Job? = null
 
-    fun asyncAddSoundToQueue(id: SoundId, onSoundFilePlayed: () -> Unit = {}) {
+    fun asyncAddSoundToQueue(id: SoundId, onSoundFilePlayed: suspend () -> Unit = {}) {
         val soundFile = getSoundBy(id, locale)
         if (soundFile == null) {
             logger.error { "Cannot find sound with id: $id . No item was added to sound play queue." }
@@ -46,7 +46,14 @@ object SoundManager {
     }
 
     suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId, minDelay: Long = 0L) = suspendCoroutine { continuation ->
+        val start = Instant.now().toEpochMilli()
         this.asyncAddSoundToQueue(id = id) {
+            val duration = Instant.now().toEpochMilli() - start
+            if (duration < minDelay) {
+                val delay = minDelay - duration
+                logger.debug { "Sound play time was less then minDelay. Add a delay of $delay ms" }
+                delay(minDelay - duration)
+            }
             continuation.resume(Unit)
         }
     }
@@ -127,6 +134,7 @@ object SoundManager {
             originalAudioInputStream.close()
             bufferedInputStream.close()
             inputStream.close()
+            logger.debug { "Cleanup finished" }
         }
     }
 
