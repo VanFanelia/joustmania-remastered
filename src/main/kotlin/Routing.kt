@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.firstOrNull
 
 private val logger = KotlinLogging.logger {}
 fun Application.configureRouting() {
-    // TODO: all routings should talk with PSMoveStub and not with api
-
     routing {
         get("/") {
             call.respondText("Hello World!")
@@ -32,11 +30,6 @@ fun Application.configureRouting() {
             call.respond(HttpStatusCode.NoContent)
         }
 
-        get("/blink-red") {
-            PSMoveApi.setAllMoveControllerToRed()
-            call.respond(HttpStatusCode.NoContent)
-        }
-
         get("/setColor/{color}") {
             val color = call.parameters["color"]
             PSMoveApi.setColorOnAllMoveController(MoveColor.getColorByName(color?.uppercase()))
@@ -44,29 +37,23 @@ fun Application.configureRouting() {
         }
 
         get("/setColorAnimation") {
-            val moves = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
-            moves?.let {
-                it.map { move ->
-                    move.setColorAnimation(RainbowAnimation)
-                }
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()?.map { move ->
+                move.setColorAnimation(RainbowAnimation)
             }
             call.respond(HttpStatusCode.NoContent)
         }
 
         get("/setRedAnimationTest") {
-            val moves = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
-            moves?.let {
-                it.map { move ->
-                    move.setColorAnimation(
-                        ColorAnimation(
-                            colorToSet = listOf(
-                                MoveColor.RED,
-                                MoveColor.RED_INACTIVE
-                            ), durationInMS = 1000,
-                            loop = false
-                        )
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()?.map { move ->
+                move.setColorAnimation(
+                    ColorAnimation(
+                        colorToSet = listOf(
+                            MoveColor.RED,
+                            MoveColor.RED_INACTIVE
+                        ), durationInMS = 1000,
+                        loop = false
                     )
-                }
+                )
             }
             call.respond(HttpStatusCode.NoContent)
         }

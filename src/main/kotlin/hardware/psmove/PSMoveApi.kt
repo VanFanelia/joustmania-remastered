@@ -16,20 +16,24 @@ import kotlinx.coroutines.sync.Mutex
 object PSMoveApi {
     private val logger = KotlinLogging.logger {}
     private val globalHardwareLock = Mutex()
-    //TODO add mutex for every macAddress()
-
-    fun setAllMoveControllerToRed() {
-        logger.debug { "Setting all move controllers to red" }
-        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = MoveColor.RED }
-    }
 
     fun setColorOnAllMoveController(color: MoveColor) {
         logger.debug { "Setting all move controllers to red" }
-        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.currentColor = color }
+        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> setColor(macAddress = move.getMacAddress(), colorToSet = color) }
     }
 
     fun refreshColor() {
-        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move -> move.refreshColor() }
+        PSMoveBluetoothConnectionWatcher.getAllMoves().map { move ->
+            try {
+                CoroutineScope(Dispatchers.IO).launch {
+                    withLock(globalHardwareLock) {
+                        move.refreshColor()
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to set color. Reason: ${e.message}" }
+            }
+        }
     }
 
     fun pollMoveButtons(macAddress: MacAddress): Set<PSMoveButton>? {
@@ -50,6 +54,5 @@ object PSMoveApi {
 
     }
 }
-
 
 class MoveNotFoundException(macAddress: MacAddress) : Exception("PSMove with macAddress $macAddress not found")
