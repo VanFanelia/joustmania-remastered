@@ -4,7 +4,6 @@ import de.vanfanel.joustmania.GameState
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.games.FreeForAll
 import de.vanfanel.joustmania.games.Game
-import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId.ADMIN_GRANTED
@@ -16,7 +15,6 @@ import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_LEFT
 import de.vanfanel.joustmania.sound.SoundId.NEW_CONTROLLER
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MoveColor
-import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.CoroutineScope
@@ -31,14 +29,11 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 object LobbyLoop {
     private val logger = KotlinLogging.logger {}
     private val soundManager = SoundManager
-
-    private val lobbyTicker = Ticker(1.seconds)
 
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
 
@@ -50,20 +45,12 @@ object LobbyLoop {
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            lobbyTicker.tick.collect {
-                PSMoveApi.refreshColor()
-            }
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
             var lastGameState: GameState? = null
             GameStateManager.currentGameState.collect { newState ->
                 logger.info { "Lobby got game state: $newState" }
                 if (newState == GameState.LOBBY && lastGameState != GameState.LOBBY) {
-                    lobbyTicker.start()
                     initLobbyCoroutines()
                 } else {
-                    lobbyTicker.stop()
                     lobbyJobs.forEach { job -> job.cancel() }
                 }
                 lastGameState = newState
@@ -138,7 +125,9 @@ object LobbyLoop {
                     logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
                     freezeLobby = true
                     SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(ALL_PLAYERS_READY)
-                    GameStateManager.startGame(selectedGame, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys)
+                    GameStateManager.startGame(
+                        selectedGame, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
+                    )
                 }
             } else {
                 isActive[moveStub] = false

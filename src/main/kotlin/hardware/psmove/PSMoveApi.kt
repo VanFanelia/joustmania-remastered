@@ -41,6 +41,11 @@ object PSMoveApi {
         return move.pollButtons()
     }
 
+    fun pollMovement(macAddress: MacAddress, oldChange: Double): RawMovingData? {
+        val move = PSMoveBluetoothConnectionWatcher.getMove(macAddress) ?: throw MoveNotFoundException(macAddress)
+        return move.getMovingParameters(oldChange)
+    }
+
     fun setColor(macAddress: MacAddress, colorToSet: MoveColor) {
         try {
             CoroutineScope(Dispatchers.IO).launch {

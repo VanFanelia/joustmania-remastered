@@ -56,6 +56,7 @@ class PSMoveStub(val macAddress: MacAddress) {
     private val logger = KotlinLogging.logger {}
     private val buttonObserverTicker = Ticker(5.milliseconds)
     private val colorChangeTicker = Ticker(50.milliseconds)
+    private val movementObserverTicker = Ticker(5.milliseconds)
     private var colorAnimation: ColorAnimation? = null
     private var animationStarted: Long = 0
     private var lastTick: Long = 0
@@ -70,6 +71,11 @@ class PSMoveStub(val macAddress: MacAddress) {
         extraBufferCapacity = 1
     )
 
+    private val _accelerationFlow: MutableSharedFlow<RawMovingData> = MutableSharedFlow(
+        replay = 0,
+        extraBufferCapacity = 1
+    )
+
     init {
         CoroutineScope(Dispatchers.IO).launch {
             buttonObserverTicker.tick.collect {
@@ -78,6 +84,20 @@ class PSMoveStub(val macAddress: MacAddress) {
                     if (buttonsPressed != null) {
                         _buttonPressedFlow.tryEmit(buttonsPressed)
                     }
+                } catch (e: MoveNotFoundException) {
+                    logger.error(e) { "Could not poll move buttons for $macAddress. start cancel stub" }
+                    cancel()
+                }
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            var oldChange = 0.0
+            movementObserverTicker.tick.collect {
+                try {
+                    val lastMovement = PSMoveApi.pollMovement(macAddress, oldChange) ?: return@collect
+                    oldChange = lastMovement.change
+                    _accelerationFlow.tryEmit(lastMovement)
                 } catch (e: MoveNotFoundException) {
                     logger.error(e) { "Could not poll move buttons for $macAddress. start cancel stub" }
                     cancel()
@@ -137,8 +157,15 @@ class PSMoveStub(val macAddress: MacAddress) {
                 delay(50)
                 buttonObserverTicker.start()
                 colorChangeTicker.start()
+                movementObserverTicker.start()
             }
         }
+
+    val accelerationFlow: Flow<RawMovingData> = _accelerationFlow.onStart {
+        delay(50)
+        colorChangeTicker.start()
+        movementObserverTicker.start()
+    }
 
     val getTriggerClickFlow: Flow<Unit> = _buttonClickFlow.filter {
         it.contains(

@@ -4,8 +4,10 @@ import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.psmove.PSMoveButton.Companion.calculatedPressedButtons
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
+import io.thp.psmove.Frame
 import io.thp.psmove.PSMove
 import kotlinx.coroutines.delay
+import kotlin.math.sqrt
 
 fun PSMove.getMacAddress(): String {
     return this._serial.uppercase()
@@ -48,6 +50,25 @@ fun PSMove.pollButtons(): Set<PSMoveButton>? {
         val buttons = this._buttons
         val trigger = this._trigger
         return calculatedPressedButtons(buttons, trigger)
+    }
+    return null
+}
+
+fun PSMove.getMovingParameters(oldChange: Double): RawMovingData? {
+    val poll = this.poll()
+    if (poll > 0) {
+        val aX = floatArrayOf(0f)
+        val aY = floatArrayOf(0f)
+        val aZ = floatArrayOf(0f)
+        this.get_accelerometer_frame(Frame.Frame_SecondHalf, aX, aY, aZ)
+        val total = sqrt((aX.first() * aX.first() + aY.first() * aY.first() + aZ.first() * aZ.first()).toDouble())
+        return RawMovingData(
+            accelerationX = aX.first(),
+            accelerationY = aY.first(),
+            accelerationZ = aZ.first(),
+            total = total,
+            change = (oldChange * 4 + total) / 5
+        )
     }
     return null
 }
