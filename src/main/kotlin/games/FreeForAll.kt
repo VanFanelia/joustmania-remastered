@@ -3,15 +3,23 @@ package de.vanfanel.joustmania.games
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.hardware.psmove.RUMBLE_HARDEST
+import de.vanfanel.joustmania.hardware.psmove.RUMBLE_MEDIUM
+import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFT
+import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFTEST
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
+import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -21,11 +29,26 @@ class FreeForAll : Game {
     override val name = "FreeForAll"
     override val currentPlayingController: MutableSet<PSMoveStub> = mutableSetOf()
     private val gameJobs: MutableSet<Job> = mutableSetOf()
-    private var gameStarted: Boolean = false
+    private var disconnectedControllerJob: Job? = null
+    private var gameLoopJob: Job? = null
+    private var gameRunning: Boolean = false
+    private val playersLost: MutableSet<MacAddress> = mutableSetOf()
 
-    private val ACCELERATION_WARNING_THRESHOLD = 1.4
-    private val ACCLEERATION_GAME_OVER_THRESHOLD = 1.7
+    companion object {
+        const val ACCELERATION_WARNING_THRESHOLD = 1.4
+        const val ACCELERATION_GAME_OVER_THRESHOLD = 1.7
+    }
 
+    private fun initDisconnectionObserver() {
+        disconnectedControllerJob = CoroutineScope(Dispatchers.IO).launch {
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect{ moves ->
+                moves.forEach { move ->
+                    logger.info { "Move with address: ${move.macAddress} was disconnected. Set Player to game Over" }
+                    playersLost.add(move.macAddress)
+                }
+            }
+        }
+    }
 
     private fun initObservers(currentPlayingController: MutableSet<PSMoveStub>) {
         currentPlayingController.forEach { stub ->
@@ -33,22 +56,83 @@ class FreeForAll : Game {
         }
     }
 
+    override fun cleanUpGame() {
+        gameJobs.forEach { it.cancel("FreeForAll game go cleanup call") }
+        gameLoopJob?.cancel("FreeForAll game go cleanup call")
+        disconnectedControllerJob?.cancel("FreeForAll game go cleanup call")
+    }
+
     private fun observeAcceleration(stub: PSMoveStub): Job {
-        return CoroutineScope(Dispatchers.IO).launch {
+        val currentJob = CoroutineScope(Dispatchers.IO).launch {
             stub.accelerationFlow.collect { acceleration ->
-                if (acceleration.change > 1.2 && gameStarted) {
-                    if (acceleration.change > ACCLEERATION_GAME_OVER_THRESHOLD) {
+                if (acceleration.change > 1.2 && gameRunning && !playersLost.contains(stub.macAddress)) {
+                    if (acceleration.change > ACCELERATION_GAME_OVER_THRESHOLD) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and lost the game" }
+                        PSMoveApi.stopRumble(macAddress = stub.macAddress)
+                        stub.setColorAnimation(
+                            ColorAnimation(
+                                colorToSet = listOf(
+                                    MoveColor.RED, MoveColor.RED_INACTIVE, MoveColor.RED, MoveColor.RED_INACTIVE, MoveColor.BLACK
+                                ), durationInMS = 3000, loop = false
+                            )
+                        )
+                        PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_HARDEST, 3000)
+                        playersLost.add(stub.macAddress)
+                        delay(3100) // add some delay to get sure animation was stopped
+                        stub.setCurrentColor(colorToSet = MoveColor.BLACK)
                     }
                     else if (acceleration.change > ACCELERATION_WARNING_THRESHOLD) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and got a warning" }
+                        PSMoveApi.stopRumble(macAddress = stub.macAddress)
+                        PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_MEDIUM, 1000)
+                        stub.setColorAnimation(
+                            ColorAnimation(
+                                colorToSet = listOf(
+                                    MoveColor.ORANGE, MoveColor.MAGENTA
+                                ), durationInMS = 1000, loop = false
+                            )
+                        )
                     }
                 }
             }
         }
+        return currentJob
+    }
+
+    override suspend fun checkForGameFinished() {
+        val allPlayers = currentPlayingController.map { stub -> stub.macAddress }.toSet()
+
+        if (allPlayers.size - playersLost.size == 1) {
+            gameRunning = false
+            val winner = (allPlayers - playersLost).first()
+            playWinnerAnimationAndChangeGameState(winner)
+            return
+        }
+
+        // should not happen, only if in 5ms every remaining players was defeated
+        if (allPlayers == playersLost) {
+            gameRunning = false
+            val winner = playersLost.last()
+            playWinnerAnimationAndChangeGameState(winner)
+            return
+        }
+    }
+
+    private suspend fun playWinnerAnimationAndChangeGameState(winner: MacAddress) {
+        GameStateManager.setGameFinishing()
+        SoundManager.stopSoundPlay()
+        cleanUpGame()
+        val winnerStub = currentPlayingController.find { it.macAddress == winner }
+        winnerStub?.setColorAnimation(animation = RainbowAnimation)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.PLAYER_WIN, minDelay = 16000L)
+        winnerStub?.clearAnimation()
+        PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
+        delay(1000)
+        GameStateManager.setGameFinished()
     }
 
     override suspend fun startGameStart(players: Set<PSMoveStub>) {
+        initDisconnectionObserver()
         delay(100) // give lobby some time to kill all jobs
         currentPlayingController.clear()
         currentPlayingController += players
@@ -65,7 +149,7 @@ class FreeForAll : Game {
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GAME_MODE_FFA_EXPLANATION)
         logger.info { "explanation played" }
 
-        PSMoveApi.setColorOnAllMoveController(MoveColor.RED)
+        PSMoveApi.setColor(moves = currentPlayingController.map { it.macAddress }.toSet(), color = MoveColor.RED)
         currentPlayingController.forEach { player ->
             player.setColorAnimation(
                 ColorAnimation(
@@ -75,9 +159,9 @@ class FreeForAll : Game {
                 )
             )
         }
+        PSMoveApi.rumble(moves = currentPlayingController.map { it.macAddress }.toSet(), intensity = RUMBLE_SOFTEST, durationInMs = 200)
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.THREE, 1000L)
 
-        PSMoveApi.setColorOnAllMoveController(MoveColor.RED)
         currentPlayingController.forEach { player ->
             player.setColorAnimation(
                 ColorAnimation(
@@ -87,6 +171,7 @@ class FreeForAll : Game {
                 )
             )
         }
+        PSMoveApi.rumble(moves = currentPlayingController.map { it.macAddress }.toSet(), intensity = RUMBLE_SOFT, durationInMs = 200)
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.TWO, 1000L)
 
         currentPlayingController.forEach { player ->
@@ -98,6 +183,7 @@ class FreeForAll : Game {
                 )
             )
         }
+        PSMoveApi.rumble(moves = currentPlayingController.map { it.macAddress }.toSet(), intensity = RUMBLE_MEDIUM, durationInMs = 200)
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.ONE, 1000L)
 
         currentPlayingController.forEach { player ->
@@ -105,7 +191,7 @@ class FreeForAll : Game {
         }
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GO)
 
-        this.gameStarted = true
+        this.gameRunning = true
         GameStateManager.setGameRunning()
     }
 }

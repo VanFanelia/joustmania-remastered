@@ -7,4 +7,8 @@ interface Game {
     val currentPlayingController: MutableSet<PSMoveStub>
 
     suspend fun startGameStart(players: Set<PSMoveStub>)
+
+    suspend fun checkForGameFinished()
+
+    fun cleanUpGame()
 }

@@ -197,7 +197,7 @@ class PSMoveStub(val macAddress: MacAddress) {
                 (now - (lasClicksTimestamps[PSMoveButton.CIRCLE] ?: 0)) < 200
     }.map { }
 
-    private fun clearAnimation() {
+    fun clearAnimation() {
         colorAnimation = null
         lastTick = 0L
         animationStarted = 0L

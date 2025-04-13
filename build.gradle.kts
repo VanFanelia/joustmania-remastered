@@ -48,8 +48,7 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.core)
-    testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
+
 
     // dbus library to talk to bluetooth adapter
     implementation("com.github.hypfvieh:dbus-java-core:5.1.0")
@@ -63,4 +62,16 @@ dependencies {
 
     // used for sound
     implementation("javazoom:jlayer:1.0.1")
+
+    // for tests:
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:2.1.10")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+    testImplementation(libs.ktor.server.test.host)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

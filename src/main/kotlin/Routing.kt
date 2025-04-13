@@ -64,5 +64,14 @@ fun Application.configureRouting() {
             logger.info { "explanation played" }
             call.respond(HttpStatusCode.Accepted)
         }
+
+        get("/rumble/{intensity}") {
+            logger.info { "Rumble all move controller" }
+            val intensity = call.parameters["intensity"]?.toIntOrNull() ?: 0
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()?.map { move ->
+                PSMoveApi.rumble(macAddress = move.macAddress, intensity = intensity )
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
     }
 }

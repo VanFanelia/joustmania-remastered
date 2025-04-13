@@ -7,3 +7,7 @@ GET http://localhost:8080/setColorAnimation
 
 ### test color animation without loop
 GET http://localhost:8080/setRedAnimationTest
+
+
+### test rumble
+GET http://localhost:8080/rumble/255

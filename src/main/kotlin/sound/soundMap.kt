@@ -56,7 +56,8 @@ enum class SoundId {
     TWO,
     ONE,
     GO,
-    GAME_MODE_FFA_EXPLANATION
+    GAME_MODE_FFA_EXPLANATION,
+    PLAYER_WIN
 }
 
 private val soundMap: Map<SoundId, Sound> = mapOf(
@@ -184,6 +185,15 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
                 language = DE,
                 file = "game_mode_ffa_explanation",
                 localizedText = """Eine neue Runde "Jeder gegen Jeden" wird gestartet. Beschütze deinen Controller und versuche gleichzeitig die Controller deiner Gegner zu Beschleunigen. Beschleunigst du zu schnell bist du raus. Der letzte Spieler gewinnt. Alle Bereit? Das spiel startet in:"""
+            )
+        )
+    ),
+    PLAYER_WIN to Sound(
+        id = PLAYER_WIN, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "go",
+                localizedText = "go"
             )
         )
     )
