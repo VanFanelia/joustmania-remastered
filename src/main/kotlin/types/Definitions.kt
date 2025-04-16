@@ -47,11 +47,6 @@ data class MoveColor(
         val YELLOW = MoveColor(255, 255, 0)
         val YELLOW_INACTIVE = MoveColor(35, 35, 0)
 
-        val ORANGE = MoveColor(210, 134, 0)
-        val ORANGE_INACTIVE = MoveColor(40, 22, 0)
-        val VIOLET = MoveColor(160, 32, 240)
-        val VIOLET_INACTIVE = MoveColor(35, 7, 42)
-
         val LIGHT_BLUE = MoveColor(45, 121, 254)
         val LIGHT_BLUE_INACTIVE = MoveColor(8, 20, 55)
 
@@ -61,6 +56,24 @@ data class MoveColor(
         val MAGENTA = MoveColor(255, 0, 255)
         val MAGENTA_INACTIVE = MoveColor(35, 0, 35)
 
+        val WHITE = MoveColor(255, 255, 255)
+        val WHITE_INACTIVE = MoveColor(45, 45, 45)
+
+        val ORANGE = MoveColor(255, 128, 0)
+        val ORANGE_INACTIVE = MoveColor(40, 22, 0)
+
+        val VIOLET = MoveColor(127, 0, 255)
+        val VIOLET_INACTIVE = MoveColor(20, 0, 42)
+
+        val LIME = MoveColor(128, 255, 0)
+        val LIME_INACTIVE = MoveColor(20, 42, 0)
+
+        val PINK = MoveColor(255, 153, 153)
+        val PINK_INACTIVE = MoveColor(45, 32, 32)
+
+        /* to near to aqua */
+        val PASTEL_GREEN = MoveColor(0, 255, 128)
+        val PASTEL_GREEN_INACTIVE = MoveColor(0, 45, 30)
 
         fun getColorByName(name: String?): MoveColor {
             return when (name) {
@@ -87,6 +100,18 @@ data class MoveColor(
 
                 "MAGENTA" -> MAGENTA
                 "MAGENTA_INACTIVE" -> MAGENTA_INACTIVE
+
+                "WHITE" -> WHITE
+                "WHITE_INACTIVE" -> WHITE_INACTIVE
+
+                "LIME" -> LIME
+                "LIME_INACTIVE" -> LIME_INACTIVE
+
+                "PINK" -> PINK
+                "PINK_INACTIVE" -> PINK_INACTIVE
+
+                "PASTEL_GREEN" -> PASTEL_GREEN
+                "PASTEL_GREEN_INACTIVE" -> PASTEL_GREEN_INACTIVE
                 else -> {
                     BLACK
                 }

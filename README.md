@@ -65,7 +65,7 @@ Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=f
 - add winner sounds to ffa game
 - add players death sound
 - fixing lobby when game was over
-
+- fixing bug of dying players are red with touch of black instead of complete black
 
 - colored logs
 - save variables in external file

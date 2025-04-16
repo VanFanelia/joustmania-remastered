@@ -27,6 +27,14 @@ data class ColorAnimation(
     val loop: Boolean = true
 ) {
     fun calculateNextColor(elapsedTime: Long): MoveColor {
+        if (colorToSet.isEmpty()) {
+            return MoveColor.BLACK
+        }
+
+        if (colorToSet.size == 1) {
+            return colorToSet.first()
+        }
+
         val relativeElapsedTime = elapsedTime % durationInMS
         val percentOfTime: Float = relativeElapsedTime.toFloat() / durationInMS.toFloat()
         val positionModifier = if (loop) 0 else 1

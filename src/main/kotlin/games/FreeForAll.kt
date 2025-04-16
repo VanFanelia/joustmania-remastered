@@ -33,11 +33,28 @@ class FreeForAll : Game {
     private var gameLoopJob: Job? = null
     private var gameRunning: Boolean = false
     private val playersLost: MutableSet<MacAddress> = mutableSetOf()
+    private val playerColors: MutableMap<MacAddress, MoveColor> = mutableMapOf()
 
     companion object {
         const val ACCELERATION_WARNING_THRESHOLD = 1.4
-        const val ACCELERATION_GAME_OVER_THRESHOLD = 1.7
+        const val ACCELERATION_GAME_OVER_THRESHOLD = 1.8
+
+        val listOfPlayerColors = listOf(
+            MoveColor.BLUE,
+            MoveColor.YELLOW,
+            MoveColor.GREEN,
+            MoveColor.MAGENTA,
+            MoveColor.AQUA,
+            MoveColor.LIME,
+            MoveColor.VIOLET,
+            MoveColor.PINK,
+            MoveColor.LIGHT_BLUE,
+        )
+
+        val defaultPlayerColor = MoveColor.WHITE
     }
+
+    private fun getMoveColor(stub: PSMoveStub): MoveColor = playerColors[stub.macAddress] ?: defaultPlayerColor
 
     private fun initDisconnectionObserver() {
         disconnectedControllerJob = CoroutineScope(Dispatchers.IO).launch {
@@ -88,7 +105,7 @@ class FreeForAll : Game {
                         stub.setColorAnimation(
                             ColorAnimation(
                                 colorToSet = listOf(
-                                    MoveColor.ORANGE, MoveColor.MAGENTA
+                                    MoveColor.ORANGE, getMoveColor(stub)
                                 ), durationInMS = 1000, loop = false
                             )
                         )
@@ -137,6 +154,13 @@ class FreeForAll : Game {
         currentPlayingController.clear()
         currentPlayingController += players
         initObservers(currentPlayingController)
+
+        // set player colors
+        currentPlayingController.forEachIndexed { index, player ->
+            val color = listOfPlayerColors[index % listOfPlayerColors.size]
+            player.setCurrentColor(color)
+            playerColors[player.macAddress] = color
+        }
 
         PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
 
@@ -187,7 +211,7 @@ class FreeForAll : Game {
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.ONE, 1000L)
 
         currentPlayingController.forEach { player ->
-            player.setCurrentColor(MoveColor.MAGENTA)
+            player.setCurrentColor(colorToSet = getMoveColor(player))
         }
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GO)
 

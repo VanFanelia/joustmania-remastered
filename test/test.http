@@ -11,3 +11,19 @@ GET http://localhost:8080/setRedAnimationTest
 
 ### test rumble
 GET http://localhost:8080/rumble/255
+
+
+### test set Color
+GET http://localhost:8080/setColor/pastel_green
+
+### test set Color
+GET http://localhost:8080/setColor/light_blue
+
+### test set Color
+GET http://localhost:8080/setColor/aqua
+
+### test set Color
+GET http://localhost:8080/setColor/green
+
+### test set Color
+GET http://localhost:8080/setColor/blue
