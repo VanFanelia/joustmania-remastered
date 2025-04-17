@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
@@ -9,6 +10,7 @@ import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.response.respond
@@ -72,6 +74,11 @@ fun Application.configureRouting() {
                 PSMoveApi.rumble(macAddress = move.macAddress, intensity = intensity )
             }
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        get("/accelerations") {
+            val json = AccelerationDebugger.getHistoryAsJson()
+            call.respondText(json, contentType = ContentType.Application.Json)
         }
     }
 }

@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     application
+    kotlin("plugin.serialization") version libs.versions.kotlin.version.get()
 }
 
 group = "de.vanfanel.joustmania"
@@ -62,6 +63,9 @@ dependencies {
 
     // used for sound
     implementation("javazoom:jlayer:1.0.1")
+
+    // JSON
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // for tests:
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")

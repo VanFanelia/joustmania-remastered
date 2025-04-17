@@ -27,3 +27,7 @@ GET http://localhost:8080/setColor/green
 
 ### test set Color
 GET http://localhost:8080/setColor/blue
+
+
+### test acceleration
+GET http://localhost:8080/accelerations

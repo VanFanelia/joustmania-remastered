@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
@@ -30,6 +31,9 @@ fun main() {
     val hardwareController = PSMovePairingManager
     val gameStateManager = GameStateManager
     val lightRefresher = PSMoveLightRefresher
+
+    // TODO only activate acceleration debugger in debug mode?
+    val accelerationDebugger = AccelerationDebugger
 
     CoroutineScope(Dispatchers.IO).launch {
         usbDevicesChangeWatcher.startEndlessLoopWithUSBDevicesScan()
