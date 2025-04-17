@@ -1,33 +1,29 @@
 ### play sound test
-GET http://localhost:8080/playsoundtest
+GET http://localhost:8080/api/playsoundtest
 
 ### start color animation for all controllers
-GET http://localhost:8080/setColorAnimation
-
+GET http://localhost:8080/api/setColorAnimation
 
 ### test color animation without loop
-GET http://localhost:8080/setRedAnimationTest
-
+GET http://localhost:8080/api/setRedAnimationTest
 
 ### test rumble
-GET http://localhost:8080/rumble/255
-
-
-### test set Color
-GET http://localhost:8080/setColor/pastel_green
+GET http://localhost:8080/api/rumble/255
 
 ### test set Color
-GET http://localhost:8080/setColor/light_blue
+GET http://localhost:8080/api/setColor/pastel_green
 
 ### test set Color
-GET http://localhost:8080/setColor/aqua
+GET http://localhost:8080/api/setColor/light_blue
 
 ### test set Color
-GET http://localhost:8080/setColor/green
+GET http://localhost:8080/api/setColor/aqua
 
 ### test set Color
-GET http://localhost:8080/setColor/blue
+GET http://localhost:8080/api/setColor/green
 
+### test set Color
+GET http://localhost:8080/api/setColor/blue
 
 ### test acceleration
-GET http://localhost:8080/accelerations
+GET http://localhost:8080/api/accelerations
