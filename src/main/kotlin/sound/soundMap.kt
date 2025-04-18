@@ -57,7 +57,19 @@ enum class SoundId {
     ONE,
     GO,
     GAME_MODE_FFA_EXPLANATION,
-    PLAYER_WIN
+    AQUA_WINS,
+    BLACK_WINS,
+    BLUE_WINS,
+    GREEN_WINS,
+    LIGHT_BLUE_WINS,
+    LIME_WINS,
+    MAGENTA_WINS,
+    ORANGE_WINS,
+    PINK_WINS,
+    RED_WINS,
+    VIOLET_WINS,
+    WHITE_WINS,
+    YELLOW_WINS,
 }
 
 private val soundMap: Map<SoundId, Sound> = mapOf(
@@ -188,15 +200,123 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
             )
         )
     ),
-    PLAYER_WIN to Sound(
-        id = PLAYER_WIN, soundFiles = mapOf(
+    AQUA_WINS to Sound(
+        id = AQUA_WINS, soundFiles = mapOf(
             EN to SoundFile(
                 language = EN,
-                file = "go",
-                localizedText = "go"
+                file = "aqua_wins",
+                localizedText = """player "aqua" wins!"""
             )
         )
-    )
+    ),
+    BLACK_WINS to Sound(
+        id = BLACK_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "black_wins",
+                localizedText = """player "black" wins!"""
+            )
+        )
+    ),
+    BLUE_WINS to Sound(
+        id = BLACK_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "blue_wins",
+                localizedText = """player "blue" wins!"""
+            )
+        )
+    ),
+    GREEN_WINS to Sound(
+        id = GREEN_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "green_wins",
+                localizedText = """player "green" wins!"""
+            )
+        )
+    ),
+    LIGHT_BLUE_WINS to Sound(
+        id = LIGHT_BLUE_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "light_blue_wins",
+                localizedText = """player "light blue" wins!"""
+            )
+        )
+    ),
+    LIME_WINS to Sound(
+        id = LIME_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "lime_wins",
+                localizedText = """player "lime" wins!"""
+            )
+        )
+    ),
+    MAGENTA_WINS to Sound(
+        id = MAGENTA_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "magenta_wins",
+                localizedText = """player "magenta" wins!"""
+            )
+        )
+    ),
+    ORANGE_WINS to Sound(
+        id = ORANGE_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "orange_wins",
+                localizedText = """player "orange" wins!"""
+            )
+        )
+    ),
+    PINK_WINS to Sound(
+        id = PINK_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "pink_wins",
+                localizedText = """player "pink" wins!"""
+            )
+        )
+    ),
+    RED_WINS to Sound(
+        id = RED_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "red_wins",
+                localizedText = """player "red" wins!"""
+            )
+        )
+    ),
+    VIOLET_WINS to Sound(
+        id = VIOLET_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "violet_wins",
+                localizedText = """player "violet" wins!"""
+            )
+        )
+    ),
+    WHITE_WINS to Sound(
+        id = WHITE_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "white_wins",
+                localizedText = """player "white" wins!"""
+            )
+        )
+    ),
+    YELLOW_WINS to Sound(
+        id = YELLOW_WINS, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "yellow_wins",
+                localizedText = """player "yellow" wins!"""
+            )
+        )
+    ),
 )
 
 fun getSoundBy(id: SoundId, locale: SupportedSoundLocale): SoundFile? {
