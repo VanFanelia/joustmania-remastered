@@ -29,7 +29,7 @@ data class StubAcceleration(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 object AccelerationDebugger {
-    private const val HISTORY_LENGTH = 1000
+    private const val HISTORY_LENGTH = 333
 
     private var accelerationDebuggerJob: Job? = null
     private val accelerationHistory: MutableMap<MacAddress, FixedSizeQueue<Pair<Long, Double>>> = mutableMapOf()

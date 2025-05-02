@@ -61,7 +61,6 @@ function App() {
     async function fetchJSON() {
         const response = await fetch("http://localhost:8080/api/accelerations")
         const jsonData = await response.json()
-        console.log(jsonData)
         return jsonData
     }
 
@@ -70,7 +69,6 @@ function App() {
         let minTimeStamp = 9999999999999
         let maxTimeStamp = 0
         rawHttpJSON.forEach((entry) => {
-            console.log(entry)
             if (Boolean(entry) && Boolean(entry.accelerations) && entry.accelerations.length > 0) {
                 const label = (Boolean(entry.colorName)) ? `${entry.colorName} (${entry.mac})` : entry.mac
 
