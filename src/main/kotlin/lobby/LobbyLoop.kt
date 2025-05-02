@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
@@ -38,7 +39,7 @@ object LobbyLoop {
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
 
     private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
-    private val selectedGame: Game = FreeForAll()
+    private var selectedGame: Game? = null
     private var freezeLobby = false
 
     private val lobbyJobs: MutableSet<Job> = mutableSetOf()
@@ -49,9 +50,13 @@ object LobbyLoop {
             GameStateManager.currentGameState.collect { newState ->
                 logger.info { "Lobby got game state: $newState" }
                 if (newState == GameState.LOBBY && lastGameState != GameState.LOBBY) {
+                    freezeLobby = false
+                    selectedGame = null
                     initLobbyCoroutines()
                 } else {
                     lobbyJobs.forEach { job -> job.cancel() }
+                    admins.clear()
+                    isActive.clear()
                 }
                 lastGameState = newState
             }
@@ -69,6 +74,12 @@ object LobbyLoop {
         })
 
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+            val connectedPSMoves = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
+            connectedPSMoves?.forEach { moveStub ->
+                isActive[moveStub] = false
+                moveStub.setNotActivatedInLobbyColor()
+            }
+
             changeActiveStateOnTriggerClicked()
         })
 
@@ -122,12 +133,18 @@ object LobbyLoop {
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
                 soundManager.asyncAddSoundToQueue(CONTROLLER_JOINED)
                 if (isActive.all { it.value }) {
-                    logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
-                    freezeLobby = true
-                    SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(ALL_PLAYERS_READY)
-                    GameStateManager.startGame(
-                        selectedGame, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
-                    )
+                    if (selectedGame == null) {
+                        selectedGame = FreeForAll()
+                    }
+                    selectedGame?.let { game ->
+                        logger.info { "All moves are ready. Start game: ${game.name}" }
+                        freezeLobby = true
+                        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(ALL_PLAYERS_READY)
+                        GameStateManager.startGame(
+                            game, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
+                        )
+                    }
+
                 }
             } else {
                 isActive[moveStub] = false
