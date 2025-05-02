@@ -3,12 +3,15 @@ import './App.css'
 import {Chart as ChartJS, registerables} from 'chart.js';
 import {Line} from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayIcon from '@mui/icons-material/PlayCircle';
 
 ChartJS.register(...registerables);
 
 function App() {
     const [rawHttpJSON, setRawHttpJSON] = useState<any[]>([])
     const [chartData, setChartData] = useState<{ labels: any, datasets: any } | null>(null)
+    const [pauseChart, setPauseChart] = useState<boolean>(false)
 
     const colors: string[] = [
         "#0066CC",
@@ -45,18 +48,20 @@ function App() {
         if (macToColor.has(mac)) {
             return macToColor.get(mac)!
         }
-        const newColor = colors[macToColor.size % colors.length ]
+        const newColor = colors[macToColor.size % colors.length]
         macToColor.set(mac, newColor)
         return newColor
     }
 
     useEffect(() => {
         const interval = setInterval(() => {
-            fetchJSON().then((result) => setRawHttpJSON(result)).catch(console.error)
+            if (!pauseChart) {
+                fetchJSON().then((result) => setRawHttpJSON(result)).catch(console.error)
+            }
         }, 2000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [pauseChart]);
 
     async function fetchJSON() {
         const response = await fetch("http://localhost:8080/api/accelerations")
@@ -99,6 +104,13 @@ function App() {
         })
     }, [rawHttpJSON]);
 
+    function stopChartUpdates() {
+        setPauseChart(true)
+    }
+
+    function startChartUpdates() {
+        setPauseChart(false)
+    }
 
     const options = {
         animation: {
@@ -137,6 +149,11 @@ function App() {
                 },
             },
         },
+        elements: {
+            point: {
+                radius: 2,
+            },
+        },
         transitions: {
             active: {
                 animation: {
@@ -155,7 +172,23 @@ function App() {
 
     return (
         <>
-            <h1 className="mb-8">Debug Move controller</h1>
+            <h1 className="mb-2">Debug Move controller</h1>
+
+            <div className="card mb-4 flex flex-row justify-center">
+
+                {pauseChart ? (
+                    <button className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
+                            onClick={startChartUpdates}>
+                        <PlayIcon className={"text-lg mr-4"}/>
+                        <span className={"text-lg"}>Play</span>
+                    </button>) : (
+                    <button className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
+                            onClick={stopChartUpdates}>
+                        <PauseIcon className={"text-lg mr-4"}/>
+                        <span className={"text-lg"}>Pause</span>
+                    </button>)}
+
+            </div>
 
             {(chartData != null && chartData.datasets.length > 0) &&
                 <div className={"min-w-full"}>
