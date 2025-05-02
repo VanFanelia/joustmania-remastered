@@ -13,7 +13,7 @@ application {
     mainClass.set("de.vanfanel.joustmania.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("--add-modules=javafx.media,javafx.controls", "-Dio.ktor.development=$isDevelopment", )
+    applicationDefaultJvmArgs = listOf("--add-modules=javafx.media,javafx.controls", "-Dio.ktor.development=$isDevelopment" )
 }
 
 kotlin {
@@ -48,8 +48,9 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
-    implementation(libs.ktor.server.core)
 
+    // Cors for KTOR
+    implementation("io.ktor:ktor-server-cors:2.3.4")
 
     // dbus library to talk to bluetooth adapter
     implementation("com.github.hypfvieh:dbus-java-core:5.1.0")

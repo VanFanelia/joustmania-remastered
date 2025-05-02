@@ -19,10 +19,12 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.flow.firstOrNull
+import test.JSON_EXAMPLE_ONE
 
 
 private val logger = KotlinLogging.logger {}
-fun Application.configureRouting() {
+fun Application
+    .configureRouting() {
     // add base path// add base path
     routing {
         route("/api") {
@@ -83,6 +85,11 @@ fun Application.configureRouting() {
             get("/accelerations") {
                 val json = AccelerationDebugger.getHistoryAsJson()
                 call.respondText(json, contentType = ContentType.Application.Json)
+            }
+
+            get("/accelerationsTest") {
+                val jsonFromFile = JSON_EXAMPLE_ONE
+                call.respondText(text = jsonFromFile, contentType = ContentType.Application.Json)
             }
         }
     }
