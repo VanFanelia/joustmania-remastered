@@ -57,7 +57,7 @@ dependencies {
     implementation("com.github.hypfvieh:dbus-java-transport-native-unixsocket:5.1.0")
 
     // generated latest psmoveapi.jar
-    implementation(files("libs/psmoveapi.jar"))
+    implementation(files("lib/psmoveapi.jar"))
 
     // Logging framework
     implementation ("io.github.oshai:kotlin-logging-jvm:7.0.3")

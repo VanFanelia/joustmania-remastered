@@ -1,5 +1,8 @@
 # ignore libs
-libs/
+backup/
+
+# ignore build results
+packages/
 
 ## kotlin and java stuff
 

@@ -1,9 +1,9 @@
 package de.vanfanel.joustmania.hardware.psmove
 
 
-import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
 import de.vanfanel.joustmania.hardware.BluetoothCommands.restartBluetooth
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
+import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
 import de.vanfanel.joustmania.types.PairedDevice
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,7 +24,6 @@ object PSMovePairingManager {
 
     private val logger = KotlinLogging.logger {}
     private val pairedMoveController = mutableSetOf<PairedDevice>()
-    private var lastCountOfConnectedMoves = 0
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -40,46 +39,45 @@ object PSMovePairingManager {
                 logger.debug { "new usb devices connected. Current connected devices: $allConnectedUSBDevices" }
                 allConnectedUSBDevices.map { device ->
                     if (device.nameWithType.contains(PLAYSTATION_MOTION_CONTROLLER_USB_DEVICE_NAME)) {
-                        newMotionControllerViaUSBConnected()
+                        motionControllerViaUSBConnected()
                     }
                 }
             }
         }
     }
 
-    private fun newMotionControllerViaUSBConnected() {
+    private fun motionControllerViaUSBConnected() {
         logger.info { "try to connect new psmove controller" }
         val currentCount = psmoveapi.psmove_count_connected()
         logger.info { "Found $currentCount motion controller" }
-        if (lastCountOfConnectedMoves != currentCount) {
-            lastCountOfConnectedMoves = currentCount
-            for (i in 0..<currentCount) {
-                val move = PSMove(i)
-                logger.info { "New move found: ${move.getMacAddress()}" }
 
-                if (move.connection_type == ConnectionType.Conn_USB.swigValue() && !pairedMoveController.map { it.macAddress.uppercase() }
-                        .contains(move.getMacAddress())) {
-                    val adapter = BluetoothControllerManager.getAdapterForPairing()
+        for (i in 0..<currentCount) {
+            val move = PSMove(i)
+            logger.info { "New move found: ${move.getMacAddress()}" }
 
-                    logger.info { "Try to pair new device: ${move.getMacAddress()} to ${adapter?.macAddress ?: "unknown"}" }
-                    if (adapter?.macAddress == null) {
-                        logger.error { "Cannot pair motion controller ${move.getMacAddress()} because no adapter to pair found" }
-                        continue
-                    }
+            if (move.connection_type == ConnectionType.Conn_USB.swigValue() && !pairedMoveController.map { it.macAddress.uppercase() }
+                    .contains(move.getMacAddress())) {
+                val adapter = BluetoothControllerManager.getAdapterForPairing()
 
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val pairedResult = move.pair_custom(adapter.macAddress)
-                        logger.info { "Pairing returned: $pairedResult" }
-
-                        //move.connect(adapter.adapterId)
-                        move.trust()
-                        move.indicatePairingComplete()
-                        restartBluetooth()
-                    }
-                } else {
-                    logger.info { "Move with address ${move.getMacAddress()} is already paired or not connected via usb" }
+                logger.info { "Try to pair new device: ${move.getMacAddress()} to ${adapter?.macAddress ?: "unknown"}" }
+                if (adapter?.macAddress == null) {
+                    logger.error { "Cannot pair motion controller ${move.getMacAddress()} because no adapter to pair found" }
+                    continue
                 }
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val pairedResult = move.pair_custom(adapter.macAddress)
+                    logger.info { "Pairing returned: $pairedResult" }
+
+                    //move.connect(adapter.adapterId)
+                    move.trust()
+                    move.indicatePairingComplete()
+                    restartBluetooth()
+                }
+            } else {
+                logger.info { "Move with address ${move.getMacAddress()} is already paired or not connected via usb" }
             }
+
         }
     }
 

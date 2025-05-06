@@ -82,13 +82,15 @@ object NativeLoader {
         try {
             when (osType) {
                 OSType.LINUX -> {
-                    when (arch) {
-                        Architecture.X86 -> System.load("${path}/libs/linux/libpsmoveapi.x86.so")
-                        Architecture.X86_64 -> System.load("${path}/libs/linux/libpsmoveapi.x86_64.so")
-                        Architecture.ARM_32 -> System.load("${path}/libs/linux/libpsmoveapi.arm32.so")
-                        Architecture.ARM_64 -> System.load("${path}/libs/linux/libpsmoveapi.arm64.so")
-                        Architecture.UNSUPPORTED -> throw IllegalStateException("Unsupported Processor architecture found. Cannot find Opencv library for $arch")
+                    val architecturePath: String = when (arch) {
+                        Architecture.X86_64 -> "x86_64"
+                        Architecture.ARM_32 -> "arm32"
+                        Architecture.ARM_64 -> "arm64"
+                        Architecture.X86,
+                        Architecture.UNSUPPORTED -> throw IllegalStateException("Unsupported Processor architecture found. No psmove libs found for $arch")
                     }
+                    System.load("${path}/lib/linux/${architecturePath}/libpsmoveapi.so")
+                    System.load("${path}/lib/linux/${architecturePath}/libpsmove_java.so")
                 }
 
                 else -> {
