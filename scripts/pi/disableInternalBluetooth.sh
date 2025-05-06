@@ -9,7 +9,7 @@ sudo echo "$LINE" | sudo tee -a "$FILE"
 
 
 # Check if the line already exists
-echo "Check for bluetooth Fix in $FILE..."
+echo "Check if internal bluetooth is disabled in file: $FILE ..."
 if grep -Fxq "$LINE" "$FILE"; then
   echo "Line already exists in $FILE. No changes made."
 else
