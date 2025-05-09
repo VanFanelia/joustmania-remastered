@@ -4,6 +4,8 @@ import {Line} from 'react-chartjs-2'
 import 'chartjs-adapter-date-fns';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayIcon from '@mui/icons-material/PlayCircle';
+import Box from "@mui/material/Box";
+import {Button} from "@mui/material";
 
 ChartJS.register(...registerables);
 
@@ -170,27 +172,31 @@ function Debug() {
         },
     };
 
-    return (<>
-            <h1 className="mb-2">Debug Move controller</h1>
-
+    return (
+        <Box className="rootPage p-4 scroll-auto mb-14">
             <div className="card mb-4 flex flex-row justify-center">
-
                 {pauseChart ? (
-                    <button className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
-                            onClick={startChartUpdates}>
-                        <PlayIcon className={"text-lg mr-4"}/>
+                    <Button variant="contained"
+                            className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
+                            style={{textTransform: "none"}}
+                            onClick={startChartUpdates}
+                            startIcon={<PlayIcon/>}
+                    >
                         <span className={"text-lg"}>Play</span>
-                    </button>) : (
-                    <button className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
-                            onClick={stopChartUpdates}>
-                        <PauseIcon className={"text-lg mr-4"}/>
+                    </Button>) : (
+                    <Button variant="contained"
+                            className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
+                            style={{textTransform: "none"}}
+                            onClick={stopChartUpdates}
+                            startIcon={<PauseIcon/>}
+                    >
                         <span className={"text-lg"}>Pause</span>
-                    </button>)}
+                    </Button>)}
 
             </div>
 
             {(chartData != null && chartData.datasets.length > 0) &&
-                <div className={"min-w-full"}>
+                <div className={"min-w-full"} style={{border: "1px solid #ff0000"}}>
                     <Line
                         key="AccelerationGraph"
                         data={chartData}
@@ -198,7 +204,7 @@ function Debug() {
                     />
                 </div>
             }
-        </>
+        </Box>
     )
 }
 
