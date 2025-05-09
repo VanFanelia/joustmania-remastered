@@ -5,7 +5,7 @@ import 'chartjs-adapter-date-fns';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayIcon from '@mui/icons-material/PlayCircle';
 import Box from "@mui/material/Box";
-import {Button} from "@mui/material";
+import {Button, CircularProgress} from "@mui/material";
 
 ChartJS.register(...registerables);
 
@@ -198,15 +198,20 @@ function Debug() {
 
             </div>
 
-            {(chartData != null && chartData.datasets.length > 0) &&
-                <div className={"min-w-full"} style={{height: "calc(100vh - 160px)"}}>
-                    <Line
+            <div className={"min-w-full"} style={{height: "calc(100vh - 160px)"}}>
+                {(chartData != null && chartData.datasets.length > 0) ?
+                    (<Line
                         key="AccelerationGraph"
                         data={chartData}
                         options={options}
-                    />
-                </div>
-            }
+                    />)
+                    : (
+                        <div className="flex flex-col justify-center items-center h-full w-full">
+                            <CircularProgress size="80px" />
+                        </div>
+                    )
+                }
+            </div>
         </Box>
     )
 }
