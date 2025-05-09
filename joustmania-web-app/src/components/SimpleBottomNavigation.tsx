@@ -1,6 +1,7 @@
 import * as React from 'react';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+// @ts-ignore
 import PSMoveIcon from '../assets/psmove.svg?react';
 import {Paper} from "@mui/material";
 import { Link } from 'react-router-dom';

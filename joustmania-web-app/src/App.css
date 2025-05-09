@@ -3,6 +3,13 @@
   padding: 0;
   text-align: center;
   min-width: 100%;
+  display: flex;
+}
+
+.rootPage {
+  width: 100%;
+  height: 100%;
+  justify-self: center;
 }
 
 .logo {
