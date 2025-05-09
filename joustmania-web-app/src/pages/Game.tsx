@@ -7,10 +7,16 @@ import {useState} from "react";
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import {Avatar, ListItemAvatar, ListItemText} from "@mui/material";
-import ImageIcon from '@mui/icons-material/Image';
+import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
+import Diversity3Icon from '@mui/icons-material/Diversity3';
 // @ts-ignore
 import PSMoveIcon from '../assets/psmove2.svg?react';
+
+enum GameState {
+    LOBBY,
+    GAME_RUNNING
+}
 
 function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
@@ -18,8 +24,9 @@ function Game() {
     );
 
     const [currentGame, setCurrentGame] = useState<string>('');
-    const [gameState, setGameState] = useState<string>('Lobby');
+    const [gameState, setGameState] = useState<GameState>(GameState.LOBBY);
     const [activePlayer, setActivePlayer] = useState<number>(0);
+    const [adminCount, setAdminCount] = useState<number>(0);
     const [connectedController, setConnectedController] = useState<number>(0);
 
 
@@ -31,10 +38,10 @@ function Game() {
         <Box className="rootPage p-4" >
             <Box sx={{minWidth: 120}}>
                 <FormControl fullWidth>
-                    <InputLabel id="demo-simple-select-label">CurrentGame</InputLabel>
+                    <InputLabel id="game-mode-select-label">CurrentGame</InputLabel>
                     <Select
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
+                        labelId="game-mode-select-label"
+                        id="game-mode-select"
                         value={currentGame}
                         label="CurrentGame"
                         onChange={handleChange}
@@ -50,16 +57,20 @@ function Game() {
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar>
-                            <ImageIcon />
+                            {(gameState == GameState.LOBBY) ? (
+                                <TransferWithinAStationIcon style={{color: "#000"}} />
+                            ) : (
+                                <SportsHandballIcon style={{color: "#000"}} />
+                            )}
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Game State"/>
-                    <Box className="text-right font-bold">{gameState}</Box>
+                    <Box className="text-right font-bold">{gameState == GameState.LOBBY ? "Lobby" : "Game running" }</Box>
                 </ListItem>
                 <ListItem className="w-full">
                     <ListItemAvatar>
                         <Avatar>
-                            <SportsHandballIcon style={{color: "#000"}} />
+                            <Diversity3Icon style={{color: "#000"}} />
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Active Player"/>
@@ -71,7 +82,7 @@ function Game() {
                             <PSMoveIcon width={32} height={32} style={{color: "#000"}}/>
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary="Connected Controller" />
+                    <ListItemText primary="Connected Controller" secondary={ `${adminCount} controller with admin rights`}/>
                     <Box className="text-right font-bold">{connectedController}</Box>
                 </ListItem>
             </List>
