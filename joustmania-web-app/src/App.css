@@ -13,8 +13,11 @@ body {
 
 .rootPage {
   width: 100%;
-  height: 100%;
-  justify-self: center;
+  height: calc(100vh - 56px) ;
+  display: inline-flex;
+  flex-direction: column;
+  justify-self: self-start;
+  overflow: auto;
 }
 
 .logo {

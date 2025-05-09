@@ -11,7 +11,7 @@ import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStati
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 // @ts-ignore
-import PSMoveIcon from '../assets/psmove2.svg?react';
+import PSMoveController from '../assets/PSMoveController.svg?react';
 
 enum GameState {
     LOBBY,
@@ -25,9 +25,9 @@ function Game() {
 
     const [currentGame, setCurrentGame] = useState<string>('');
     const [gameState, setGameState] = useState<GameState>(GameState.LOBBY);
-    const [activePlayer, setActivePlayer] = useState<number>(0);
-    const [adminCount, setAdminCount] = useState<number>(0);
-    const [connectedController, setConnectedController] = useState<number>(0);
+    const [activePlayer, setActivePlayer] = useState<number>(5);
+    const [adminCount, setAdminCount] = useState<number>(2);
+    const [connectedController, setConnectedController] = useState<number>(7);
 
 
     const handleChange = (event: SelectChangeEvent) => {
@@ -35,7 +35,7 @@ function Game() {
     };
 
     return (
-        <Box className="rootPage p-4" >
+        <Box className="rootPage p-4 scroll-auto mb-14" >
             <Box sx={{minWidth: 120}}>
                 <FormControl fullWidth>
                     <InputLabel id="game-mode-select-label">CurrentGame</InputLabel>
@@ -79,7 +79,7 @@ function Game() {
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar>
-                            <PSMoveIcon width={32} height={32} style={{color: "#000"}}/>
+                            <PSMoveController width={32} height={32} style={{color: "#ffa500", transform: "rotate(20deg)" }}/>
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Connected Controller" secondary={ `${adminCount} controller with admin rights`}/>

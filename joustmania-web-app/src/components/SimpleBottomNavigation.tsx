@@ -2,9 +2,9 @@ import * as React from 'react';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 // @ts-ignore
-import PSMoveIcon from '../assets/psmove.svg?react';
+import PSMoveController from '../assets/PSMoveController.svg?react';
 import {Paper} from "@mui/material";
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {DeveloperMode, Settings, SportsEsports} from '@mui/icons-material';
 
 export default function SimpleBottomNavigation() {
@@ -21,7 +21,10 @@ export default function SimpleBottomNavigation() {
             >
                 <BottomNavigationAction label="Game" icon={<SportsEsports/>} component={Link} to="/game"/>
                 <BottomNavigationAction label="Settings" icon={<Settings/>} component={Link} to="/settings"/>
-                <BottomNavigationAction label="Hardware" icon={<PSMoveIcon width={32} height={32} />} component={Link} to="/hardware"/>
+                <BottomNavigationAction label="Hardware" icon={<PSMoveController width={32} height={32} style={{
+                    color: "#ffa500",
+                    transform: "rotate(20deg)"
+                }}/>} component={Link} to="/hardware"/>
                 <BottomNavigationAction label="Debug" icon={<DeveloperMode/>} component={Link} to="/debug"/>
             </BottomNavigation>
         </Paper>

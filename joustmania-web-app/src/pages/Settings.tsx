@@ -3,8 +3,6 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import {Avatar, ListItemAvatar, ListItemText, Select, Switch} from "@mui/material";
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
-// @ts-ignore
-import PSMoveIcon from '../assets/psmove2.svg?react';
 import {ChangeEvent, useState} from "react";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -30,7 +28,7 @@ function Settings() {
     };
 
     return (
-        <Box className="rootPage p-4" >
+        <Box className="rootPage p-4 scroll-auto mb-14 flex items-start" >
 
             <h2 className="mb-2 text-2xl">Settings</h2>
             <List className={"w-full"} sx={{bgcolor: 'background.paper' }}>
