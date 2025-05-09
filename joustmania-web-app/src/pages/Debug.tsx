@@ -66,7 +66,7 @@ function Debug() {
     }, [pauseChart]);
 
     async function fetchJSON() {
-        const response = await fetch("http://192.168.178.91:8080/api/accelerations")
+        const response = await fetch("http://localhost:8080/api/accelerations")
         const jsonData = await response.json()
         return jsonData
     }
@@ -115,6 +115,8 @@ function Debug() {
     }
 
     const options = {
+        responsive: true,
+        maintainAspectRatio: false,
         animation: {
             duration: 250,
             easing: 'linear' as const,
@@ -143,6 +145,7 @@ function Debug() {
                 },
             },
             y: {
+                beginAtZero: false,
                 suggestedMin: 0.7,
                 suggestedMax: 1.3,
                 title: {
@@ -196,7 +199,7 @@ function Debug() {
             </div>
 
             {(chartData != null && chartData.datasets.length > 0) &&
-                <div className={"min-w-full"} style={{border: "1px solid #ff0000"}}>
+                <div className={"min-w-full"} style={{height: "calc(100vh - 160px)"}}>
                     <Line
                         key="AccelerationGraph"
                         data={chartData}
