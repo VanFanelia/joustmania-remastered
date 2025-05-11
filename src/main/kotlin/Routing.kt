@@ -1,5 +1,8 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.games.Sensibility
+import de.vanfanel.joustmania.games.Sensibility.Companion.parseSensibility
+import de.vanfanel.joustmania.games.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
@@ -16,6 +19,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.flow.firstOrNull
@@ -84,6 +88,13 @@ fun Application
             get("/accelerations") {
                 val json = AccelerationDebugger.getHistoryAsJson()
                 call.respondText(json, contentType = ContentType.Application.Json)
+            }
+
+            post("/settings/sensitivity/{value}") {
+                val newValue = call.parameters["value"]
+                val sensibility: Sensibility = parseSensibility(newValue) ?: return@post call.respond(HttpStatusCode.BadRequest)
+                Settings.setSensibility(sensibility)
+                call.respond(HttpStatusCode.OK, "Sensitivity updated to $sensibility")
             }
         }
     }

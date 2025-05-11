@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.games.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
@@ -42,6 +43,8 @@ fun main() {
     val gameStateManager = GameStateManager
     @Suppress("unused")
     val lightRefresher = PSMoveLightRefresher
+    @Suppress("unused")
+    val settings = Settings
 
     // TODO only activate acceleration debugger in debug mode?
     @Suppress("unused")

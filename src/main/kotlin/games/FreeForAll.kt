@@ -37,7 +37,7 @@ class FreeForAll : Game {
     private val playerColors: MutableMap<MacAddress, MoveColor> = mutableMapOf()
 
     companion object {
-        const val ACCELERATION_WARNING_THRESHOLD = 1.4
+        const val ACCELERATION_WARNING_THRESHOLD = 1.5
         const val ACCELERATION_GAME_OVER_THRESHOLD = 1.8
 
         val listOfPlayerColors = listOf(
