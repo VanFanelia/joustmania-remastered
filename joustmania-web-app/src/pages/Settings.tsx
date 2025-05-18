@@ -17,7 +17,7 @@ const supportedLanguages: Map<string, string> = new Map<string, string>(
 
 function Settings() {
     const [everyoneCanBecomeAdmin, setEveryoneCanBecomeAdmin] = useState(true);
-    const [language, setLanguage] = useState<string>("de");
+    const [language, setLanguage] = useState<string>("en");
 
     const changeEveryoneCanBecomeAdmin = (event: ChangeEvent<HTMLInputElement>) => {
         setEveryoneCanBecomeAdmin(event.target.checked);
@@ -40,6 +40,7 @@ function Settings() {
                     </ListItemAvatar>
                     <ListItemText primary="All controllers can become admin"/>
                     <Switch
+                        disabled={true}
                         checked={everyoneCanBecomeAdmin}
                         onChange={changeEveryoneCanBecomeAdmin}
                     />
@@ -61,9 +62,10 @@ function Settings() {
                             value={language}
                             label="Language"
                             onChange={handleLanguageChange}
+                            disabled={true}
                         >
                             {[...supportedLanguages.entries()].map(([key, value]) => (
-                                <MenuItem key={"selectedLanguage" + key} value={key}>{value}</MenuItem>
+                                <MenuItem key={"selectedLanguage-" + key} value={key}>{value}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>

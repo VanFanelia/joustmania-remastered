@@ -66,7 +66,7 @@ function Debug() {
     }, [pauseChart]);
 
     async function fetchJSON() {
-        const response = await fetch("http://localhost:8080/api/accelerations")
+        const response = await fetch(`http://${window.location.hostname}:8080/api/accelerations`)
         const jsonData = await response.json()
         return jsonData
     }

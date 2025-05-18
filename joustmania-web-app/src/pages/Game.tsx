@@ -20,14 +20,17 @@ enum GameState {
 
 function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
-        [['ffa', "FreeForAll"], ['toddler', 'Sorting Toddler']]
+        [
+            ['ffa', "FreeForAll"],
+            //['toddler', 'Sorting Toddler']
+        ]
     );
 
-    const [currentGame, setCurrentGame] = useState<string>('');
+    const [currentGame, setCurrentGame] = useState<string>('ffa');
     const [gameState, setGameState] = useState<GameState>(GameState.LOBBY);
-    const [activePlayer, setActivePlayer] = useState<number>(5);
-    const [adminCount, setAdminCount] = useState<number>(2);
-    const [connectedController, setConnectedController] = useState<number>(7);
+    const [activePlayer, setActivePlayer] = useState<number>(0);
+    const [adminCount, setAdminCount] = useState<number>(0);
+    const [connectedController, setConnectedController] = useState<number>(0);
 
 
     const handleChange = (event: SelectChangeEvent) => {
@@ -35,55 +38,62 @@ function Game() {
     };
 
     return (
-        <Box className="rootPage p-4 scroll-auto mb-14" >
+        <Box className="rootPage p-4 scroll-auto mb-14">
             <Box sx={{minWidth: 120}}>
                 <FormControl fullWidth>
-                    <InputLabel id="game-mode-select-label">CurrentGame</InputLabel>
+                    <InputLabel id="game-mode-select-label">Selected Game Mode</InputLabel>
                     <Select
                         labelId="game-mode-select-label"
                         id="game-mode-select"
                         value={currentGame}
                         label="CurrentGame"
+                        disabled={false}
                         onChange={handleChange}
+                        defaultValue={"selectGame-ffa"}
                     >
-                        {[...possibleGames.entries()].map(([key, value]) => (
-                            <MenuItem key={"selectGame" + key} value={key}>{value}</MenuItem>
-                        ))}
+                        {[...possibleGames.entries()].map(([key, value]) =>
+                            (
+                                <MenuItem key={"selectGame-" + key} value={key}>{value}</MenuItem>
+                            )
+                        )}
                     </Select>
                 </FormControl>
             </Box>
 
-            <List className={"w-full"} sx={{bgcolor: 'background.paper' }}>
+            <List className={"w-full"} sx={{bgcolor: 'background.paper'}}>
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar>
                             {(gameState == GameState.LOBBY) ? (
-                                <TransferWithinAStationIcon style={{color: "#000"}} />
+                                <TransferWithinAStationIcon style={{color: "#000"}}/>
                             ) : (
-                                <SportsHandballIcon style={{color: "#000"}} />
+                                <SportsHandballIcon style={{color: "#000"}}/>
                             )}
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Game State"/>
-                    <Box className="text-right font-bold">{gameState == GameState.LOBBY ? "Lobby" : "Game running" }</Box>
+                    <Box
+                        className="text-right font-bold">{gameState == GameState.LOBBY ? "Lobby" : "Game running"}</Box>
                 </ListItem>
                 <ListItem className="w-full">
                     <ListItemAvatar>
                         <Avatar>
-                            <Diversity3Icon style={{color: "#000"}} />
+                            <Diversity3Icon style={{color: "#000"}}/>
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Active Player"/>
-                    <Box className="text-right font-bold">{activePlayer}</Box>
+                    <Box className="text-right font-bold">{"?" /* activePlayer */}</Box>
                 </ListItem>
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar>
-                            <PSMoveController width={32} height={32} style={{color: "#ffa500", transform: "rotate(20deg)" }}/>
+                            <PSMoveController width={32} height={32}
+                                              style={{color: "#ffa500", transform: "rotate(20deg)"}}/>
                         </Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary="Connected Controller" secondary={ `${adminCount} controller with admin rights`}/>
-                    <Box className="text-right font-bold">{connectedController}</Box>
+                    <ListItemText primary="Connected Controller"
+                                  secondary={`${adminCount} controller with admin rights`}/>
+                    <Box className="text-right font-bold">{"?" /* connectedController */}</Box>
                 </ListItem>
             </List>
 
