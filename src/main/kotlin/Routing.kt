@@ -18,6 +18,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
@@ -32,6 +33,9 @@ private val logger = KotlinLogging.logger {}
 fun Application.configureRouting() {
     // add base path// add base path
     routing {
+
+        staticResources("/", "static", "index.html")
+
         route("/api") {
 
             get("/") {

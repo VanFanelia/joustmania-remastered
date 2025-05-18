@@ -70,7 +70,7 @@ fun main() {
         }
     }
 
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module).start(wait = true)
+    embeddedServer(Netty, port = 80, host = "0.0.0.0", module = Application::module).start(wait = true)
 }
 
 
@@ -93,6 +93,5 @@ fun Application.configureCORS() {
         allowHeader(HttpHeaders.Authorization)
         allowHost("localhost:5173", schemes = listOf("http"))
         allowHost("localhost:80", schemes = listOf("http"))
-        allowHost("localhost:7000", schemes = listOf("http"))
     }
 }

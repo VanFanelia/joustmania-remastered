@@ -58,7 +58,7 @@ function Settings() {
         console.log("sensitivity: ", sensitivity);
         setSensibility(sensitivity)
 
-        const url = `http://${window.location.hostname}:8080/api/settings/sensitivity`;
+        const url = `http://${window.location.hostname}/api/settings/sensitivity`;
         fetch(url, {
             method: 'POST',
             headers: {
@@ -80,7 +80,7 @@ function Settings() {
     }
 
     async function fetchSensibility(): Promise<Sensitivity> {
-        const response = await fetch(`http://${window.location.hostname}:8080/api/settings/sensitivity`)
+        const response = await fetch(`http://${window.location.hostname}/api/settings/sensitivity`)
         const jsonData: { sensitivity: string } = await response.json()
         return parseSensitivity(jsonData.sensitivity)
     }
