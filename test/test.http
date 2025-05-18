@@ -27,3 +27,12 @@ GET http://localhost:8080/api/setColor/blue
 
 ### test acceleration
 GET http://localhost:8080/api/accelerations
+
+### test get sensitivity
+GET http://localhost:8080/api/settings/sensitivity
+
+### test post sensitivity
+POST http://localhost:8080/api/settings/sensitivity
+Content-Type: application/json
+
+{ "sensitivity" : "VERY_LOW" }

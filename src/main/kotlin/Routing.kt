@@ -1,7 +1,9 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.games.GetSensitivity
 import de.vanfanel.joustmania.games.Sensibility
 import de.vanfanel.joustmania.games.Sensibility.Companion.parseSensibility
+import de.vanfanel.joustmania.games.SetSensitivity
 import de.vanfanel.joustmania.games.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
@@ -16,6 +18,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
@@ -26,8 +29,7 @@ import kotlinx.coroutines.flow.firstOrNull
 
 
 private val logger = KotlinLogging.logger {}
-fun Application
-    .configureRouting() {
+fun Application.configureRouting() {
     // add base path// add base path
     routing {
         route("/api") {
@@ -90,9 +92,14 @@ fun Application
                 call.respondText(json, contentType = ContentType.Application.Json)
             }
 
-            post("/settings/sensitivity/{value}") {
-                val newValue = call.parameters["value"]
-                val sensibility: Sensibility = parseSensibility(newValue) ?: return@post call.respond(HttpStatusCode.BadRequest)
+            get("/settings/sensitivity") {
+                call.respond(status = HttpStatusCode.OK, message = GetSensitivity(Settings.getSensibility()))
+            }
+
+            post("/settings/sensitivity") {
+                val newSensitivity = call.receive<SetSensitivity>()
+                val sensibility: Sensibility =
+                    parseSensibility(newSensitivity.sensitivity) ?: return@post call.respond(HttpStatusCode.BadRequest)
                 Settings.setSensibility(sensibility)
                 call.respond(HttpStatusCode.OK, "Sensitivity updated to $sensibility")
             }

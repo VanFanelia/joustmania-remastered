@@ -67,6 +67,8 @@ dependencies {
 
     // JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("io.ktor:ktor-server-content-negotiation:3.1.1")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
 
     // for tests:
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
