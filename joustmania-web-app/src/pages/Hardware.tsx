@@ -3,9 +3,12 @@ import {SyntheticEvent, useState} from "react";
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary, Avatar,
+    AccordionSummary,
+    Avatar,
     List,
-    ListItem, ListItemAvatar, ListItemText,
+    ListItem,
+    ListItemAvatar,
+    ListItemText,
     Typography
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -65,19 +68,19 @@ function Hardware() {
     }
 
     function getAkkuIcon(akku: AkkuState) {
-        switch(akku) {
+        switch (akku) {
             case AkkuState.UNKNOWN:
                 return <BatteryUnknownIcon color={"disabled"}/>;
             case AkkuState.EMPTY:
-                return <Battery0BarIcon />;
+                return <Battery0BarIcon/>;
             case AkkuState.LOW:
-                return <Battery20Icon />;
+                return <Battery20Icon/>;
             case AkkuState.MEDIUM:
-                return <Battery50Icon />;
+                return <Battery50Icon/>;
             case AkkuState.HIGH:
-                return <Battery80Icon />;
+                return <Battery80Icon/>;
             case AkkuState.FULL:
-                return <BatteryFullIcon />;
+                return <BatteryFullIcon/>;
         }
     }
 
@@ -94,12 +97,16 @@ function Hardware() {
             new PSMoveController("77:88:99:AA:BB:CC", AkkuState.EMPTY, true, false)
         ]),
     ]
+
+    // @ts-ignore
     const [showOnlyConnectedController, setShowOnlyConnectedController] = useState<boolean>(false);
 
+    // @ts-ignore
     const [blueToothAdapterAccordionExpanded, setBlueToothAdapterAccordionExpanded] = useState<string | false>(false);
 
+    // @ts-ignore
     const handleAccordionBlueToothAdapterChange =
-        (panel: string) => (event: SyntheticEvent, isExpanded: boolean) => {
+        (panel: string) => (_event: SyntheticEvent, isExpanded: boolean) => {
             setBlueToothAdapterAccordionExpanded(isExpanded ? panel : false);
         };
 

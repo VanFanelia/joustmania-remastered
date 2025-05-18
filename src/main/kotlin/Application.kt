@@ -92,5 +92,7 @@ fun Application.configureCORS() {
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowHost("localhost:5173", schemes = listOf("http"))
+        allowHost("localhost:80", schemes = listOf("http"))
+        allowHost("localhost:7000", schemes = listOf("http"))
     }
 }

@@ -27,9 +27,13 @@ function Game() {
     );
 
     const [currentGame, setCurrentGame] = useState<string>('ffa');
+    // @ts-ignore
     const [gameState, setGameState] = useState<GameState>(GameState.LOBBY);
+    // @ts-ignore
     const [activePlayer, setActivePlayer] = useState<number>(0);
+    // @ts-ignore
     const [adminCount, setAdminCount] = useState<number>(0);
+    // @ts-ignore
     const [connectedController, setConnectedController] = useState<number>(0);
 
 
