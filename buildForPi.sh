@@ -1,12 +1,16 @@
-## Einmalig
-# sudo apt-get install --reinstall libc6-dev
-# sudo apt-get install libdbus-1-3 libdbus-glib-1-2
-
 PACKAGE_FOLDER="./packages"
 if [ -d "$PACKAGE_FOLDER" ]; then
   echo "found old packages. delete it"
   rm -rf "$PACKAGE_FOLDER"
 fi
+
+## build web package
+node --version
+npm --prefix joustmania-web-app run build
+
+## copy dist to static resource of java project
+rm -rf ./src/main/resources/static/*
+cp -r ./joustmania-web-app/dist/* ./src/main/resources/static
 
 ## build jar
 ./gradlew clean

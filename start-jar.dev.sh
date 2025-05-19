@@ -14,7 +14,7 @@ echo "My PID: $$"
 
 sudo $JAVA_PATH/bin/java --version
 
-sudo -E LD_LIBRARY_PATH=/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:$JAVA_PATH/lib:$CURRENT_PATH/libs:$LD_LIBRARY_PATH \
+sudo -E LD_LIBRARY_PATH=/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:$JAVA_PATH/lib:$CURRENT_PATH/lib:$LD_LIBRARY_PATH \
     $JAVA_PATH/bin/java \
     -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 \
-    -Djava.library.path=/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:$JAVA_PATH/lib:$CURRENT_PATH/libs -cp build/libs/joustmania-kotlin-all.jar de.vanfanel.joustmania.ApplicationKt
+    -Djava.library.path=/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:$JAVA_PATH/lib:$CURRENT_PATH/lib -cp build/libs/joustmania-kotlin-all.jar de.vanfanel.joustmania.ApplicationKt

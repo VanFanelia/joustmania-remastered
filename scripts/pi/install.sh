@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo apt-get update
-sudo apt install -y default-jre-headless
+sudo apt install -y default-jre-headless jq
 
 java --version
 

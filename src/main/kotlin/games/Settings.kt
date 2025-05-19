@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,7 +13,10 @@ import java.io.File
 
 private val logger = KotlinLogging.logger {}
 
-data class SensibilitySettings(val warningThreshold: Float, val deathThreshold: Float)
+data class SensibilitySettings(
+    val warningThreshold: Float,
+    val deathThreshold: Float
+)
 
 @Serializable
 enum class Language {
@@ -45,7 +47,7 @@ enum class Sensibility {
             try {
                 return Sensibility.valueOf(value?.uppercase() ?: "")
             } catch (e: IllegalArgumentException) {
-                logger.error {"Ignore unknown enum value with length: ${value?.length}"}
+                logger.error { "Ignore unknown enum value with length: ${value?.length}" }
                 return null
             }
         }
@@ -55,10 +57,11 @@ enum class Sensibility {
 @Serializable
 data class Config(
     val sensibility: Sensibility,
-    val language: Language
+    val language: Language,
+    val enableAP: Boolean
 ) {
     companion object {
-        val DEFAULT_CONFIG = Config(sensibility = Sensibility.MEDIUM, language = Language.EN)
+        val DEFAULT_CONFIG = Config(sensibility = Sensibility.MEDIUM, language = Language.EN, enableAP = false)
     }
 }
 
