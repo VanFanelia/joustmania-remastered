@@ -20,11 +20,14 @@ java --version
 
 ## build pi package
 mkdir -p "$PACKAGE_FOLDER/pi/lib/linux"
+mkdir -p "$PACKAGE_FOLDER/pi/apfiles"
 cp -r ./lib/psmoveapi.jar "$PACKAGE_FOLDER/pi/lib"
 cp -r ./lib/linux "$PACKAGE_FOLDER/pi/lib"
 
 ## copy install and start script for pi
 cp ./scripts/pi/*.sh "$PACKAGE_FOLDER/pi"
+cp ./scripts/pi/settings.json "$PACKAGE_FOLDER/pi"
+cp ./scripts/pi/apfiles/* "$PACKAGE_FOLDER/pi/apfiles"
 
 ## copy finished jar
 cp ./build/libs/joustmania-kotlin-all.jar "$PACKAGE_FOLDER/pi/joustmania.jar"
