@@ -71,6 +71,7 @@ Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=f
 - add sound if player has a warning (cancelable)
 - fixing bug of dying players are red with touch of black instead of complete black
 - play example file in audio output
+- logging into file
 
 ### nice to have
 - colored logs

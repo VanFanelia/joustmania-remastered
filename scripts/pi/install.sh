@@ -62,5 +62,9 @@ SYMLINK_TARGET="$CURRENT_PATH/$SYMLINK_NAME"
 ln -s "$SYMLINK_SOURCE" "$SYMLINK_TARGET"
 echo "Created symlink '$SYMLINK_SOURCE' -> '$SYMLINK_TARGET'"
 
+## setup auto start of joustmania after reboot
+
+source ./install_systemd_service.sh
+
 # disable internal bluetooth
-./disableInternalBluetooth.sh
+./disable_internal_bluetooth.sh
