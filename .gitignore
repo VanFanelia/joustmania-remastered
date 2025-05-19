@@ -1,5 +1,7 @@
 # ignore libs
 backup/
+lib/libopencv_*
+lib/libpsmove*
 
 # ignore build results
 packages/
