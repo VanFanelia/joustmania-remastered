@@ -8,16 +8,16 @@ fi
 
 if [ ! -f ./apfiles/ap_active ]
 	then echo "AP not active... ending"
-	exit
+else
+	rm ./apfiles/ap_active
+
+  echo "Deleting ad-hoc network, This pi should now reconnect back to the internet"
+  nmcli con delete Hotspot
+
+  #removing dnsmasq (for http://joust.mania access)
+  rm /etc/NetworkManager/dnsmasq-shared.d/joustmania.conf
+
+
+  echo ">>> DONE <<<"
 fi
 
-rm ./apfiles/ap_active
-
-echo "Deleting ad-hoc network, This pi should now reconnect back to the internet"
-nmcli con delete Hotspot
-
-#removing dnsmasq (for http://joust.mania access)
-rm /etc/NetworkManager/dnsmasq-shared.d/joustmania.conf
-
-
-echo ">>> DONE <<<"
