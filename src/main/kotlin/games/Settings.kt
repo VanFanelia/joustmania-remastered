@@ -136,8 +136,8 @@ object Settings {
         saveSettings()
     }
 
-    fun getSensibility(): String {
-        return currentConfig.sensibility.name
+    fun getSensibility(): Sensibility {
+        return currentConfig.sensibility
     }
 }
 

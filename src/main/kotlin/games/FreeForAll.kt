@@ -36,10 +36,9 @@ class FreeForAll : Game {
     private val playersLost: MutableSet<MacAddress> = mutableSetOf()
     private val playerColors: MutableMap<MacAddress, MoveColor> = mutableMapOf()
 
-    companion object {
-        const val ACCELERATION_WARNING_THRESHOLD = 1.5
-        const val ACCELERATION_GAME_OVER_THRESHOLD = 1.8
+    private var currentSensitivity: Sensibility = Sensibility.MEDIUM
 
+    companion object {
         val listOfPlayerColors = listOf(
             MoveColor.BLUE,
             MoveColor.YELLOW,
@@ -84,7 +83,7 @@ class FreeForAll : Game {
         val currentJob = CoroutineScope(Dispatchers.IO).launch {
             stub.accelerationFlow.collect { acceleration ->
                 if (acceleration.change > 1.2 && gameRunning && !playersLost.contains(stub.macAddress)) {
-                    if (acceleration.change > ACCELERATION_GAME_OVER_THRESHOLD) {
+                    if (acceleration.change > currentSensitivity.getSensibilityValues().deathThreshold) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and lost the game" }
                         PSMoveApi.stopRumble(macAddress = stub.macAddress)
                         stub.setColorAnimation(
@@ -102,7 +101,7 @@ class FreeForAll : Game {
                         playersLost.add(stub.macAddress)
                         delay(3100) // add some delay to get sure animation was stopped
                         stub.setCurrentColor(colorToSet = MoveColor.BLACK)
-                    } else if (acceleration.change > ACCELERATION_WARNING_THRESHOLD) {
+                    } else if (acceleration.change > currentSensitivity.getSensibilityValues().warningThreshold) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and got a warning" }
                         PSMoveApi.stopRumble(macAddress = stub.macAddress)
                         PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_MEDIUM, 1000)
@@ -164,6 +163,10 @@ class FreeForAll : Game {
         currentPlayingController.clear()
         currentPlayingController += players
         initObservers(currentPlayingController)
+
+        // set game sensitivity
+        currentSensitivity = Settings.getSensibility()
+        logger.info { "Set current Sensitivity to ${currentSensitivity.getSensibilityValues()}" }
 
         // set player colors
         currentPlayingController.forEachIndexed { index, player ->

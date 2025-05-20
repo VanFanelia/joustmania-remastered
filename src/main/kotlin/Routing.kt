@@ -97,7 +97,7 @@ fun Application.configureRouting() {
             }
 
             get("/settings/sensitivity") {
-                call.respond(status = HttpStatusCode.OK, message = GetSensitivity(Settings.getSensibility()))
+                call.respond(status = HttpStatusCode.OK, message = GetSensitivity(Settings.getSensibility().name))
             }
 
             post("/settings/sensitivity") {
