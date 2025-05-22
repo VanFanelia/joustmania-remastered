@@ -8,6 +8,7 @@ import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -37,6 +38,7 @@ object GameStateManager {
 
     private var currentGame: Game? = null
     private val gameWatcherTicker = Ticker(5.milliseconds)
+    private var gameWatcherJob: Job? = null
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -86,7 +88,7 @@ object GameStateManager {
         logger.info { "Game has started." }
         gameWatcherTicker.start()
 
-        CoroutineScope(Dispatchers.IO).launch {
+        gameWatcherJob = CoroutineScope(Dispatchers.IO).launch {
             gameWatcherTicker.tick.collect {
                 currentGame?.checkForGameFinished()
             }
@@ -100,6 +102,7 @@ object GameStateManager {
 
     private fun handleGameFinished() {
         currentGame = null
+        gameWatcherJob?.cancel()
         CoroutineScope(Dispatchers.Default).launch {
             _currentGameState.emit(GameState.LOBBY)
         }
@@ -113,8 +116,8 @@ object GameStateManager {
         currentGame = game
         val currentGameState = _currentGameState.value
         if (currentGameState == GameState.LOBBY) {
-            CoroutineScope(Dispatchers.IO).launch {
-                game.startGameStart(players = players)
+            CoroutineScope(Dispatchers.Default).launch {
+                game.start(players = players)
             }
             _currentGameState.emit(GameState.GAME_STARTING)
         } else {

@@ -6,7 +6,7 @@ interface Game {
     val name: String
     val currentPlayingController: MutableSet<PSMoveStub>
 
-    suspend fun startGameStart(players: Set<PSMoveStub>)
+    suspend fun start(players: Set<PSMoveStub>)
 
     suspend fun checkForGameFinished()
 

@@ -149,7 +149,7 @@ class FreeForAll : Game {
         GameStateManager.setGameFinished()
     }
 
-    override suspend fun startGameStart(players: Set<PSMoveStub>) {
+    override suspend fun start(players: Set<PSMoveStub>) {
         initDisconnectionObserver()
         delay(100) // give lobby some time to kill all jobs
         currentPlayingController.clear()
