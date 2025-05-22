@@ -77,7 +77,7 @@ fun Application.configureRouting() {
 
             get("/playsoundtest") {
                 logger.info { "play explanation..." }
-                SoundManager.asyncAddSoundToQueue(SoundId.GAME_MODE_FFA_EXPLANATION)
+                SoundManager.asyncAddSoundToQueue(id = SoundId.GAME_MODE_FFA_EXPLANATION)
                 logger.info { "explanation played" }
                 call.respond(HttpStatusCode.Accepted)
             }

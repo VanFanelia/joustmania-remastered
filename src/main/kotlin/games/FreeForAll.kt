@@ -141,7 +141,11 @@ class FreeForAll : Game {
         val colorWinsSound = colorToSound(colorOfWinner)
 
         colorWinsSound?.let {
-            SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(id = it, minDelay = 16000L)
+            SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+                id = it,
+                abortOnNewSound = false,
+                minDelay = 16000L
+            )
         }
         winnerStub?.clearAnimation()
         PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
@@ -175,7 +179,10 @@ class FreeForAll : Game {
 
         SoundManager.clearSoundQueue()
         logger.info { "play explanation..." }
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GAME_MODE_FFA_EXPLANATION)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.GAME_MODE_FFA_EXPLANATION,
+            abortOnNewSound = false
+        )
         logger.info { "explanation played" }
 
         PSMoveApi.setColor(moves = currentPlayingController.map { it.macAddress }.toSet(), color = MoveColor.RED)
@@ -193,7 +200,11 @@ class FreeForAll : Game {
             intensity = RUMBLE_SOFTEST,
             durationInMs = 200
         )
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.THREE, 1000L)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.THREE,
+            abortOnNewSound = false,
+            minDelay = 1000L
+        )
 
         currentPlayingController.forEach { player ->
             player.setColorAnimation(
@@ -209,7 +220,11 @@ class FreeForAll : Game {
             intensity = RUMBLE_SOFT,
             durationInMs = 200
         )
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.TWO, 1000L)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.TWO,
+            abortOnNewSound = false,
+            minDelay = 1000L
+        )
 
         currentPlayingController.forEach { player ->
             player.setColorAnimation(
@@ -225,12 +240,16 @@ class FreeForAll : Game {
             intensity = RUMBLE_MEDIUM,
             durationInMs = 200
         )
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.ONE, 1000L)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.ONE,
+            abortOnNewSound = false,
+            minDelay = 1000L
+        )
 
         currentPlayingController.forEach { player ->
             player.setCurrentColor(colorToSet = getMoveColor(player))
         }
-        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(SoundId.GO)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(id = SoundId.GO, abortOnNewSound = false)
 
         this.gameRunning = true
         GameStateManager.setGameRunning()

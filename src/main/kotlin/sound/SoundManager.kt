@@ -8,30 +8,36 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
+import java.io.InputStream
 import java.time.Instant
 import java.util.concurrent.LinkedBlockingQueue
+import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
 import javax.sound.sampled.DataLine
 import javax.sound.sampled.FloatControl
 import javax.sound.sampled.SourceDataLine
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 data class SoundQueueEntry(
     val soundFile: SoundFile,
+    val abortOnNewSound: Boolean,
     val onSoundFilePlayed: suspend () -> Unit = {},
 )
+
 const val DEFAULT_SOUND_DEVICE_INDEX: Int = 0
 
 object SoundManager {
     private val logger = KotlinLogging.logger {}
     private val queue = LinkedBlockingQueue<SoundQueueEntry>()
     private var isPlaying = false
+    private var lastSound: SoundQueueEntry? = null
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
-    private var waitForSoundPlayed: Job? = null
+    private var lastPlayJob: Job? = null
 
-    fun asyncAddSoundToQueue(id: SoundId, onSoundFilePlayed: suspend () -> Unit = {}) {
+    fun asyncAddSoundToQueue(id: SoundId, abortOnNewSound: Boolean = true, onSoundFilePlayed: suspend () -> Unit = {}) {
         val soundFile = getSoundBy(id, locale)
         if (soundFile == null) {
             logger.error { "Cannot find sound with id: $id . No item was added to sound play queue." }
@@ -39,24 +45,35 @@ object SoundManager {
         }
         logger.info { "Adding sound to queue: $id" }
 
-        queue.offer(SoundQueueEntry(soundFile = soundFile, onSoundFilePlayed = onSoundFilePlayed))
+        queue.offer(
+            SoundQueueEntry(
+                soundFile = soundFile,
+                abortOnNewSound = abortOnNewSound,
+                onSoundFilePlayed = onSoundFilePlayed
+            )
+        )
+        if (isPlaying && lastSound?.abortOnNewSound == true) {
+            lastPlayJob?.cancel()
+        }
+
         if (!isPlaying) {
             playNext()
         }
     }
 
-    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId, minDelay: Long = 0L) = suspendCoroutine { continuation ->
-        val start = Instant.now().toEpochMilli()
-        this.asyncAddSoundToQueue(id = id) {
-            val duration = Instant.now().toEpochMilli() - start
-            if (duration < minDelay) {
-                val delay = minDelay - duration
-                logger.debug { "Sound play time was less then minDelay. Add a delay of $delay ms" }
-                delay(minDelay - duration)
+    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId, abortOnNewSound: Boolean, minDelay: Long = 0L) =
+        suspendCoroutine { continuation ->
+            val start = Instant.now().toEpochMilli()
+            this.asyncAddSoundToQueue(id = id, abortOnNewSound = abortOnNewSound) {
+                val duration = Instant.now().toEpochMilli() - start
+                if (duration < minDelay) {
+                    val delay = minDelay - duration
+                    logger.debug { "Sound play time was less then minDelay. Add a delay of $delay ms" }
+                    delay(minDelay - duration)
+                }
+                continuation.resume(Unit)
             }
-            continuation.resume(Unit)
         }
-    }
 
     private fun playNext() {
         isPlaying = true
@@ -64,8 +81,18 @@ object SoundManager {
             while (queue.isNotEmpty()) {
                 try {
                     val nextSound = queue.poll()
+                    lastSound = nextSound
                     logger.info { "Playing ${nextSound.soundFile.getWavSoundPath()}" }
-                    playResource(nextSound.soundFile.getWavSoundPath())
+                    lastPlayJob = launch {
+                        playResource(nextSound.soundFile.getWavSoundPath())
+                    }
+                    try {
+                        lastPlayJob?.join()
+                    } catch (e: CancellationException) {
+                        logger.debug(e) { "current play job was cancelled" }
+                    } finally {
+                        lastPlayJob = null
+                    }
                     nextSound.onSoundFilePlayed()
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -77,64 +104,67 @@ object SoundManager {
 
     private suspend fun playResource(resourcePath: String, deviceIndex: Int = DEFAULT_SOUND_DEVICE_INDEX) {
         withContext(Dispatchers.IO) {
-            val inputStream = javaClass.getResourceAsStream(resourcePath)
-
-            if (inputStream == null) {
-                logger.error { "Cannot find file with path: $resourcePath" }
-                return@withContext
-            }
-
-            val bufferedInputStream = BufferedInputStream(inputStream)
-            val originalAudioInputStream = AudioSystem.getAudioInputStream(bufferedInputStream)
-
-            val outputMixers = getMixersWithAudioOutput()
-
-            logger.debug {
-                "found ${outputMixers.size} Mixer: ${
-                    outputMixers.mapIndexed { index, info ->
-                        "#$index (${info.description})"
-                    }
-                }"
-            }
-
-            if (deviceIndex < 0 || deviceIndex >= outputMixers.size) {
-                logger.error { "Cannot find audio device with id: $deviceIndex " }
-                return@withContext
-            }
-            val selectedMixer = AudioSystem.getMixer(outputMixers[deviceIndex])
-            logger.debug { "use mixer: ${selectedMixer.mixerInfo.name} ${selectedMixer.mixerInfo.description}" }
-
-            val info = DataLine.Info(Clip::class.java, originalAudioInputStream.format)
-
-            if (!selectedMixer.isLineSupported(info)) {
-                logger.error { "The selected device does not support the audio format" }
-                return@withContext
-            }
-
-            val clip = selectedMixer.getLine(info) as Clip
-            clip.open(originalAudioInputStream)
-            setVolume(clip)
-            logger.debug { ("Clip opened successfully. length: ${clip.microsecondLength / 1000} ms") }
-
-            clip.start()
-            logger.debug { "Clip started successfully." }
-
+            var inputStream: InputStream? = null
+            var bufferedInputStream: BufferedInputStream? = null
+            var originalAudioInputStream: AudioInputStream? = null
+            var clip: Clip? = null
             try {
-                // TODO fix wait for sound play
-                //waitForSoundPlayed = launch { delay(clip.microsecondLength / 1000) }
-                delay(clip.microsecondLength / 1000)
-            }catch (e: InterruptedException) {
-                logger.info { "Interrupted while waiting for player finished current sound play" }
+                inputStream = javaClass.getResourceAsStream(resourcePath)
+
+                if (inputStream == null) {
+                    logger.error { "Cannot find file with path: $resourcePath" }
+                    return@withContext
+                }
+
+                bufferedInputStream = BufferedInputStream(inputStream)
+                originalAudioInputStream = AudioSystem.getAudioInputStream(bufferedInputStream)
+
+                val outputMixers = getMixersWithAudioOutput()
+
+                logger.debug {
+                    "found ${outputMixers.size} Mixer: ${
+                        outputMixers.mapIndexed { index, info ->
+                            "#$index (${info.description})"
+                        }
+                    }"
+                }
+
+                if (deviceIndex < 0 || deviceIndex >= outputMixers.size) {
+                    logger.error { "Cannot find audio device with id: $deviceIndex " }
+                    return@withContext
+                }
+                val selectedMixer = AudioSystem.getMixer(outputMixers[deviceIndex])
+                logger.debug { "use mixer: ${selectedMixer.mixerInfo.name} ${selectedMixer.mixerInfo.description}" }
+
+                val info = DataLine.Info(Clip::class.java, originalAudioInputStream.format)
+
+                if (!selectedMixer.isLineSupported(info)) {
+                    logger.error { "The selected device does not support the audio format" }
+                    return@withContext
+                }
+
+                clip = selectedMixer.getLine(info) as Clip
+                clip.open(originalAudioInputStream)
+                setVolume(clip)
+                logger.debug { ("Clip opened successfully. length: ${clip.microsecondLength / 1000} ms") }
+
+                clip.start()
+                logger.debug { "Clip started successfully." }
+
+                try {
+                    delay(clip.microsecondLength / 1000)
+                } catch (_: InterruptedException) {
+                    logger.info { "Interrupted while waiting for player finished current sound play" }
+                }
             } finally {
-                waitForSoundPlayed = null
+                clip?.stop()
+                logger.debug { "Clip stopped" }
+                clip?.close()
+                originalAudioInputStream?.close()
+                bufferedInputStream?.close()
+                inputStream?.close()
+                logger.debug { "Cleanup finished" }
             }
-            clip.stop()
-            logger.debug { "Clip stopped" }
-            clip.close()
-            originalAudioInputStream.close()
-            bufferedInputStream.close()
-            inputStream.close()
-            logger.debug { "Cleanup finished" }
         }
     }
 
@@ -159,6 +189,5 @@ object SoundManager {
     fun stopSoundPlay() {
         logger.info { "Force stop for sound" }
         queue.clear()
-        waitForSoundPlayed?.cancel()
     }
 }

@@ -139,7 +139,7 @@ object LobbyLoop {
                     selectedGame?.let { game ->
                         logger.info { "All moves are ready. Start game: ${game.name}" }
                         freezeLobby = true
-                        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(ALL_PLAYERS_READY)
+                        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(id = ALL_PLAYERS_READY, abortOnNewSound = false)
                         GameStateManager.startGame(
                             game, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
                         )
