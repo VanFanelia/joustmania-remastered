@@ -1,38 +1,41 @@
 ### play sound test
-GET http://localhost:8080/api/playsoundtest
+GET http://localhost:80/api/clear-devices
+
+### play sound test
+GET http://localhost:80/api/playsoundtest
 
 ### start color animation for all controllers
-GET http://localhost:8080/api/setColorAnimation
+GET http://localhost:80/api/setColorAnimation
 
 ### test color animation without loop
-GET http://localhost:8080/api/setRedAnimationTest
+GET http://localhost:80/api/setRedAnimationTest
 
 ### test rumble
-GET http://localhost:8080/api/rumble/255
+GET http://localhost:80/api/rumble/255
 
 ### test set Color
-GET http://localhost:8080/api/setColor/pastel_green
+GET http://localhost:80/api/setColor/pastel_green
 
 ### test set Color
-GET http://localhost:8080/api/setColor/light_blue
+GET http://localhost:80/api/setColor/light_blue
 
 ### test set Color
-GET http://localhost:8080/api/setColor/aqua
+GET http://localhost:80/api/setColor/aqua
 
 ### test set Color
-GET http://localhost:8080/api/setColor/green
+GET http://localhost:80/api/setColor/green
 
 ### test set Color
-GET http://localhost:8080/api/setColor/blue
+GET http://localhost:80/api/setColor/blue
 
 ### test acceleration
-GET http://localhost:8080/api/accelerations
+GET http://localhost:80/api/accelerations
 
 ### test get sensitivity
-GET http://localhost:8080/api/settings/sensitivity
+GET http://localhost:80/api/settings/sensitivity
 
 ### test post sensitivity
-POST http://localhost:8080/api/settings/sensitivity
+POST http://localhost:80/api/settings/sensitivity
 Content-Type: application/json
 
 { "sensitivity" : "VERY_LOW" }
