@@ -40,15 +40,7 @@ class FreeForAll : Game {
 
     companion object {
         val listOfPlayerColors = listOf(
-            MoveColor.BLUE,
-            MoveColor.YELLOW,
             MoveColor.GREEN,
-            MoveColor.MAGENTA,
-            MoveColor.AQUA,
-            MoveColor.LIME,
-            MoveColor.VIOLET,
-            MoveColor.PINK,
-            MoveColor.LIGHT_BLUE,
         )
 
         val defaultPlayerColor = MoveColor.WHITE
