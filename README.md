@@ -62,8 +62,6 @@ Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=f
 
 ## todos:
 - on new player connected via usb, change duration to 3-4 seconds of white to wait for bluetooth restarting
-- create a flag in sound queue that a sound can be cleared if another ones pop up (e.g. controller connected / disconnected )
-- save variables in external file
 - add multi-language support via config
 - add german language
 - add players death sound (cancelable)
