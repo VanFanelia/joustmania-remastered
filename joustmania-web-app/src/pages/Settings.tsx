@@ -10,52 +10,46 @@ import MenuItem from "@mui/material/MenuItem";
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 
 import {SelectChangeEvent} from "@mui/material/Select";
+import {SensibilityLevel, useSettingsContext} from "../context/SettingsProvider.tsx";
 
 const supportedLanguages: Map<string, string> = new Map<string, string>(
     [['en', "Englisch"], ['de', 'German']]
 );
 
-enum Sensitivity {
-    "VERY_LOW" = "VERY_LOW",
-    "LOW" = "LOW",
-    "MEDIUM" = "MEDIUM",
-    "HIGH" = "HIGH",
-    "VERY_HIGH" = "VERY_HIGH",
-};
-
-function parseSensitivity(sensitivity: String): Sensitivity {
-    switch (sensitivity) {
-        case "VERY_LOW":
-            return Sensitivity.VERY_LOW
-        case "LOW":
-            return Sensitivity.LOW
-        case "MEDIUM":
-            return Sensitivity.MEDIUM
-        case "HIGH":
-            return Sensitivity.HIGH
-        case "VERY_HIGH":
-            return Sensitivity.VERY_HIGH
-        default:
-            return Sensitivity.MEDIUM
-    }
-}
-
 function Settings() {
     const [everyoneCanBecomeAdmin, setEveryoneCanBecomeAdmin] = useState(true);
     const [language, setLanguage] = useState<string>("en");
-    const [sensibility, setSensibility] = useState<Sensitivity>(Sensitivity.MEDIUM);
+    const [sensibility, setSensibility] = useState<SensibilityLevel>(SensibilityLevel.MEDIUM);
 
     const changeEveryoneCanBecomeAdmin = (event: ChangeEvent<HTMLInputElement>) => {
         setEveryoneCanBecomeAdmin(event.target.checked);
     };
 
     const handleLanguageChange = (event: SelectChangeEvent) => {
-        setLanguage(event.target.value as string);
+        const languageKey = event.target.value as string;
+        setLanguage(languageKey);
+
+        const url = `http://${window.location.hostname}/api/settings/language`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({language: languageKey}),
+        })
+            .then((response) => {
+                if (!response.ok) throw new Error('Failed to set sensitivity');
+            })
+            .then((result) => {
+                console.log('Success:', result);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
     };
 
     const handleSensibilityChange = (event: SelectChangeEvent) => {
-        const sensitivity = event.target.value as Sensitivity;
-        console.log("sensitivity: ", sensitivity);
+        const sensitivity = event.target.value as SensibilityLevel;
         setSensibility(sensitivity)
 
         const url = `http://${window.location.hostname}/api/settings/sensitivity`;
@@ -67,7 +61,6 @@ function Settings() {
             body: JSON.stringify({sensitivity: sensitivity.toString()}),
         })
             .then((response) => {
-                console.log(response);
                 if (!response.ok) throw new Error('Failed to set sensitivity');
             })
             .then((result) => {
@@ -76,20 +69,19 @@ function Settings() {
             .catch((error) => {
                 console.error('Error:', error);
             });
-
     }
 
-    async function fetchSensibility(): Promise<Sensitivity> {
-        const response = await fetch(`http://${window.location.hostname}/api/settings/sensitivity`)
-        const jsonData: { sensitivity: string } = await response.json()
-        return parseSensitivity(jsonData.sensitivity)
-    }
+    const config = useSettingsContext();
 
     useEffect(() => {
-        fetchSensibility().then(result => setSensibility(result)).catch(console.error)
-    }, []);
+        if (config !== null) {
+            setSensibility(config.sensibility)
+            setLanguage(config.language.toLowerCase())
+        }
+    }, [config])
 
     return (
+
         <Box className="rootPage p-4 scroll-auto mb-14 flex items-start">
 
             <h2 className="mb-2 text-2xl">Settings</h2>
@@ -115,7 +107,7 @@ function Settings() {
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Voice Language"/>
-                    <FormControl sx={{m: 1, minWidth: 80}}>
+                    <FormControl sx={{m: 1, minWidth: 120}}>
                         <InputLabel id="settings-language-select-label">Language</InputLabel>
                         <Select
                             className="text-right"
@@ -124,7 +116,7 @@ function Settings() {
                             value={language}
                             label="Language"
                             onChange={handleLanguageChange}
-                            disabled={true}
+                            disabled={false}
                         >
                             {[...supportedLanguages.entries()].map(([key, value]) => (
                                 <MenuItem key={"selectedLanguage-" + key} value={key}>{value}</MenuItem>
@@ -139,7 +131,7 @@ function Settings() {
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Sensibility"/>
-                    <FormControl sx={{m: 1, minWidth: 80}}>
+                    <FormControl sx={{m: 1, minWidth: 120}}>
                         <InputLabel id="settings-sensibility-select-label">Sensibility</InputLabel>
                         <Select
                             className="text-right"
@@ -149,20 +141,20 @@ function Settings() {
                             label="Sensibility"
                             onChange={handleSensibilityChange}
                         >
-                            <MenuItem key={"sensitivity-VERY_LOW"} value={Sensitivity.VERY_LOW.valueOf()}>Very
+                            <MenuItem key={"sensitivity-VERY_LOW"} value={SensibilityLevel.VERY_LOW.valueOf()}>Very
                                 Low</MenuItem>
-                            <MenuItem key={"sensitivity-LOW"} value={Sensitivity.LOW.valueOf()}>Low</MenuItem>
-                            <MenuItem key={"sensitivity-MEDIUM"} value={Sensitivity.MEDIUM.valueOf()}>Medium</MenuItem>
-                            <MenuItem key={"sensitivity-HIGH"} value={Sensitivity.HIGH.valueOf()}>High</MenuItem>
-                            <MenuItem key={"sensitivity-VERY_HIGH"} value={Sensitivity.VERY_HIGH.valueOf()}>Very
+                            <MenuItem key={"sensitivity-LOW"} value={SensibilityLevel.LOW.valueOf()}>Low</MenuItem>
+                            <MenuItem key={"sensitivity-MEDIUM"}
+                                      value={SensibilityLevel.MEDIUM.valueOf()}>Medium</MenuItem>
+                            <MenuItem key={"sensitivity-HIGH"} value={SensibilityLevel.HIGH.valueOf()}>High</MenuItem>
+                            <MenuItem key={"sensitivity-VERY_HIGH"} value={SensibilityLevel.VERY_HIGH.valueOf()}>Very
                                 High</MenuItem>
                         </Select>
                     </FormControl>
                 </ListItem>
-
             </List>
-
-        </Box>)
+        </Box>
+    )
 }
 
 export default Settings

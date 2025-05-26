@@ -7,3 +7,9 @@ data class SetSensitivity(val sensitivity: String)
 
 @Serializable
 data class GetSensitivity(val sensitivity: String)
+
+@Serializable
+data class GetLanguage(val language: String)
+
+@Serializable
+data class SetLanguage(val language: String)

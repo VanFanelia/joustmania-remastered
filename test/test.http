@@ -39,3 +39,10 @@ POST http://localhost:80/api/settings/sensitivity
 Content-Type: application/json
 
 { "sensitivity" : "VERY_LOW" }
+
+
+### test post language
+POST http://localhost:80/api/settings/language
+Content-Type: application/json
+
+{ "language" : "en" }

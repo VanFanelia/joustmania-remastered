@@ -22,6 +22,17 @@ data class SensibilitySettings(
 enum class Language {
     EN,
     DE;
+
+    companion object {
+        fun parseLanguage(value: String?): Language? {
+            try {
+                return Language.valueOf(value?.uppercase() ?: "")
+            } catch (e: IllegalArgumentException) {
+                logger.error(e) { "Ignore unknown enum value with length: ${value?.length}" }
+                return null
+            }
+        }
+    }
 }
 
 @Serializable
@@ -34,11 +45,11 @@ enum class Sensibility {
 
     fun getSensibilityValues(): SensibilitySettings {
         return when (this) {
-            VERY_LOW -> SensibilitySettings(warningThreshold = 1.7f, deathThreshold = 2.0f);
-            LOW -> SensibilitySettings(warningThreshold = 1.6f, deathThreshold = 1.9f);
-            MEDIUM -> SensibilitySettings(warningThreshold = 1.5f, deathThreshold = 1.8f);
-            HIGH -> SensibilitySettings(warningThreshold = 1.4f, deathThreshold = 1.7f);
-            VERY_HIGH -> SensibilitySettings(warningThreshold = 1.3f, deathThreshold = 1.6f);
+            VERY_LOW -> SensibilitySettings(warningThreshold = 1.7f, deathThreshold = 2.0f)
+            LOW -> SensibilitySettings(warningThreshold = 1.6f, deathThreshold = 1.9f)
+            MEDIUM -> SensibilitySettings(warningThreshold = 1.5f, deathThreshold = 1.8f)
+            HIGH -> SensibilitySettings(warningThreshold = 1.4f, deathThreshold = 1.7f)
+            VERY_HIGH -> SensibilitySettings(warningThreshold = 1.3f, deathThreshold = 1.6f)
         }
     }
 
@@ -47,7 +58,7 @@ enum class Sensibility {
             try {
                 return Sensibility.valueOf(value?.uppercase() ?: "")
             } catch (e: IllegalArgumentException) {
-                logger.error { "Ignore unknown enum value with length: ${value?.length}" }
+                logger.error(e) { "Ignore unknown enum value with length: ${value?.length}" }
                 return null
             }
         }
