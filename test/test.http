@@ -10,6 +10,9 @@ GET http://localhost:80/api/setColorAnimation
 ### test color animation without loop
 GET http://localhost:80/api/setRedAnimationTest
 
+### clear all devices
+GET http://localhost:80/api/clear-devices
+
 ### test rumble
 GET http://localhost:80/api/rumble/255
 
@@ -45,4 +48,4 @@ Content-Type: application/json
 POST http://localhost:80/api/settings/language
 Content-Type: application/json
 
-{ "language" : "en" }
+{ "language" : "de" }

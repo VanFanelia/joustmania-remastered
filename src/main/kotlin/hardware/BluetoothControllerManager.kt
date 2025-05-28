@@ -1,11 +1,11 @@
 package de.vanfanel.joustmania.hardware
 
+import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.hardware.psmove.PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME
 import de.vanfanel.joustmania.types.AdapterId
 import de.vanfanel.joustmania.types.BlueToothController
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.PairedDevice
-import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
-import de.vanfanel.joustmania.hardware.psmove.PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +40,9 @@ interface DBusProperties : DBusInterface {
 object BluetoothControllerManager {
     private val logger = KotlinLogging.logger {}
     private val blueToothController = mutableMapOf<AdapterId, BlueToothController>()
+
+    private val _blueToothControllerFlow: MutableStateFlow<Set<BlueToothController>> = MutableStateFlow(emptySet())
+    val blueToothControllerFlow: Flow<Set<BlueToothController>> = _blueToothControllerFlow
 
     private val _pairedDevices: MutableStateFlow<Set<PairedDevice>> = MutableStateFlow(emptySet())
     val pairedDevices: Flow<Set<PairedDevice>> = _pairedDevices
@@ -92,6 +95,7 @@ object BluetoothControllerManager {
 
                 CoroutineScope(Dispatchers.IO).launch {
                     removeFromPairedDeviceList(macAddress)
+                    removeFromBluetoothControllerList(macAddress)
                 }
 
                 logger.info { "Device $macAddress removed successfully from adapter: $adapterId" }
@@ -158,6 +162,9 @@ object BluetoothControllerManager {
                     val macAddress =
                         interfaces["org.bluez.Adapter1"]?.get("Address")?.value?.toString()?.replace("[", "")
                             ?.replace("]", "") ?: continue
+
+                    val name = interfaces["org.bluez.Adapter1"]?.get("Name")?.value?.toString() ?: ""
+
                     val pairedDevices = filterPairedBluetoothDevices(
                         adapterId = adapterId,
                         adapterObjectPath = objectPath.path,
@@ -167,6 +174,7 @@ object BluetoothControllerManager {
                     val controller = BlueToothController(
                         adapterId = adapterId,
                         macAddress = macAddress,
+                        name = name,
                         pairedDevices = pairedDevices,
                         pairedMotionController = pairedDevices.filter {
                             it.name.contains(
@@ -183,6 +191,7 @@ object BluetoothControllerManager {
             val connectedMotionControllersAddresses = getAllPairedMotionControllers().map { it.macAddress }
             logger.debug { "Found ${connectedMotionControllersAddresses.size} paired motion controllers: $connectedMotionControllersAddresses" }
             connection.disconnect()
+            _blueToothControllerFlow.emit(blueToothController.values.toSet())
             _pairedDevices.emit(blueToothController.values.flatMap { it.pairedDevices }.toSet())
         } catch (e: DBusException) {
             e.printStackTrace()
@@ -218,6 +227,19 @@ object BluetoothControllerManager {
     private suspend fun removeFromPairedDeviceList(macAddress: MacAddress) {
         val current = _pairedDevices.value
         _pairedDevices.emit(current.filter { it.macAddress != macAddress }.toSet())
+    }
+
+    private suspend fun removeFromBluetoothControllerList(macAddress: MacAddress) {
+        val current = _blueToothControllerFlow.value
+        val controllerWithClearedPairedMotionControllerList = current.map { it ->
+            it.copy(pairedMotionController = it.pairedMotionController.filter { device -> device.macAddress != macAddress }
+                .toSet())
+        }
+        val clearedControllerList = controllerWithClearedPairedMotionControllerList.map { it ->
+            it.copy(pairedDevices = it.pairedDevices.filter { device -> device.macAddress != macAddress }.toSet())
+        }
+
+        _blueToothControllerFlow.emit(clearedControllerList.toSet())
     }
 
     fun getAdapterForPairing(): BlueToothController? {

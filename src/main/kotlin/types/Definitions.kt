@@ -1,10 +1,12 @@
 package de.vanfanel.joustmania.types
 
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
+import kotlinx.serialization.Serializable
 
 typealias AdapterId = String
 typealias MacAddress = String
 
+@Serializable
 data class PairedDevice(
     val adapterId: AdapterId,
     val macAddress: MacAddress,
@@ -13,9 +15,11 @@ data class PairedDevice(
     val connected: Boolean?,
 )
 
+@Serializable
 data class BlueToothController(
     val adapterId: AdapterId,
     val macAddress: MacAddress,
+    val name: String,
     val pairedDevices: Set<PairedDevice>,
     val pairedMotionController: Set<PairedDevice>
 ) {

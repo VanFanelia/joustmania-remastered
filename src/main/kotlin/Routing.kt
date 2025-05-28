@@ -8,6 +8,7 @@ import de.vanfanel.joustmania.games.SetLanguage
 import de.vanfanel.joustmania.games.SetSensitivity
 import de.vanfanel.joustmania.games.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
+import de.vanfanel.joustmania.hardware.BluetoothControllerManager.blueToothControllerFlow
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
@@ -21,7 +22,6 @@ import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
 import io.ktor.server.response.cacheControl
 import io.ktor.server.response.respond
@@ -40,7 +40,7 @@ fun Application.configureRouting() {
     // add base path// add base path
     routing {
 
-        staticResources("/", "static", "index.html")
+        // staticResources("/", "static", "index.html")
 
         route("/api") {
 
@@ -136,6 +136,17 @@ fun Application.configureRouting() {
                 }
             }
 
+            get("/sse/bluetooth") {
+                call.response.cacheControl(CacheControl.NoCache(null))
+                logger.debug { "new client connected to sse/bluetoothStats endpoint" }
+                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
+                    blueToothControllerFlow.collect { controllers ->
+                        logger.debug { "new bluetooth controllers list pushed to client: $controllers" }
+                        write("data: ${Json.encodeToString(controllers)}\n\n")
+                        flush()
+                    }
+                }
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import {SyntheticEvent, useState} from "react";
+import {SyntheticEvent, useEffect, useState} from "react";
 import {
     Accordion,
     AccordionDetails,
@@ -21,6 +21,7 @@ import Battery20Icon from '@mui/icons-material/Battery20';
 import Battery50Icon from '@mui/icons-material/Battery50';
 import Battery80Icon from '@mui/icons-material/Battery80';
 import BatteryFullIcon from '@mui/icons-material/BatteryFull';
+import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 
 enum AkkuState {
     UNKNOWN = "unknown",
@@ -109,6 +110,15 @@ function Hardware() {
         (panel: string) => (_event: SyntheticEvent, isExpanded: boolean) => {
             setBlueToothAdapterAccordionExpanded(isExpanded ? panel : false);
         };
+
+    const bluetoothDevices = useBluetoothContext();
+
+    useEffect(() => {
+        console.log(bluetoothDevices);
+        if (bluetoothDevices !== null) {
+            console.log("TODO fill setter")
+        }
+    }, [bluetoothDevices])
 
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
