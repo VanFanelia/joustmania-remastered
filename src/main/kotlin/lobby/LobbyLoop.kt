@@ -14,6 +14,7 @@ import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_JOINED
 import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_LEFT
 import de.vanfanel.joustmania.sound.SoundId.NEW_CONTROLLER
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.collections.ConcurrentSet
@@ -21,6 +22,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -39,6 +42,9 @@ object LobbyLoop {
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
 
     private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
+    private val _controllersWithAdminRights: MutableStateFlow<List<MacAddress>> = MutableStateFlow(emptyList())
+    val controllersWithAdminRights: Flow<List<MacAddress>> = _controllersWithAdminRights
+
     private var selectedGame: Game? = null
     private var freezeLobby = false
 
@@ -55,8 +61,9 @@ object LobbyLoop {
                     initLobbyCoroutines()
                 } else {
                     lobbyJobs.forEach { job -> job.cancel() }
-                    admins.clear()
                     isActive.clear()
+                    admins.clear()
+                    _controllersWithAdminRights.emit(emptyList())
                 }
                 lastGameState = newState
             }
@@ -115,6 +122,7 @@ object LobbyLoop {
                 soundManager.asyncAddSoundToQueue(ADMIN_REVOKED)
                 logger.info { "Move with ${moveStub.macAddress} lost its admin privileges" }
             }
+            _controllersWithAdminRights.emit(admins.map { it.macAddress })
 
             updateLobbyColorByState()
         }
@@ -161,6 +169,7 @@ object LobbyLoop {
                 if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
                     isActive.remove(oldMove)
                     admins.remove(oldMove)
+                    _controllersWithAdminRights.emit(admins.map { it.macAddress })
                     soundManager.asyncAddSoundToQueue(CONTROLLER_DISCONNECTED)
                     logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                 }

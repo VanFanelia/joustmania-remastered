@@ -5,7 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -97,9 +97,9 @@ private fun getSettingsFile(): File? {
 }
 
 object Settings {
-    lateinit var currentConfig: Config
+    var currentConfig: Config = DEFAULT_CONFIG
 
-    private val _currentConfigFlow = MutableSharedFlow<Config>(replay = 1)
+    private val _currentConfigFlow = MutableStateFlow(DEFAULT_CONFIG)
     val currentConfigFlow: Flow<Config> = _currentConfigFlow
 
     init {

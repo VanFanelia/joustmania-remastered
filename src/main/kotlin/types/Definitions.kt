@@ -28,6 +28,40 @@ data class BlueToothController(
     }
 }
 
+@Serializable
+data class BlueToothControllerStats(
+    val adapterId: AdapterId,
+    val macAddress: MacAddress,
+    val name: String,
+    val pairedMotionController: Set<MotionControllerStats>
+)
+
+@Serializable
+data class MotionControllerStats(
+    val adapterId: AdapterId,
+    val macAddress: MacAddress,
+    val connected: Boolean?,
+    val isAdmin: Boolean?,
+    val batteryLevel: Int?,
+)
+
+enum class PSMoveBatteryLevel(val value: Int) {
+    LEVEL_0(0),              // leer / minimal
+    LEVEL_1(1),
+    LEVEL_2(2),
+    LEVEL_3(3),
+    LEVEL_4(4),
+    LEVEL_5(5),              // voll
+    CHARGING(6),             // wird geladen
+    CHARGING_DONE(7);        // Ladevorgang abgeschlossen
+
+    companion object {
+        fun fromInt(value: Int?): PSMoveBatteryLevel? {
+            return entries.find { it.value == value }
+        }
+    }
+}
+
 data class BluetoothInfo(
     val bus: String,
     val device: String,

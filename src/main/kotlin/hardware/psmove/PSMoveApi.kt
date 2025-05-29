@@ -2,6 +2,7 @@ package de.vanfanel.joustmania.hardware.psmove
 
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
+import de.vanfanel.joustmania.types.PSMoveBatteryLevel
 import de.vanfanel.joustmania.util.withLock
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -108,6 +109,15 @@ object PSMoveApi {
             PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.set_rumble(0)
         }
         rumbleLocks[macAddress] = false
+    }
+
+    suspend fun getBatteryLevel(macAddress: MacAddress): PSMoveBatteryLevel? {
+        var battery: Int? = null
+        withLock(globalHardwareLock) {
+            battery = PSMoveBluetoothConnectionWatcher.getMove(macAddress)?._battery
+        }
+        rumbleLocks[macAddress] = false
+        return PSMoveBatteryLevel.fromInt(battery)
     }
 
 }

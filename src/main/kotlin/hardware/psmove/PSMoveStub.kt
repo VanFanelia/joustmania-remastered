@@ -2,6 +2,7 @@ package de.vanfanel.joustmania.hardware.psmove
 
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
+import de.vanfanel.joustmania.types.PSMoveBatteryLevel
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -10,6 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -20,6 +22,7 @@ import java.util.Date
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 data class ColorAnimation(
     val colorToSet: List<MoveColor>,
@@ -65,6 +68,7 @@ class PSMoveStub(val macAddress: MacAddress) {
     private val buttonObserverTicker = Ticker(5.milliseconds)
     private val colorChangeTicker = Ticker(50.milliseconds)
     private val movementObserverTicker = Ticker(5.milliseconds)
+    private val batteryLevelTicker = Ticker(60.seconds)
     private var colorAnimation: ColorAnimation? = null
     private var animationStarted: Long = 0
     private var lastTick: Long = 0
@@ -83,6 +87,10 @@ class PSMoveStub(val macAddress: MacAddress) {
         replay = 0,
         extraBufferCapacity = 1
     )
+
+    private val _batteryLevelFlow: MutableSharedFlow<PSMoveBatteryLevel?> = MutableStateFlow(null)
+    val batteryLevelFlow: Flow<PSMoveBatteryLevel?> = _batteryLevelFlow
+
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -108,6 +116,17 @@ class PSMoveStub(val macAddress: MacAddress) {
                     _accelerationFlow.tryEmit(lastMovement)
                 } catch (e: MoveNotFoundException) {
                     logger.error(e) { "Could not poll move buttons for $macAddress. start cancel stub" }
+                    cancel()
+                }
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            batteryLevelTicker.tick.collect {
+                try {
+                    checkBatteryLevel()
+                } catch (e: MoveNotFoundException) {
+                    logger.error(e) { "Could not get battery state of move controller" }
                     cancel()
                 }
             }
@@ -157,6 +176,11 @@ class PSMoveStub(val macAddress: MacAddress) {
                 }
             }
         }
+
+        batteryLevelTicker.start()
+        CoroutineScope(Dispatchers.IO).launch {
+            checkBatteryLevel()
+        }
     }
 
     val buttonPressFlow: Flow<Set<PSMoveButton>>
@@ -180,6 +204,11 @@ class PSMoveStub(val macAddress: MacAddress) {
             PSMoveButton.TRIGGER
         )
     }.map { }
+
+    private suspend fun checkBatteryLevel() {
+        val batteryLevel = PSMoveApi.getBatteryLevel(macAddress = macAddress)
+        _batteryLevelFlow.tryEmit(batteryLevel)
+    }
 
     private val lasClicksTimestamps: MutableMap<PSMoveButton, Long> = mutableMapOf(
         PSMoveButton.SQUARE to 0L,

@@ -12,9 +12,13 @@ import de.vanfanel.joustmania.hardware.BluetoothControllerManager.blueToothContr
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
+import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.types.BlueToothControllerStats
+import de.vanfanel.joustmania.types.MotionControllerStats
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -31,6 +35,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 
@@ -140,7 +146,29 @@ fun Application.configureRouting() {
                 call.response.cacheControl(CacheControl.NoCache(null))
                 logger.debug { "new client connected to sse/bluetoothStats endpoint" }
                 call.respondTextWriter(contentType = ContentType.Text.EventStream) {
-                    blueToothControllerFlow.collect { controllers ->
+                    val combinedFlow: Flow<Set<BlueToothControllerStats>> = combine(
+                        blueToothControllerFlow,
+                        controllersWithAdminRights,
+                        allBatteryStates
+                    ) { controllers, admins, batteryStates ->
+                        return@combine controllers.map { blueToothController ->
+                            BlueToothControllerStats(
+                                adapterId = blueToothController.adapterId,
+                                macAddress = blueToothController.macAddress,
+                                name = blueToothController.name,
+                                pairedMotionController = blueToothController.pairedMotionController.map { motionController ->
+                                    MotionControllerStats(
+                                        adapterId = blueToothController.adapterId,
+                                        macAddress = motionController.macAddress,
+                                        connected = motionController.connected,
+                                        isAdmin = admins.contains(motionController.macAddress),
+                                        batteryLevel = batteryStates.find { it.first == motionController.macAddress }?.second?.value
+                                    )
+                                }.toSet()
+                            )
+                        }.toSet()
+                    }
+                    combinedFlow.collect { controllers ->
                         logger.debug { "new bluetooth controllers list pushed to client: $controllers" }
                         write("data: ${Json.encodeToString(controllers)}\n\n")
                         flush()
