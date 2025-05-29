@@ -34,6 +34,9 @@ object PSMoveBluetoothConnectionWatcher {
     private val _bluetoothConnectedPSMoves: MutableStateFlow<Set<PSMoveStub>> = MutableStateFlow(emptySet())
     val bluetoothConnectedPSMoves: Flow<Set<PSMoveStub>> = _bluetoothConnectedPSMoves
 
+    val connectedPSMoveController: Flow<Set<MacAddress>> =
+        _bluetoothConnectedPSMoves.map { moveStubs -> moveStubs.map { it.macAddress }.toSet() }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val allBatteryStates: Flow<Set<Pair<MacAddress, PSMoveBatteryLevel?>>> = _bluetoothConnectedPSMoves
         .flatMapLatest { moveStubs ->

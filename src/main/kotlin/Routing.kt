@@ -13,6 +13,7 @@ import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.connectedPSMoveController
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
 import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
 import de.vanfanel.joustmania.sound.SoundId
@@ -149,8 +150,9 @@ fun Application.configureRouting() {
                     val combinedFlow: Flow<Set<BlueToothControllerStats>> = combine(
                         blueToothControllerFlow,
                         controllersWithAdminRights,
-                        allBatteryStates
-                    ) { controllers, admins, batteryStates ->
+                        allBatteryStates,
+                        connectedPSMoveController
+                    ) { controllers, admins, batteryStates, connected ->
                         return@combine controllers.map { blueToothController ->
                             BlueToothControllerStats(
                                 adapterId = blueToothController.adapterId,
@@ -160,7 +162,7 @@ fun Application.configureRouting() {
                                     MotionControllerStats(
                                         adapterId = blueToothController.adapterId,
                                         macAddress = motionController.macAddress,
-                                        connected = motionController.connected,
+                                        connected = connected.contains(motionController.macAddress),
                                         isAdmin = admins.contains(motionController.macAddress),
                                         batteryLevel = batteryStates.find { it.first == motionController.macAddress }?.second?.value
                                     )
