@@ -1,21 +1,11 @@
 import {createContext, FC, ReactNode, useContext} from "react";
 import {useSSE} from "../hooks/useSSE.tsx";
+import {BlueToothControllerStats} from "../dto/HardwareDTOs.tsx";
 
-type AdapterId = string;  // oder ein spezifischer Typ, falls bekannt
-type MacAddress = string; // ebenfalls anpassen, wenn es eine spezielle Struktur gibt
-
-interface PairedDevice {
-    adapterId: AdapterId;
-    macAddress: MacAddress;
-    name: string;
-    paired?: boolean;
-    connected?: boolean;
-}
-
-const BluetoothContext = createContext<PairedDevice[]>([]);
+const BluetoothContext = createContext<BlueToothControllerStats[]>([]);
 
 export const BluetoothProvider: FC<{ children: ReactNode }> = ({children}) => {
-    let bluetoothDevices = useSSE<PairedDevice[]>("http://localhost:80/api/sse/bluetooth");
+    let bluetoothDevices = useSSE<BlueToothControllerStats[]>("http://localhost:80/api/sse/bluetooth");
 
     if (bluetoothDevices == null) {
         bluetoothDevices = []
@@ -28,7 +18,7 @@ export const BluetoothProvider: FC<{ children: ReactNode }> = ({children}) => {
     );
 };
 
-export const useBluetoothContext = (): PairedDevice[] => {
+export const useBluetoothContext = (): BlueToothControllerStats[] => {
     const ctx = useContext(BluetoothContext);
     if (!ctx) {
         throw new Error("useSettingsContext must be used inside SettingsProvider");

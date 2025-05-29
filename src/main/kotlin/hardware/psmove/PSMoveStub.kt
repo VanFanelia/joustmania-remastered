@@ -68,7 +68,7 @@ class PSMoveStub(val macAddress: MacAddress) {
     private val buttonObserverTicker = Ticker(5.milliseconds)
     private val colorChangeTicker = Ticker(50.milliseconds)
     private val movementObserverTicker = Ticker(5.milliseconds)
-    private val batteryLevelTicker = Ticker(60.seconds)
+    private val batteryLevelTicker = Ticker(10.seconds)
     private var colorAnimation: ColorAnimation? = null
     private var animationStarted: Long = 0
     private var lastTick: Long = 0

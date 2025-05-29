@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import {SyntheticEvent, useEffect, useState} from "react";
+import {SyntheticEvent, useState} from "react";
 import {
     Accordion,
     AccordionDetails,
@@ -22,39 +22,8 @@ import Battery50Icon from '@mui/icons-material/Battery50';
 import Battery80Icon from '@mui/icons-material/Battery80';
 import BatteryFullIcon from '@mui/icons-material/BatteryFull';
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
-
-enum AkkuState {
-    UNKNOWN = "unknown",
-    EMPTY = "empty",
-    LOW = "low",
-    MEDIUM = "medium",
-    HIGH = "high",
-    FULL = "full"
-}
-
-class BluetoothAdapter {
-    name: string;
-    controller: PSMoveController[];
-
-    constructor(name: string, controller: PSMoveController[]) {
-        this.name = name;
-        this.controller = controller;
-    }
-}
-
-class PSMoveController {
-    macAddress: string;
-    akku: AkkuState;
-    isAdmin: boolean = false;
-    isConnected: boolean = false;
-
-    constructor(macAddress: string, akku: AkkuState, isAdmin: boolean = false, isConnected: boolean = false) {
-        this.macAddress = macAddress;
-        this.akku = akku;
-        this.isAdmin = isAdmin;
-        this.isConnected = isConnected;
-    }
-}
+import {AkkuState, toAkkuState} from '../dto/HardwareDTOs.tsx';
+import {BatteryCharging50, BatteryChargingFull} from '@mui/icons-material';
 
 function Hardware() {
 
@@ -72,32 +41,23 @@ function Hardware() {
         switch (akku) {
             case AkkuState.UNKNOWN:
                 return <BatteryUnknownIcon color={"disabled"}/>;
-            case AkkuState.EMPTY:
+            case AkkuState.LEVEL_0:
                 return <Battery0BarIcon/>;
-            case AkkuState.LOW:
+            case AkkuState.LEVEL_1:
                 return <Battery20Icon/>;
-            case AkkuState.MEDIUM:
+            case AkkuState.LEVEL_2:
+            case AkkuState.LEVEL_3:
                 return <Battery50Icon/>;
-            case AkkuState.HIGH:
+            case AkkuState.LEVEL_4:
                 return <Battery80Icon/>;
-            case AkkuState.FULL:
+            case AkkuState.LEVEL_5:
                 return <BatteryFullIcon/>;
+            case AkkuState.CHARGING:
+                return <BatteryCharging50/>;
+            case AkkuState.CHARGING_DONE:
+                return <BatteryChargingFull/>;
         }
     }
-
-    const demoHardwareSetup: BluetoothAdapter[] = [
-        new BluetoothAdapter("Internal Bluetooth", [
-            new PSMoveController("00:11:22:33:44:55", AkkuState.FULL, true, true),
-            new PSMoveController("66:77:88:99:AA:BB", AkkuState.MEDIUM, false, true),
-            new PSMoveController("CC:DD:EE:FF:00:11", AkkuState.LOW, false, true),
-            new PSMoveController("CC:DD:EE:FF:22:33", AkkuState.HIGH, false, true),
-            new PSMoveController("22:33:44:55:66:77", AkkuState.UNKNOWN, false, false)
-        ]),
-        new BluetoothAdapter("Bluetooth Dongle", [
-            new PSMoveController("11:22:33:44:55:66", AkkuState.MEDIUM, false, true),
-            new PSMoveController("77:88:99:AA:BB:CC", AkkuState.EMPTY, true, false)
-        ]),
-    ]
 
     // @ts-ignore
     const [showOnlyConnectedController, setShowOnlyConnectedController] = useState<boolean>(false);
@@ -113,16 +73,9 @@ function Hardware() {
 
     const bluetoothDevices = useBluetoothContext();
 
-    useEffect(() => {
-        console.log(bluetoothDevices);
-        if (bluetoothDevices !== null) {
-            console.log("TODO fill setter")
-        }
-    }, [bluetoothDevices])
-
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
-            {demoHardwareSetup.map((adapter, index) => (
+            {bluetoothDevices.map((adapter, index) => (
                 <Accordion key={"BluetoothAdapterAccordionKey" + index}>
                     <AccordionSummary
                         className="flex items-center align-middle"
@@ -135,26 +88,27 @@ function Hardware() {
                         </Avatar>
                         <Typography component="span" className="self-center"
                                     style={{fontSize: "1.1rem", fontWeight: "bold"}}>
-                            {adapter.name}
+                            {`${adapter.name} (${adapter.adapterId} - ${adapter.macAddress})`}
                         </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
 
                         <List className={"w-full"} sx={{bgcolor: 'background.paper'}}>
-                            {adapter.controller.map((controller, index) => (
+                            {adapter.pairedMotionController.map((controller, index) => (
                                 <ListItem key={"BluetoothAdapterControllerKey" + index} className="w-full">
                                     <ListItemAvatar>
                                         <Avatar>
                                             <PSMoveControllerIcon width={32} height={32} style={{
-                                                color: getMoveColor(controller.isAdmin, controller.isConnected),
+                                                color: getMoveColor(controller.isAdmin ?? false, controller.connected ?? false),
                                                 transform: "rotate(20deg)",
-                                                opacity: controller.isConnected ? 1 : 0.333
+                                                opacity: controller.connected ? 1 : 0.333
                                             }}/>
                                         </Avatar>
                                     </ListItemAvatar>
                                     <ListItemText primary={controller.macAddress}
-                                                  secondary={controller.isConnected ? (controller.isAdmin ? "Admin" : "User") : "disconnected"}/>
-                                    <Box className="text-right font-bold">{getAkkuIcon(controller.akku)}</Box>
+                                                  secondary={controller.connected ? (controller.isAdmin ? "Admin" : "User") : "disconnected"}/>
+                                    <Box
+                                        className="text-right font-bold">{getAkkuIcon(toAkkuState(controller.batteryLevel))}</Box>
                                 </ListItem>
                             ))}
                         </List>
