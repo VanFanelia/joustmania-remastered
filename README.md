@@ -70,6 +70,7 @@ Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=f
 - fixing bug of dying players are red with touch of black instead of complete black
 - play example file in audio output
 - logging into file
+- add context menu on Hardware tab -> On click open new sub page with fullscreen controller stats. Or popup maybe, -> Add rumble and color blink option for this controller to identfiy
 
 ### nice to have
 - colored logs

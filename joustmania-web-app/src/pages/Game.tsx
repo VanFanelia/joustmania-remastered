@@ -13,11 +13,7 @@ import Diversity3Icon from '@mui/icons-material/Diversity3';
 // @ts-ignore
 import PSMoveController from '../assets/PSMoveController.svg?react';
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
-
-enum GameState {
-    LOBBY,
-    GAME_RUNNING
-}
+import {useGameStatsContext} from "../context/GameStatsProvider.tsx";
 
 function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
@@ -28,11 +24,8 @@ function Game() {
     );
 
     const [currentGame, setCurrentGame] = useState<string>('ffa');
-    // @ts-ignore
-    const [gameState, setGameState] = useState<GameState>(GameState.LOBBY);
-    // @ts-ignore
+    const [gameState, setGameState] = useState<string>("Lobby");
     const [activePlayer, setActivePlayer] = useState<number>(0);
-
     const [adminCount, setAdminCount] = useState<number>(0);
     const [connectedController, setConnectedController] = useState<number>(0);
     const [pairedController, setPairedController] = useState<number>(0);
@@ -58,6 +51,12 @@ function Game() {
         }, 0))
     }, [bluetoothDevices])
 
+    const gameStats = useGameStatsContext();
+
+    useEffect(() => {
+        setGameState(gameStats.currentGameState);
+        setActivePlayer(gameStats.activeController.length)
+    }, [gameStats]);
 
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
@@ -86,7 +85,7 @@ function Game() {
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar>
-                            {(gameState == GameState.LOBBY) ? (
+                            {(gameState == "Lobby") ? (
                                 <TransferWithinAStationIcon style={{color: "#000"}}/>
                             ) : (
                                 <SportsHandballIcon style={{color: "#000"}}/>
@@ -95,7 +94,7 @@ function Game() {
                     </ListItemAvatar>
                     <ListItemText primary="Game State"/>
                     <Box
-                        className="text-right font-bold">{gameState == GameState.LOBBY ? "Lobby" : "Game running"}</Box>
+                        className="text-right font-bold">{gameState == "Lobby" ? "Lobby" : "Game running"}</Box>
                 </ListItem>
                 <ListItem className="w-full">
                     <ListItemAvatar>
@@ -104,7 +103,7 @@ function Game() {
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Active Player"/>
-                    <Box className="text-right font-bold">{"?" /* activePlayer */}</Box>
+                    <Box className="text-right font-bold">{activePlayer}</Box>
                 </ListItem>
                 <ListItem>
                     <ListItemAvatar>

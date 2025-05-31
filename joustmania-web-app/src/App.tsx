@@ -7,23 +7,25 @@ import SimpleBottomNavigation from "./components/SimpleBottomNavigation.tsx";
 import Settings from './pages/Settings.tsx'
 import {SettingsProvider} from "./context/SettingsProvider.tsx";
 import {BluetoothProvider} from "./context/BluetoothProvider.tsx";
+import {GameStatsProvider} from "./context/GameStatsProvider.tsx";
 
 function App() {
     return (
         <>
             <SettingsProvider>
                 <BluetoothProvider>
-                    <Routes>
-                        <Route path="/" element={<Navigate to="/game"/>}/>
-                        <Route path="/game" element={<Game/>}/>
-                        <Route path="/settings" element={<Settings/>}/>
-                        <Route path="/hardware" element={<Hardware/>}/>
-                        <Route path="/debug" element={<Debug/>}/>
-                    </Routes>
-                    <SimpleBottomNavigation/>
+                    <GameStatsProvider>
+                        <Routes>
+                            <Route path="/" element={<Navigate to="/game"/>}/>
+                            <Route path="/game" element={<Game/>}/>
+                            <Route path="/settings" element={<Settings/>}/>
+                            <Route path="/hardware" element={<Hardware/>}/>
+                            <Route path="/debug" element={<Debug/>}/>
+                        </Routes>
+                        <SimpleBottomNavigation/>
+                    </GameStatsProvider>
                 </BluetoothProvider>
             </SettingsProvider>
-
         </>
     )
 }

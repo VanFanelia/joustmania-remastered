@@ -45,6 +45,12 @@ data class MotionControllerStats(
     val batteryLevel: Int?,
 )
 
+@Serializable
+data class GameStats(
+    val currentGameState: String,
+    val activeController: List<MacAddress>
+)
+
 enum class PSMoveBatteryLevel(val value: Int) {
     LEVEL_0(0),              // leer / minimal
     LEVEL_1(1),

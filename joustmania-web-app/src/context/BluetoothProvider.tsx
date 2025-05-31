@@ -21,7 +21,7 @@ export const BluetoothProvider: FC<{ children: ReactNode }> = ({children}) => {
 export const useBluetoothContext = (): BlueToothControllerStats[] => {
     const ctx = useContext(BluetoothContext);
     if (!ctx) {
-        throw new Error("useSettingsContext must be used inside SettingsProvider");
+        throw new Error("useBluetoothContext must be used inside BluetoothProvider");
     }
     return ctx;
 };

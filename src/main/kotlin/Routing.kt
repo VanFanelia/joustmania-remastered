@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania
 
+import de.vanfanel.joustmania.GameStateManager.currentGameState
 import de.vanfanel.joustmania.games.Language
 import de.vanfanel.joustmania.games.Language.Companion.parseLanguage
 import de.vanfanel.joustmania.games.Sensibility
@@ -15,10 +16,12 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.connectedPSMoveController
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
+import de.vanfanel.joustmania.lobby.LobbyLoop.activeMoves
 import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.BlueToothControllerStats
+import de.vanfanel.joustmania.types.GameStats
 import de.vanfanel.joustmania.types.MotionControllerStats
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
@@ -130,7 +133,6 @@ fun Application.configureRouting() {
             }
 
             // event streams
-
             get("/sse/settings") {
                 call.response.cacheControl(CacheControl.NoCache(null))
                 logger.debug { "new client connected to sse/settings endpoint" }
@@ -145,7 +147,7 @@ fun Application.configureRouting() {
 
             get("/sse/bluetooth") {
                 call.response.cacheControl(CacheControl.NoCache(null))
-                logger.debug { "new client connected to sse/bluetoothStats endpoint" }
+                logger.debug { "new client connected to sse/bluetooth endpoint" }
                 call.respondTextWriter(contentType = ContentType.Text.EventStream) {
                     val combinedFlow: Flow<Set<BlueToothControllerStats>> = combine(
                         blueToothControllerFlow,
@@ -173,6 +175,27 @@ fun Application.configureRouting() {
                     combinedFlow.collect { controllers ->
                         logger.debug { "new bluetooth controllers list pushed to client: $controllers" }
                         write("data: ${Json.encodeToString(controllers)}\n\n")
+                        flush()
+                    }
+                }
+            }
+
+            get("/sse/game") {
+                call.response.cacheControl(CacheControl.NoCache(null))
+                logger.debug { "new client connected to sse/game endpoint" }
+                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
+                    val combinedFlow: Flow<GameStats> = combine(
+                        currentGameState,
+                        activeMoves,
+                    ) { gameState, activeMoveList ->
+                        return@combine GameStats(
+                            currentGameState = gameState.toDisplayString(),
+                            activeController = activeMoveList
+                        )
+                    }
+                    combinedFlow.collect { gameStats ->
+                        logger.debug { "new gameStats pushed to client: $gameStats" }
+                        write("data: ${Json.encodeToString(gameStats)}\n\n")
                         flush()
                     }
                 }

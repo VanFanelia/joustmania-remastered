@@ -40,6 +40,10 @@ object LobbyLoop {
     private val soundManager = SoundManager
 
     private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
+    private val _activeMoves: MutableStateFlow<List<MacAddress>> = MutableStateFlow(emptyList())
+    val activeMoves: Flow<List<MacAddress>> = _activeMoves
+
+    private val movesInLobby: MutableMap<String, PSMoveStub> = mutableMapOf()
 
     private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
     private val _controllersWithAdminRights: MutableStateFlow<List<MacAddress>> = MutableStateFlow(emptyList())
@@ -64,6 +68,7 @@ object LobbyLoop {
                     isActive.clear()
                     admins.clear()
                     _controllersWithAdminRights.emit(emptyList())
+                    _activeMoves.emit(emptyList())
                 }
                 lastGameState = newState
             }
@@ -86,7 +91,7 @@ object LobbyLoop {
                 isActive[moveStub] = false
                 moveStub.setNotActivatedInLobbyColor()
             }
-
+            updateActiveMovesFlow()
             changeActiveStateOnTriggerClicked()
         })
 
@@ -147,7 +152,10 @@ object LobbyLoop {
                     selectedGame?.let { game ->
                         logger.info { "All moves are ready. Start game: ${game.name}" }
                         freezeLobby = true
-                        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(id = ALL_PLAYERS_READY, abortOnNewSound = false)
+                        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+                            id = ALL_PLAYERS_READY,
+                            abortOnNewSound = false
+                        )
                         GameStateManager.startGame(
                             game, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
                         )
@@ -160,6 +168,7 @@ object LobbyLoop {
                 soundManager.asyncAddSoundToQueue(CONTROLLER_LEFT)
                 logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
             }
+            updateActiveMovesFlow()
         }
     }
 
@@ -174,12 +183,16 @@ object LobbyLoop {
                     logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                 }
             }
+            updateActiveMovesFlow()
         }
+    }
+
+    private suspend fun updateActiveMovesFlow() {
+        _activeMoves.emit(isActive.filter { (_, value) -> value }.map { it.key.macAddress })
     }
 
     private fun updateLobbyColorByState() {
         isActive.entries.forEach {
-
             val colorToSet = when {
                 admins.contains(it.key) -> if (it.value) MoveColor.VIOLET else MoveColor.VIOLET_INACTIVE
                 it.value -> MoveColor.ORANGE
@@ -190,11 +203,24 @@ object LobbyLoop {
         }
     }
 
-    fun newControllerConnected(move: PSMoveStub) {
+    suspend fun handleConnectedMovesChangeDuringGameStateLobby(newMoves: Set<PSMoveStub>) {
+        val newMovesMacAddresses = newMoves.map { it.macAddress }
+        newMoves.forEach { newMove ->
+            if (!movesInLobby.containsKey(newMove.macAddress)) {
+                movesInLobby[newMove.macAddress] = newMove
+                newControllerConnected(newMove)
+                logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
+            }
+            movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }
+        }
+    }
+
+    suspend fun newControllerConnected(move: PSMoveStub) {
         if (!isActive.containsKey(move)) {
             isActive[move] = false
         }
         move.setNotActivatedInLobbyColor()
+        updateActiveMovesFlow()
         soundManager.asyncAddSoundToQueue(NEW_CONTROLLER)
     }
 

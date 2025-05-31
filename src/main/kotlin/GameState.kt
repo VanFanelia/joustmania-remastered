@@ -21,7 +21,18 @@ enum class GameState {
     GAME_RUNNING,
     GAME_FINISHING,
     GAME_FINISHED,
-    GAME_INTERRUPTED
+    GAME_INTERRUPTED;
+
+    fun toDisplayString(): String {
+        return when (this) {
+            GAME_STARTING -> "Starting"
+            LOBBY -> "Lobby"
+            GAME_RUNNING -> "Running"
+            GAME_FINISHING -> "Finishing"
+            GAME_FINISHED -> "Finished"
+            GAME_INTERRUPTED -> "Interrupted"
+        }
+    }
 }
 
 object GameStateManager {
@@ -30,9 +41,6 @@ object GameStateManager {
 
     private val _currentGameState: MutableStateFlow<GameState> = MutableStateFlow(GameState.LOBBY)
     val currentGameState: Flow<GameState> = _currentGameState
-
-    // Todo: Move to lobby?
-    private val movesInLobby: MutableMap<String, PSMoveStub> = mutableMapOf()
 
     private val lobbyLoop = LobbyLoop
 
@@ -45,7 +53,7 @@ object GameStateManager {
             // TODO: move changes of connected Bluetooth to Lobby and game!
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
                 if (_currentGameState.value == GameState.LOBBY) {
-                    handleConnectedMovesChangeDuringGameStateLobby(newMoves)
+                    lobbyLoop.handleConnectedMovesChangeDuringGameStateLobby(newMoves)
                 }
             }
         }
@@ -61,18 +69,6 @@ object GameStateManager {
                     GameState.GAME_INTERRUPTED -> handleGameInterrupted()
                 }
             }
-        }
-    }
-
-    private fun handleConnectedMovesChangeDuringGameStateLobby(newMoves: Set<PSMoveStub>) {
-        val newMovesMacAddresses = newMoves.map { it.macAddress }
-        newMoves.forEach { newMove ->
-            if (!movesInLobby.containsKey(newMove.macAddress)) {
-                movesInLobby[newMove.macAddress] = newMove
-                lobbyLoop.newControllerConnected(newMove)
-                logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
-            }
-            movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }
         }
     }
 
