@@ -5,6 +5,7 @@ import {
     AccordionDetails,
     AccordionSummary,
     Avatar,
+    IconButton,
     List,
     ListItem,
     ListItemAvatar,
@@ -23,7 +24,7 @@ import Battery80Icon from '@mui/icons-material/Battery80';
 import BatteryFullIcon from '@mui/icons-material/BatteryFull';
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 import {AkkuState, toAkkuState} from '../dto/HardwareDTOs.tsx';
-import {BatteryCharging50, BatteryChargingFull} from '@mui/icons-material';
+import {BatteryCharging50, BatteryChargingFull, MoreVert} from '@mui/icons-material';
 
 function Hardware() {
 
@@ -40,22 +41,22 @@ function Hardware() {
     function getAkkuIcon(akku: AkkuState) {
         switch (akku) {
             case AkkuState.UNKNOWN:
-                return <BatteryUnknownIcon color={"disabled"}/>;
+                return <BatteryUnknownIcon fontSize={"large"} color={"disabled"}/>;
             case AkkuState.LEVEL_0:
-                return <Battery0BarIcon/>;
+                return <Battery0BarIcon fontSize={"large"} />;
             case AkkuState.LEVEL_1:
-                return <Battery20Icon/>;
+                return <Battery20Icon fontSize={"large"} />;
             case AkkuState.LEVEL_2:
             case AkkuState.LEVEL_3:
-                return <Battery50Icon/>;
+                return <Battery50Icon fontSize={"large"} />;
             case AkkuState.LEVEL_4:
-                return <Battery80Icon/>;
+                return <Battery80Icon fontSize={"large"} />;
             case AkkuState.LEVEL_5:
-                return <BatteryFullIcon/>;
+                return <BatteryFullIcon fontSize={"large"} />;
             case AkkuState.CHARGING:
-                return <BatteryCharging50/>;
+                return <BatteryCharging50 fontSize={"large"} />;
             case AkkuState.CHARGING_DONE:
-                return <BatteryChargingFull/>;
+                return <BatteryChargingFull fontSize={"large"} />;
         }
     }
 
@@ -108,7 +109,13 @@ function Hardware() {
                                     <ListItemText primary={controller.macAddress}
                                                   secondary={controller.connected ? (controller.isAdmin ? "Admin" : "User") : "disconnected"}/>
                                     <Box
-                                        className="text-right font-bold">{getAkkuIcon(toAkkuState(controller.batteryLevel))}</Box>
+                                        className="text-right font-bold pr-8">{getAkkuIcon(toAkkuState(controller.batteryLevel))}
+                                    </Box>
+                                    <Box className="text-right font-bold">
+                                        <IconButton color="primary" aria-label="more settings">
+                                            <MoreVert fontSize="large" />
+                                        </IconButton>
+                                    </Box>
                                 </ListItem>
                             ))}
                         </List>
