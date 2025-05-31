@@ -62,13 +62,13 @@ object LobbyLoop {
                 if (newState == GameState.LOBBY && lastGameState != GameState.LOBBY) {
                     freezeLobby = false
                     selectedGame = null
+                    isActive.clear()
+                    _activeMoves.emit(emptyList())
                     initLobbyCoroutines()
                 } else {
                     lobbyJobs.forEach { job -> job.cancel() }
-                    isActive.clear()
                     admins.clear()
                     _controllersWithAdminRights.emit(emptyList())
-                    _activeMoves.emit(emptyList())
                 }
                 lastGameState = newState
             }
