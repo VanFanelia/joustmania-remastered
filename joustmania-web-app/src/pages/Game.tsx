@@ -3,7 +3,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, {SelectChangeEvent} from '@mui/material/Select';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import {Avatar, ListItemAvatar, ListItemText} from "@mui/material";
@@ -12,6 +12,7 @@ import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 // @ts-ignore
 import PSMoveController from '../assets/PSMoveController.svg?react';
+import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 
 enum GameState {
     LOBBY,
@@ -31,15 +32,32 @@ function Game() {
     const [gameState, setGameState] = useState<GameState>(GameState.LOBBY);
     // @ts-ignore
     const [activePlayer, setActivePlayer] = useState<number>(0);
-    // @ts-ignore
+
     const [adminCount, setAdminCount] = useState<number>(0);
-    // @ts-ignore
     const [connectedController, setConnectedController] = useState<number>(0);
+    const [pairedController, setPairedController] = useState<number>(0);
 
 
     const handleChange = (event: SelectChangeEvent) => {
         setCurrentGame(event.target.value as string);
     };
+
+    const bluetoothDevices = useBluetoothContext();
+
+    useEffect(() => {
+        setPairedController(bluetoothDevices.reduce((previousValue, bluetoothController) => {
+            return previousValue + bluetoothController.pairedMotionController.length
+        }, 0))
+
+        setConnectedController(bluetoothDevices.reduce((previousValue, bluetoothController) => {
+            return previousValue + bluetoothController.pairedMotionController.filter(controller => controller.connected).length
+        }, 0))
+
+        setAdminCount(bluetoothDevices.reduce((previousValue, bluetoothController) => {
+            return previousValue + bluetoothController.pairedMotionController.filter(controller => controller.isAdmin).length
+        }, 0))
+    }, [bluetoothDevices])
+
 
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
@@ -97,7 +115,7 @@ function Game() {
                     </ListItemAvatar>
                     <ListItemText primary="Connected Controller"
                                   secondary={`${adminCount} controller with admin rights`}/>
-                    <Box className="text-right font-bold">{"?" /* connectedController */}</Box>
+                    <Box className="text-right font-bold">{ `${connectedController} / ${pairedController}`}</Box>
                 </ListItem>
             </List>
 
