@@ -14,6 +14,8 @@ import Diversity3Icon from '@mui/icons-material/Diversity3';
 import PSMoveController from '../assets/PSMoveController.svg?react';
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 import {useGameStatsContext} from "../context/GameStatsProvider.tsx";
+import ConfirmGameStartButtonWithDialog from "../components/ConfirmGameStartButtonWithDialog.tsx";
+import AbortGameButtonWithDialog from "../components/AbortGameButtonWithDialog.tsx";
 
 function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
@@ -58,6 +60,16 @@ function Game() {
         setActivePlayer(gameStats.activeController.length)
     }, [gameStats]);
 
+    const isGameStateInLobby = gameState == "Lobby"
+
+    function forceStartGame(gameState: string) {
+        console.log("Force start: ", gameState);
+    }
+
+    function forceStopGame() {
+        console.log("Force stop current game: ");
+    }
+
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
             <Box sx={{minWidth: 120}}>
@@ -85,7 +97,7 @@ function Game() {
                 <ListItem>
                     <ListItemAvatar>
                         <Avatar>
-                            {(gameState == "Lobby") ? (
+                            {(isGameStateInLobby) ? (
                                 <TransferWithinAStationIcon style={{color: "#000"}}/>
                             ) : (
                                 <SportsHandballIcon style={{color: "#000"}}/>
@@ -94,7 +106,7 @@ function Game() {
                     </ListItemAvatar>
                     <ListItemText primary="Game State"/>
                     <Box
-                        className="text-right font-bold">{gameState == "Lobby" ? "Lobby" : "Game running"}</Box>
+                        className="text-right font-bold">{isGameStateInLobby ? "Lobby" : "Game running"}</Box>
                 </ListItem>
                 <ListItem className="w-full">
                     <ListItemAvatar>
@@ -114,10 +126,22 @@ function Game() {
                     </ListItemAvatar>
                     <ListItemText primary="Connected Controller"
                                   secondary={`${adminCount} controller with admin rights`}/>
-                    <Box className="text-right font-bold">{ `${connectedController} / ${pairedController}`}</Box>
+                    <Box className="text-right font-bold">{`${connectedController} / ${pairedController}`}</Box>
                 </ListItem>
             </List>
 
+            <Box className={"mt-8"}>
+                {isGameStateInLobby ? (
+                        <ConfirmGameStartButtonWithDialog gameNameToStart={possibleGames.get(currentGame)}
+                                                          gameMode={currentGame}
+                                                          onConfirm={forceStartGame}/>
+                    ) :
+                    (
+                        <AbortGameButtonWithDialog onConfirm={forceStopGame} />
+                    )
+                }
+
+            </Box>
         </Box>)
 }
 
