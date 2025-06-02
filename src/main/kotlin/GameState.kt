@@ -121,6 +121,10 @@ object GameStateManager {
         }
     }
 
+    suspend fun forceStopGame() {
+        currentGame?.forceGameEnd()
+    }
+
     suspend fun setGameRunning() {
         _currentGameState.emit(GameState.GAME_RUNNING)
     }

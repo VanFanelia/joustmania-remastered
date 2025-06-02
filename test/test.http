@@ -49,3 +49,15 @@ POST http://localhost:80/api/settings/language
 Content-Type: application/json
 
 { "language" : "de" }
+
+### test force start game
+POST http://localhost:80/api/game/force-start
+Content-Type: application/json
+
+{}
+
+### test force stop game
+POST http://localhost:80/api/game/force-stop
+Content-Type: application/json
+
+{}

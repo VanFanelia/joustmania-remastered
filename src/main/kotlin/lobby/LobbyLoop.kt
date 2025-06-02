@@ -146,21 +146,7 @@ object LobbyLoop {
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
                 soundManager.asyncAddSoundToQueue(CONTROLLER_JOINED)
                 if (isActive.all { it.value }) {
-                    if (selectedGame == null) {
-                        selectedGame = FreeForAll()
-                    }
-                    selectedGame?.let { game ->
-                        logger.info { "All moves are ready. Start game: ${game.name}" }
-                        freezeLobby = true
-                        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                            id = ALL_PLAYERS_READY,
-                            abortOnNewSound = false
-                        )
-                        GameStateManager.startGame(
-                            game, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
-                        )
-                    }
-
+                    startGame()
                 }
             } else {
                 isActive[moveStub] = false
@@ -169,6 +155,24 @@ object LobbyLoop {
                 logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
             }
             updateActiveMovesFlow()
+        }
+    }
+
+    suspend fun startGame()
+    {
+        if (selectedGame == null) {
+            selectedGame = FreeForAll()
+        }
+        selectedGame?.let { game ->
+            logger.info { "All moves are ready. Start game: ${game.name}" }
+            freezeLobby = true
+            SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+                id = ALL_PLAYERS_READY,
+                abortOnNewSound = false
+            )
+            GameStateManager.startGame(
+                game, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
+            )
         }
     }
 

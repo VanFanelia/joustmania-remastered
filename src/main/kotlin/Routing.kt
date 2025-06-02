@@ -16,6 +16,7 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.connectedPSMoveController
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
+import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.lobby.LobbyLoop.activeMoves
 import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
 import de.vanfanel.joustmania.sound.SoundId
@@ -47,9 +48,9 @@ import kotlinx.serialization.json.Json
 
 private val logger = KotlinLogging.logger {}
 fun Application.configureRouting() {
-    // add base path// add base path
     routing {
 
+        // TODO enable me
         // staticResources("/", "static", "index.html")
 
         route("/api") {
@@ -130,6 +131,38 @@ fun Application.configureRouting() {
                     parseLanguage(newLanguage.language) ?: return@post call.respond(HttpStatusCode.BadRequest)
                 Settings.setLanguage(language)
                 call.respond(HttpStatusCode.OK, "Language updated to $language")
+            }
+
+            // manipulate game
+            post("/game/force-start") {
+                val gameState = currentGameState.firstOrNull()
+                if(gameState == GameState.LOBBY) {
+                    val activeMoves = activeMoves.firstOrNull()
+                    if (activeMoves.isNullOrEmpty()) {
+                        logger.warn { "force start was called but no active moves found. Request ignored." }
+                        call.respond(HttpStatusCode.BadRequest, "No active moves found")
+                        return@post
+                    }
+
+                    logger.info { "force start was called. Start current selected game now." }
+                    LobbyLoop.startGame()
+                    call.respond(HttpStatusCode.OK, "Game started")
+                    return@post
+                }
+                logger.warn { "force start was called but game state was not in 'GameState.LOBBY'. Request ignored." }
+                call.respond(HttpStatusCode.BadRequest, "Force start can only be called during lobby state")
+            }
+
+            post("/game/force-stop") {
+                val gameState = currentGameState.firstOrNull()
+                if(gameState == GameState.GAME_RUNNING) {
+                    GameStateManager.forceStopGame()
+                    logger.info { "force stop was called. Stop game now!" }
+                    call.respond(HttpStatusCode.OK, "Game stoped")
+                    return@post
+                }
+                logger.warn { "force stop was called but game state was not in 'GameState.RUNNING'. Request ignored." }
+                call.respond(HttpStatusCode.BadRequest, "Cannot force stop game if game state is: $gameState. Only 'Running' games can be stoped'")
             }
 
             // event streams

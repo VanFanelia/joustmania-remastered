@@ -130,6 +130,15 @@ class FreeForAll : Game {
         }
     }
 
+    override suspend fun forceGameEnd() {
+        gameRunning = false
+        GameStateManager.setGameFinishing()
+        SoundManager.stopSoundPlay()
+        cleanUpGame()
+        //TODO Play game forced to stop sound
+        GameStateManager.setGameFinished()
+    }
+
     private suspend fun playWinnerAnimationAndChangeGameState(winner: MacAddress) {
         GameStateManager.setGameFinishing()
         SoundManager.stopSoundPlay()

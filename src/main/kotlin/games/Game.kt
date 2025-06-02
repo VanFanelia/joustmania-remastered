@@ -11,4 +11,6 @@ interface Game {
     suspend fun checkForGameFinished()
 
     fun cleanUpGame()
+
+    suspend fun forceGameEnd()
 }
