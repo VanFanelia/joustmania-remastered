@@ -6,7 +6,7 @@ import Select, {SelectChangeEvent} from '@mui/material/Select';
 import {useEffect, useState} from "react";
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import {Avatar, ListItemAvatar, ListItemText} from "@mui/material";
+import {Alert, Avatar, ListItemAvatar, ListItemText} from "@mui/material";
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
@@ -32,6 +32,17 @@ function Game() {
     const [connectedController, setConnectedController] = useState<number>(0);
     const [pairedController, setPairedController] = useState<number>(0);
 
+    const [error, setError] = useState<string | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
+
+    useEffect(() => {
+        if (showAlert) {
+            const timer = setTimeout(() => {
+                setShowAlert(false);
+            }, 10000); // 10 Sekunden
+            return () => clearTimeout(timer); // Aufräumen, falls Alert früher verschwindet
+        }
+    }, [showAlert]);
 
     const handleChange = (event: SelectChangeEvent) => {
         setCurrentGame(event.target.value as string);
@@ -63,11 +74,55 @@ function Game() {
     const isGameStateInLobby = gameState == "Lobby"
 
     function forceStartGame(gameState: string) {
-        console.log("Force start: ", gameState);
+        console.debug("Force start: ", gameState);
+
+        const url = `http://${window.location.hostname}/api/game/force-start`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+            .then(async (response) => {
+                if (!response.ok) {
+                    const body = await response.text()
+                    console.error(body);
+                    setError(`Failed to force start the game. Reason: ${body}`);
+                    setShowAlert(true);
+                }
+            })
+            .catch((error) => {
+                console.error(error)
+                setError(error.message);
+                setShowAlert(true);
+            });
     }
 
     function forceStopGame() {
-        console.log("Force stop current game: ");
+        console.debug("Force stop: ", gameState);
+
+        const url = `http://${window.location.hostname}/api/game/force-stop`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+            .then(async (response) => {
+                if (!response.ok) {
+                    const body = await response.text();
+                    console.error(body);
+                    setError(`Failed to force stop the game. Reason: ${body}`);
+                    setShowAlert(true);
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                setError(error.message);
+                setShowAlert(true);
+            });
     }
 
     return (
@@ -137,11 +192,15 @@ function Game() {
                                                           onConfirm={forceStartGame}/>
                     ) :
                     (
-                        <AbortGameButtonWithDialog onConfirm={forceStopGame} />
+                        <AbortGameButtonWithDialog onConfirm={forceStopGame}/>
                     )
                 }
 
             </Box>
+
+            {showAlert && (
+                <Alert severity="error" className={"absolute bottom-16"}>{error}</Alert>
+            )}
         </Box>)
 }
 
