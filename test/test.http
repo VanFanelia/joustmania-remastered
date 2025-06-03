@@ -61,3 +61,6 @@ POST http://localhost:80/api/game/force-stop
 Content-Type: application/json
 
 {}
+
+### play sound test
+GET http://localhost:80/api/playsound/player_lose_2

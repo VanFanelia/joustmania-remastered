@@ -77,6 +77,8 @@ class FreeForAll : Game {
                 if (acceleration.change > 1.2 && gameRunning && !playersLost.contains(stub.macAddress)) {
                     if (acceleration.change > currentSensitivity.getSensibilityValues().deathThreshold) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and lost the game" }
+                        val randomSoundId = listOf(SoundId.PLAYER_LOSE_1, SoundId.PLAYER_LOSE_2).random()
+                        SoundManager.asyncAddSoundToQueue(id = randomSoundId, abortOnNewSound = false)
                         PSMoveApi.stopRumble(macAddress = stub.macAddress)
                         stub.setColorAnimation(
                             ColorAnimation(

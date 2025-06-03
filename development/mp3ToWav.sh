@@ -17,6 +17,10 @@ for mp3_file in "$INPUT_DIR"/*.mp3; do
     # Ziel-Dateiname
     wav_file="$OUTPUT_DIR/${base_name}.wav"
 
+    if [ -e "$wav_file" ]; then
+      continue
+    fi
+
     echo "Konvertiere: $mp3_file → $wav_file"
 
     # ffmpeg zur Konvertierung

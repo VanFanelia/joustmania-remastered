@@ -70,7 +70,10 @@ enum class SoundId {
     RED_WINS,
     VIOLET_WINS,
     WHITE_WINS,
-    YELLOW_WINS;
+    YELLOW_WINS,
+    PLAYER_LOSE_1,
+    PLAYER_LOSE_2,
+    ;
 
     companion object {
         fun colorToSound(color: MoveColor?): SoundId? {
@@ -89,6 +92,15 @@ enum class SoundId {
                 MoveColor.WHITE -> WHITE_WINS
                 MoveColor.YELLOW -> YELLOW_WINS
                 else -> null
+            }
+        }
+
+        fun fromString(string: String?): SoundId? {
+            if (string == null) return null
+            return try {
+                valueOf(string.uppercase())
+            } catch (_: IllegalArgumentException) {
+                null
             }
         }
     }
@@ -339,6 +351,24 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
             )
         )
     ),
+    PLAYER_LOSE_1 to Sound(
+        id = PLAYER_LOSE_1, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "player_lose_1",
+                localizedText = ""
+            )
+        )
+    ),
+    PLAYER_LOSE_2 to Sound(
+        id = PLAYER_LOSE_2, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "player_lose_2",
+                localizedText = ""
+            )
+        )
+    )
 )
 
 fun getSoundBy(id: SoundId, locale: SupportedSoundLocale): SoundFile? {

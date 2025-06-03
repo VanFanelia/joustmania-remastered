@@ -104,6 +104,20 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.Accepted)
             }
 
+            get("/playsound/{soundId}") {
+                logger.info { "play sound..." }
+                val soundName: String? = call.parameters["soundId"]
+                val soundId = SoundId.fromString(soundName)
+                if (soundId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Cannot find Sound Id")
+                    return@get
+                }
+
+                SoundManager.asyncAddSoundToQueue(id = soundId, abortOnNewSound = false)
+                logger.info { "play sound id: $soundId" }
+                call.respond(HttpStatusCode.Accepted)
+            }
+
             // Hardware commands
             get("/clear-devices") {
                 PSMovePairingManager.disconnectAndForgetAllPairedPSMove()
