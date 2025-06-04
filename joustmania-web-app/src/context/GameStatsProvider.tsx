@@ -4,10 +4,12 @@ import {useSSE} from "../hooks/useSSE.tsx";
 export class GameStats {
     constructor(
         public currentGameState: string,
-        public activeController: string[]
+        public activeController: string[],
+        public playerInGame: string[],
+        public playerLost: string[]
     ) {}
 
-    static DEFAULT_GAME_STATS = new GameStats("Lobby", [])
+    static DEFAULT_GAME_STATS = new GameStats("Lobby", [], [], [])
 }
 
 const GameStatsContext = createContext<GameStats>(GameStats.DEFAULT_GAME_STATS);

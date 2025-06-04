@@ -48,7 +48,9 @@ data class MotionControllerStats(
 @Serializable
 data class GameStats(
     val currentGameState: String,
-    val activeController: List<MacAddress>
+    val activeController: List<MacAddress>,
+    val playerInGame: List<MacAddress>,
+    val playerLost: List<MacAddress>,
 )
 
 enum class PSMoveBatteryLevel(val value: Int) {

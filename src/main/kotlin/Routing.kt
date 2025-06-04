@@ -1,6 +1,8 @@
 package de.vanfanel.joustmania
 
 import de.vanfanel.joustmania.GameStateManager.currentGameState
+import de.vanfanel.joustmania.GameStateManager.getPlayerInGameList
+import de.vanfanel.joustmania.GameStateManager.playerLostFlow
 import de.vanfanel.joustmania.games.Language
 import de.vanfanel.joustmania.games.Language.Companion.parseLanguage
 import de.vanfanel.joustmania.games.Sensibility
@@ -150,7 +152,7 @@ fun Application.configureRouting() {
             // manipulate game
             post("/game/force-start") {
                 val gameState = currentGameState.firstOrNull()
-                if(gameState == GameState.LOBBY) {
+                if (gameState == GameState.LOBBY) {
                     val activeMoves = activeMoves.firstOrNull()
                     if (activeMoves.isNullOrEmpty()) {
                         logger.warn { "force start was called but no active moves found. Request ignored." }
@@ -169,14 +171,17 @@ fun Application.configureRouting() {
 
             post("/game/force-stop") {
                 val gameState = currentGameState.firstOrNull()
-                if(gameState == GameState.GAME_RUNNING) {
+                if (gameState == GameState.GAME_RUNNING) {
                     GameStateManager.forceStopGame()
                     logger.info { "force stop was called. Stop game now!" }
                     call.respond(HttpStatusCode.OK, "Game stoped")
                     return@post
                 }
                 logger.warn { "force stop was called but game state was not in 'GameState.RUNNING'. Request ignored." }
-                call.respond(HttpStatusCode.BadRequest, "Cannot force stop game if game state is: $gameState. Only 'Running' games can be stoped'")
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    "Cannot force stop game if game state is: $gameState. Only 'Running' games can be stoped'"
+                )
             }
 
             // event streams
@@ -234,10 +239,14 @@ fun Application.configureRouting() {
                     val combinedFlow: Flow<GameStats> = combine(
                         currentGameState,
                         activeMoves,
-                    ) { gameState, activeMoveList ->
+                        playerLostFlow
+
+                    ) { gameState, activeMoveList, playerLost ->
                         return@combine GameStats(
                             currentGameState = gameState.toDisplayString(),
-                            activeController = activeMoveList
+                            activeController = activeMoveList,
+                            playerInGame = getPlayerInGameList().toList(),
+                            playerLost = playerLost.toList()
                         )
                     }
                     combinedFlow.collect { gameStats ->

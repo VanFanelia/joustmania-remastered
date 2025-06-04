@@ -22,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class FreeForAll : Game {
@@ -29,6 +31,10 @@ class FreeForAll : Game {
 
     override val name = "FreeForAll"
     override val currentPlayingController: MutableSet<PSMoveStub> = mutableSetOf()
+
+    private val _playerLostFlow: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    override val playerLostFlow: Flow<List<String>> = _playerLostFlow
+
     private val gameJobs: MutableSet<Job> = mutableSetOf()
     private var disconnectedControllerJob: Job? = null
     private var gameLoopJob: Job? = null
@@ -54,6 +60,7 @@ class FreeForAll : Game {
                 moves.forEach { move ->
                     logger.info { "Move with address: ${move.macAddress} was disconnected. Set Player to game Over" }
                     playersLost.add(move.macAddress)
+                    _playerLostFlow.emit(playersLost.toList())
                 }
             }
         }
@@ -93,6 +100,7 @@ class FreeForAll : Game {
                         )
                         PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_HARDEST, 3000)
                         playersLost.add(stub.macAddress)
+                        _playerLostFlow.emit(playersLost.toList())
                         delay(3100) // add some delay to get sure animation was stopped
                         stub.setCurrentColor(colorToSet = MoveColor.BLACK)
                     } else if (acceleration.change > currentSensitivity.getSensibilityValues().warningThreshold) {

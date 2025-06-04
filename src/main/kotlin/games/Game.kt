@@ -1,6 +1,8 @@
 package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.types.MacAddress
+import kotlinx.coroutines.flow.Flow
 
 interface Game {
     val name: String
@@ -13,4 +15,6 @@ interface Game {
     fun cleanUpGame()
 
     suspend fun forceGameEnd()
+
+    val playerLostFlow: Flow<List<MacAddress>>
 }

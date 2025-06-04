@@ -4,6 +4,7 @@ import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.lobby.LobbyLoop
+import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +48,12 @@ object GameStateManager {
     private var currentGame: Game? = null
     private val gameWatcherTicker = Ticker(5.milliseconds)
     private var gameWatcherJob: Job? = null
+
+    private val _playerLostFlow = MutableStateFlow<Set<MacAddress>>(emptySet())
+    val playerLostFlow: Flow<Set<MacAddress>> = _playerLostFlow
+    private var playerLostJob: Job? = null
+
+    private var playersInGame: Set<MacAddress> = emptySet()
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -98,9 +105,12 @@ object GameStateManager {
 
     private fun handleGameFinished() {
         currentGame = null
+        playersInGame = emptySet()
         gameWatcherJob?.cancel()
+        playerLostJob?.cancel()
         CoroutineScope(Dispatchers.Default).launch {
             _currentGameState.emit(GameState.LOBBY)
+            _playerLostFlow.emit(emptySet())
         }
     }
 
@@ -113,9 +123,18 @@ object GameStateManager {
         val currentGameState = _currentGameState.value
         if (currentGameState == GameState.LOBBY) {
             CoroutineScope(Dispatchers.Default).launch {
+                playersInGame = players.map { it.macAddress }.toSet()
                 game.start(players = players)
             }
+
+            playerLostJob = CoroutineScope(Dispatchers.IO).launch {
+                game.playerLostFlow.collect { playerLost ->
+                    _playerLostFlow.emit(playerLost.toSet())
+                }
+            }
+
             _currentGameState.emit(GameState.GAME_STARTING)
+
         } else {
             logger.warn { "Cannot start game while another game is running" }
         }
@@ -135,6 +154,10 @@ object GameStateManager {
 
     suspend fun setGameFinished() {
         _currentGameState.emit(GameState.GAME_FINISHED)
+    }
+
+    fun getPlayerInGameList(): Set<MacAddress> {
+        return playersInGame
     }
 
 }

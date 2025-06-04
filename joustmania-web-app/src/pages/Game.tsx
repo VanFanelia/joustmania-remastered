@@ -16,6 +16,10 @@ import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 import {useGameStatsContext} from "../context/GameStatsProvider.tsx";
 import ConfirmGameStartButtonWithDialog from "../components/ConfirmGameStartButtonWithDialog.tsx";
 import AbortGameButtonWithDialog from "../components/AbortGameButtonWithDialog.tsx";
+import SentimentVeryDissatisfied from '@mui/icons-material/SentimentVeryDissatisfied';
+import {forceStartGame, forceStopGame} from "../api/game.api.client.ts";
+import {ApiStatus} from "../api/api.definitions.tsx";
+import SportsKabaddi from '@mui/icons-material/SportsKabaddi';
 
 function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
@@ -29,6 +33,7 @@ function Game() {
     const [gameState, setGameState] = useState<string>("Lobby");
     const [activePlayer, setActivePlayer] = useState<number>(0);
     const [adminCount, setAdminCount] = useState<number>(0);
+
     const [connectedController, setConnectedController] = useState<number>(0);
     const [pairedController, setPairedController] = useState<number>(0);
 
@@ -66,64 +71,32 @@ function Game() {
 
     const gameStats = useGameStatsContext();
 
+    function callForceStartGame() {
+        console.debug("Force start: ", gameState);
+        forceStartGame().then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    }
+
+    function callForceStopGame() {
+        console.debug("Force stop: ", gameState);
+        forceStopGame().then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    }
+
     useEffect(() => {
         setGameState(gameStats.currentGameState);
         setActivePlayer(gameStats.activeController.length)
     }, [gameStats]);
 
     const isGameStateInLobby = gameState == "Lobby"
-
-    function forceStartGame(gameState: string) {
-        console.debug("Force start: ", gameState);
-
-        const url = `http://${window.location.hostname}/api/game/force-start`;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),
-        })
-            .then(async (response) => {
-                if (!response.ok) {
-                    const body = await response.text()
-                    console.error(body);
-                    setError(`Failed to force start the game. Reason: ${body}`);
-                    setShowAlert(true);
-                }
-            })
-            .catch((error) => {
-                console.error(error)
-                setError(error.message);
-                setShowAlert(true);
-            });
-    }
-
-    function forceStopGame() {
-        console.debug("Force stop: ", gameState);
-
-        const url = `http://${window.location.hostname}/api/game/force-stop`;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({}),
-        })
-            .then(async (response) => {
-                if (!response.ok) {
-                    const body = await response.text();
-                    console.error(body);
-                    setError(`Failed to force stop the game. Reason: ${body}`);
-                    setShowAlert(true);
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-                setError(error.message);
-                setShowAlert(true);
-            });
-    }
 
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
@@ -155,7 +128,7 @@ function Game() {
                             {(isGameStateInLobby) ? (
                                 <TransferWithinAStationIcon style={{color: "#000"}}/>
                             ) : (
-                                <SportsHandballIcon style={{color: "#000"}}/>
+                                <SportsKabaddi style={{color: "#000"}}/>
                             )}
                         </Avatar>
                     </ListItemAvatar>
@@ -163,36 +136,75 @@ function Game() {
                     <Box
                         className="text-right font-bold">{isGameStateInLobby ? "Lobby" : "Game running"}</Box>
                 </ListItem>
-                <ListItem className="w-full">
-                    <ListItemAvatar>
-                        <Avatar>
-                            <Diversity3Icon style={{color: "#000"}}/>
-                        </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary="Active Player"/>
-                    <Box className="text-right font-bold">{activePlayer}</Box>
-                </ListItem>
-                <ListItem>
-                    <ListItemAvatar>
-                        <Avatar>
-                            <PSMoveController width={32} height={32}
-                                              style={{color: "#ffa500", transform: "rotate(20deg)"}}/>
-                        </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary="Connected Controller"
-                                  secondary={`${adminCount} controller with admin rights`}/>
-                    <Box className="text-right font-bold">{`${connectedController} / ${pairedController}`}</Box>
-                </ListItem>
+
+                {isGameStateInLobby ? (
+                    <>
+                        <ListItem className="w-full">
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <Diversity3Icon style={{color: "#000"}}/>
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary="Active Player"/>
+                            <Box className="text-right font-bold">{activePlayer}</Box>
+                        </ListItem>
+                        <ListItem>
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <PSMoveController width={32} height={32}
+                                                      style={{color: "#ffa500", transform: "rotate(20deg)"}}/>
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary="Connected Controller"
+                                          secondary={`${adminCount} controller with admin rights`}/>
+                            <Box className="text-right font-bold">{`${connectedController} / ${pairedController}`}</Box>
+                        </ListItem>
+                    </>
+                ) : (
+                    <>
+                        <ListItem>
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <PSMoveController width={32} height={32}
+                                                      style={{color: "#ffa500", transform: "rotate(20deg)"}}/>
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary="Player in game"/>
+                            <Box className="text-right font-bold">{`${gameStats.playerInGame.length}`}</Box>
+                        </ListItem>
+
+                        <ListItem>
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <SentimentVeryDissatisfied style={{color: "#000"}}/>
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary="Player lost"/>
+                            <Box className="text-right font-bold">{`${gameStats.playerLost.length}`}</Box>
+                        </ListItem>
+
+                        <ListItem>
+                            <ListItemAvatar>
+                                <Avatar>
+                                    <SportsHandballIcon style={{color: "#000"}}/>
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary="Player Alive"/>
+                            <Box
+                                className="text-right font-bold">{`${gameStats.playerInGame.length - gameStats.playerLost.length}`}</Box>
+                        </ListItem>
+                    </>
+                )}
             </List>
 
             <Box className={"mt-8"}>
                 {isGameStateInLobby ? (
                         <ConfirmGameStartButtonWithDialog gameNameToStart={possibleGames.get(currentGame)}
                                                           gameMode={currentGame}
-                                                          onConfirm={forceStartGame}/>
+                                                          onConfirm={callForceStartGame}/>
                     ) :
                     (
-                        <AbortGameButtonWithDialog onConfirm={forceStopGame}/>
+                        <AbortGameButtonWithDialog onConfirm={callForceStopGame}/>
                     )
                 }
 
