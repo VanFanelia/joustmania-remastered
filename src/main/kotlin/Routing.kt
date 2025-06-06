@@ -166,8 +166,24 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            // change settings
+            put("/setRumble/{macAddress}") {
+                val macAddress: String? = call.parameters["macAddress"]
 
+                val move = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
+                    ?.firstOrNull { it.macAddress == macAddress }
+
+                if (move == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Move not found")
+                    return@put
+                }
+
+                PSMoveApi.rumble(macAddress = move.macAddress, intensity = 255)
+
+                logger.info { "move: $macAddress was forced to rumble" }
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            // change settings
             post("/settings/sensitivity") {
                 val newSensitivity = call.receive<SetSensitivity>()
                 val sensibility: Sensibility =
