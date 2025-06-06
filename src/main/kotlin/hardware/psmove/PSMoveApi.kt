@@ -31,6 +31,11 @@ object PSMoveApi {
             .map { move -> setColor(macAddress = move.getMacAddress(), colorToSet = color) }
     }
 
+    fun getColor(macAddress: MacAddress): MoveColor? {
+        return PSMoveBluetoothConnectionWatcher.getAllMoves()
+            .firstOrNull { it.getMacAddress() == macAddress }?.currentColor
+    }
+
     fun refreshColor() {
         PSMoveBluetoothConnectionWatcher.getAllMoves().map { move ->
             try {

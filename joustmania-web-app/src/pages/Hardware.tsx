@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import {SyntheticEvent, useState} from "react";
+import {useState} from "react";
 import {
     Accordion,
     AccordionDetails,
@@ -16,63 +16,21 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BluetoothSearchingIcon from '@mui/icons-material/BluetoothSearching';
 // @ts-ignore
 import PSMoveControllerIcon from '../assets/PSMoveController.svg?react';
-import BatteryUnknownIcon from '@mui/icons-material/BatteryUnknown';
-import Battery0BarIcon from '@mui/icons-material/Battery0Bar';
-import Battery20Icon from '@mui/icons-material/Battery20';
-import Battery50Icon from '@mui/icons-material/Battery50';
-import Battery80Icon from '@mui/icons-material/Battery80';
-import BatteryFullIcon from '@mui/icons-material/BatteryFull';
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
-import {AkkuState, toAkkuState} from '../dto/HardwareDTOs.tsx';
-import {BatteryCharging50, BatteryChargingFull, MoreVert} from '@mui/icons-material';
+import {toAkkuState} from '../dto/HardwareDTOs.tsx';
+import { MoreVert} from '@mui/icons-material';
+import {PSMoveHardwareStatusDialog} from "../components/PSMoveHardwareStatusDialog.tsx";
+import {getAkkuIcon, getMoveColor} from "../components/hardwareHelper.utils.tsx";
 
 function Hardware() {
-
-    function getMoveColor(isAdmin: boolean, isConnected: boolean): string {
-        if (!isConnected) {
-            return "#bdbdbd"
-        } else if (isAdmin) {
-            return "#7b00ff"
-        } else {
-            return "#ffa500"
-        }
-    }
-
-    function getAkkuIcon(akku: AkkuState) {
-        switch (akku) {
-            case AkkuState.UNKNOWN:
-                return <BatteryUnknownIcon fontSize={"large"} color={"disabled"}/>;
-            case AkkuState.LEVEL_0:
-                return <Battery0BarIcon fontSize={"large"} />;
-            case AkkuState.LEVEL_1:
-                return <Battery20Icon fontSize={"large"} />;
-            case AkkuState.LEVEL_2:
-            case AkkuState.LEVEL_3:
-                return <Battery50Icon fontSize={"large"} />;
-            case AkkuState.LEVEL_4:
-                return <Battery80Icon fontSize={"large"} />;
-            case AkkuState.LEVEL_5:
-                return <BatteryFullIcon fontSize={"large"} />;
-            case AkkuState.CHARGING:
-                return <BatteryCharging50 fontSize={"large"} />;
-            case AkkuState.CHARGING_DONE:
-                return <BatteryChargingFull fontSize={"large"} />;
-        }
-    }
-
-    // @ts-ignore
-    const [showOnlyConnectedController, setShowOnlyConnectedController] = useState<boolean>(false);
-
-    // @ts-ignore
-    const [blueToothAdapterAccordionExpanded, setBlueToothAdapterAccordionExpanded] = useState<string | false>(false);
-
-    // @ts-ignore
-    const handleAccordionBlueToothAdapterChange =
-        (panel: string) => (_event: SyntheticEvent, isExpanded: boolean) => {
-            setBlueToothAdapterAccordionExpanded(isExpanded ? panel : false);
-        };
-
     const bluetoothDevices = useBluetoothContext();
+    const [openControllerDialog, setOpenControllerDialog] = useState<boolean>(false);
+    const [lastSelectedMacAddress, setLastSelectedMacAddress] = useState<string | null>(null);
+
+    function showControllerDialog(macAddress: string) {
+        setOpenControllerDialog(true)
+        setLastSelectedMacAddress(macAddress)
+    }
 
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
@@ -112,8 +70,11 @@ function Hardware() {
                                         className="text-right font-bold pr-8">{getAkkuIcon(toAkkuState(controller.batteryLevel))}
                                     </Box>
                                     <Box className="text-right font-bold">
-                                        <IconButton color="primary" aria-label="more settings">
-                                            <MoreVert fontSize="large" />
+                                        <IconButton color="primary" aria-label="more settings"
+                                                    onClick={() => {
+                                                        showControllerDialog(controller.macAddress)
+                                                    }}>
+                                            <MoreVert fontSize="large"/>
                                         </IconButton>
                                     </Box>
                                 </ListItem>
@@ -123,6 +84,13 @@ function Hardware() {
                     </AccordionDetails>
                 </Accordion>
             ))}
+
+            <PSMoveHardwareStatusDialog isOpen={openControllerDialog}
+                                        controller={lastSelectedMacAddress}
+                                        onClose={() => {
+                                            setOpenControllerDialog(false)
+                                        }}
+            />
         </Box>)
 }
 

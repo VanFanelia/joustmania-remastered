@@ -240,6 +240,10 @@ class PSMoveStub(val macAddress: MacAddress) {
         animationStarted = 0L
     }
 
+    fun getCurrentColor(): MoveColor? {
+        return PSMoveApi.getColor(macAddress = this.macAddress)
+    }
+
     fun setCurrentColor(colorToSet: MoveColor, clearAnimation: Boolean = true) {
         if (clearAnimation) {
             clearAnimation()

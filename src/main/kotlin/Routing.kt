@@ -40,11 +40,16 @@ import io.ktor.server.response.respondText
 import io.ktor.server.response.respondTextWriter
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 
@@ -129,6 +134,36 @@ fun Application.configureRouting() {
             get("/accelerations") {
                 val json = AccelerationDebugger.getHistoryAsJson()
                 call.respondText(json, contentType = ContentType.Application.Json)
+            }
+
+            put("/setRainbowAnimation/{macAddress}/{durationInMs}") {
+                val macAddress: String? = call.parameters["macAddress"]
+                val durationInMS: Long? = call.parameters["durationInMs"]?.toLongOrNull()
+                if (durationInMS == null) {
+                    call.respond(HttpStatusCode.BadRequest, "duration invalid")
+                    return@put
+                }
+
+                val move = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
+                    ?.firstOrNull { it.macAddress == macAddress }
+
+                if (move == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Move not found")
+                    return@put
+                }
+
+                val lastColor = move.getCurrentColor()
+
+                logger.info { "move: $macAddress shall play color animation for $durationInMS ms. then change back to color: $lastColor" }
+                move.setColorAnimation(RainbowAnimation)
+
+                delay(durationInMS)
+                logger.debug { "Delay over, clear animation for $macAddress" }
+                if (lastColor != null) {
+                    move.setCurrentColor(lastColor, true)
+                }
+
+                call.respond(HttpStatusCode.NoContent)
             }
 
             // change settings
