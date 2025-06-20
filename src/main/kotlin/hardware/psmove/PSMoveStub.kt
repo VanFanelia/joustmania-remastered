@@ -205,6 +205,14 @@ class PSMoveStub(val macAddress: MacAddress) {
         )
     }.map { }
 
+    val getStartClickFlow: Flow<Unit> = _buttonClickFlow.filter {
+        it.contains(PSMoveButton.START)
+    }.map { }
+
+    val getSelectClickFlow: Flow<Unit> = _buttonClickFlow.filter {
+        it.contains(PSMoveButton.SELECT)
+    }.map { }
+
     private suspend fun checkBatteryLevel() {
         val batteryLevel = PSMoveApi.getBatteryLevel(macAddress = macAddress)
         _batteryLevelFlow.tryEmit(batteryLevel)

@@ -13,3 +13,6 @@ data class GetLanguage(val language: String)
 
 @Serializable
 data class SetLanguage(val language: String)
+
+@Serializable
+data class SetGameMode(val gameMode: String)

@@ -1,6 +1,7 @@
 package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.types.MacAddress
 import kotlinx.coroutines.flow.Flow
 
@@ -8,6 +9,7 @@ interface Game {
     val name: String
     val currentPlayingController: MutableSet<PSMoveStub>
     val minimumPlayers: Int
+    val gameSelectedSound: SoundId
 
     suspend fun start(players: Set<PSMoveStub>)
 
@@ -18,4 +20,18 @@ interface Game {
     suspend fun forceGameEnd()
 
     val playerLostFlow: Flow<List<MacAddress>>
+
+    companion object {
+        val listOfGames: List<Class<out Game>> = listOf(
+            FreeForAll::class.java as Class<out Game>,
+            SortingToddler::class.java as Class<out Game>
+        )
+
+        val gameNamesToGameObject =
+            listOfGames.map { return@map it.kotlin.constructors.first().call().name to it::class.java }.toMap()
+
+        val gameNameToIndex = listOfGames.mapIndexed { index, classObject ->
+            classObject.kotlin.constructors.first().call().name to index
+        }.toMap()
+    }
 }

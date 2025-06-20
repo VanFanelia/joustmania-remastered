@@ -32,6 +32,7 @@ class FreeForAll : Game {
     override val name = "FreeForAll"
     override val currentPlayingController: MutableSet<PSMoveStub> = mutableSetOf()
     override val minimumPlayers: Int = 2
+    override val gameSelectedSound: SoundId = SoundId.GAME_MODE_FFA
 
     private val _playerLostFlow: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val playerLostFlow: Flow<List<String>> = _playerLostFlow

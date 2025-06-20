@@ -3,10 +3,12 @@ package de.vanfanel.joustmania
 import de.vanfanel.joustmania.GameStateManager.currentGameState
 import de.vanfanel.joustmania.GameStateManager.getPlayerInGameList
 import de.vanfanel.joustmania.GameStateManager.playerLostFlow
+import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.games.Language
 import de.vanfanel.joustmania.games.Language.Companion.parseLanguage
 import de.vanfanel.joustmania.games.Sensibility
 import de.vanfanel.joustmania.games.Sensibility.Companion.parseSensibility
+import de.vanfanel.joustmania.games.SetGameMode
 import de.vanfanel.joustmania.games.SetLanguage
 import de.vanfanel.joustmania.games.SetSensitivity
 import de.vanfanel.joustmania.games.Settings
@@ -195,6 +197,17 @@ fun Application.configureRouting() {
                     parseLanguage(newLanguage.language) ?: return@post call.respond(HttpStatusCode.BadRequest)
                 Settings.setLanguage(language)
                 call.respond(HttpStatusCode.OK, "Language updated to $language")
+            }
+
+            post("/settings/set-game-mode") {
+                val newGameMode = call.receive<SetGameMode>()
+                val isValidGameMode = gameNamesToGameObject.keys.contains(newGameMode.gameMode)
+                if (!isValidGameMode) {
+                    return@post call.respond(HttpStatusCode.BadRequest)
+                }
+
+                LobbyLoop.setCurrentGameMode(newGameMode.gameMode)
+                call.respond(HttpStatusCode.OK, "Set game mode to ${newGameMode.gameMode}")
             }
 
             // manipulate game

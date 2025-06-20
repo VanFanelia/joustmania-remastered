@@ -20,16 +20,17 @@ import SentimentVeryDissatisfied from '@mui/icons-material/SentimentVeryDissatis
 import {forceStartGame, forceStopGame} from "../api/game.api.client.ts";
 import {ApiStatus} from "../api/api.definitions.tsx";
 import SportsKabaddi from '@mui/icons-material/SportsKabaddi';
+import {setGameMode} from "../api/settings.api.client.ts";
 
 function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
         [
-            ['ffa', "FreeForAll"],
-            //['toddler', 'Sorting Toddler']
+            ['FreeForAll', "Free For All"],
+            ['SortingToddler', 'Sorting Toddler']
         ]
     );
 
-    const [currentGame, setCurrentGame] = useState<string>('ffa');
+    const [currentGame, setCurrentGame] = useState<string>('FreeForAll');
     const [gameState, setGameState] = useState<string>("Lobby");
     const [activePlayer, setActivePlayer] = useState<number>(0);
     const [adminCount, setAdminCount] = useState<number>(0);
@@ -50,7 +51,14 @@ function Game() {
     }, [showAlert]);
 
     const handleChange = (event: SelectChangeEvent) => {
-        setCurrentGame(event.target.value as string);
+        const newGameModeKey = event.target.value as string
+        setCurrentGame(newGameModeKey);
+        setGameMode(newGameModeKey).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
     };
 
     const bluetoothDevices = useBluetoothContext();

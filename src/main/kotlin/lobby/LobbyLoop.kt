@@ -2,8 +2,9 @@ package de.vanfanel.joustmania.lobby
 
 import de.vanfanel.joustmania.GameState
 import de.vanfanel.joustmania.GameStateManager
-import de.vanfanel.joustmania.games.FreeForAll
 import de.vanfanel.joustmania.games.Game
+import de.vanfanel.joustmania.games.Game.Companion.gameNameToIndex
+import de.vanfanel.joustmania.games.Game.Companion.listOfGames
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
@@ -50,10 +51,11 @@ object LobbyLoop {
     private val _controllersWithAdminRights: MutableStateFlow<List<MacAddress>> = MutableStateFlow(emptyList())
     val controllersWithAdminRights: Flow<List<MacAddress>> = _controllersWithAdminRights
 
-    private var selectedGame: Game? = null
     private var freezeLobby = false
 
     private val lobbyJobs: MutableSet<Job> = mutableSetOf()
+
+    private var selectedGameIndex: Int? = 0
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -62,7 +64,7 @@ object LobbyLoop {
                 logger.info { "Lobby got game state: $newState" }
                 if (newState == GameState.LOBBY && lastGameState != GameState.LOBBY) {
                     freezeLobby = false
-                    selectedGame = null
+                    selectedGameIndex = null
                     isActive.clear()
                     _activeMoves.emit(emptyList())
                     initLobbyCoroutines()
@@ -99,6 +101,13 @@ object LobbyLoop {
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             changeAdminStateWhen4FrontButtonsGotClicked()
         })
+
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+            changeGameOnSelectButtonClicked()
+        })
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+            changeGameOnStartButtonClicked()
+        })
     }
 
     private suspend fun observeButtonPressForDebugging() {
@@ -134,6 +143,64 @@ object LobbyLoop {
         }
     }
 
+    private suspend fun changeGameOnSelectButtonClicked() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+            newMoves.asFlow().flatMapMerge { move ->
+                move.getSelectClickFlow.map { move }
+            }
+        }.collect { moveStub ->
+            if (freezeLobby) return@collect
+            // only admins can change the current game
+            if (!admins.contains(moveStub)) return@collect
+            setCurrentGameToPreviousGameFromList()
+        }
+        updateActiveMovesFlow()
+    }
+
+    private suspend fun changeGameOnStartButtonClicked() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+            newMoves.asFlow().flatMapMerge { move ->
+                move.getStartClickFlow.map { move }
+            }
+        }.collect { moveStub ->
+            if (freezeLobby) return@collect
+            // only admins can change the current game
+            if (!admins.contains(moveStub)) return@collect
+            setCurrentGameToNextGameFromList()
+        }
+        updateActiveMovesFlow()
+    }
+
+    private fun setCurrentGameToPreviousGameFromList() {
+        val currentIndex = this.selectedGameIndex ?: 0
+        var newIndex = (currentIndex - 1) % listOfGames.size
+        if (newIndex < 0) newIndex += listOfGames.size
+        this.selectedGameIndex = newIndex
+        val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
+
+        logger.info { "change current game to ${game.name}" }
+        soundManager.asyncAddSoundToQueue(id = game.gameSelectedSound, abortOnNewSound = true)
+    }
+
+    private fun setCurrentGameToNextGameFromList() {
+        val currentIndex = this.selectedGameIndex ?: 0
+        val newIndex = (currentIndex + 1) % listOfGames.size
+        this.selectedGameIndex = newIndex
+        val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
+
+        logger.info { "change current game to ${game.name}" }
+        soundManager.asyncAddSoundToQueue(id = game.gameSelectedSound, abortOnNewSound = true)
+    }
+
+    fun setCurrentGameMode(gameMode: String) {
+        val newIndex = gameNameToIndex[gameMode] ?: 0
+        this.selectedGameIndex = newIndex
+        val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
+
+        logger.info { "change current game to ${game.name}" }
+        soundManager.asyncAddSoundToQueue(id = game.gameSelectedSound, abortOnNewSound = true)
+    }
+
     private suspend fun changeActiveStateOnTriggerClicked() {
         PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
             newMoves.asFlow().flatMapMerge { move ->
@@ -160,30 +227,26 @@ object LobbyLoop {
     }
 
     suspend fun tryStartGame() {
-        if (selectedGame == null) {
-            selectedGame = FreeForAll()
-        }
+        val selectedGame: Game = listOfGames[selectedGameIndex ?: 0].kotlin.constructors.first().call()
 
-        selectedGame?.let { game ->
-            val activePlayers = isActive.filter { isActiveEntry -> isActiveEntry.value }
-            if (activePlayers.size < game.minimumPlayers) {
-                SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                    id = getMinimumPlayerSoundForPlayer(game.minimumPlayers),
-                    abortOnNewSound = false
-                )
-                logger.warn { "Not enough players to start the game. Minimum players needed: ${game.minimumPlayers} but only found ${activePlayers.size}" }
-                return
-            }
-            logger.info { "All moves are ready. Start game: ${game.name}" }
-            freezeLobby = true
+        val activePlayers = isActive.filter { isActiveEntry -> isActiveEntry.value }
+        if (activePlayers.size < selectedGame.minimumPlayers) {
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = ALL_PLAYERS_READY,
+                id = getMinimumPlayerSoundForPlayer(selectedGame.minimumPlayers),
                 abortOnNewSound = false
             )
-            GameStateManager.startGame(
-                game, activePlayers.keys
-            )
+            logger.warn { "Not enough players to start the game. Minimum players needed: ${selectedGame.minimumPlayers} but only found ${activePlayers.size}" }
+            return
         }
+        logger.info { "All moves are ready. Start game: ${selectedGame.name}" }
+        freezeLobby = true
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = ALL_PLAYERS_READY,
+            abortOnNewSound = false
+        )
+        GameStateManager.startGame(
+            selectedGame, activePlayers.keys
+        )
     }
 
     private fun getMinimumPlayerSoundForPlayer(minimumPlayers: Int): SoundId {
@@ -244,6 +307,5 @@ object LobbyLoop {
         updateActiveMovesFlow()
         soundManager.asyncAddSoundToQueue(NEW_CONTROLLER)
     }
-
 
 }
