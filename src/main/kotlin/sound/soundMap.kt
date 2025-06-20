@@ -58,6 +58,7 @@ enum class SoundId {
     ONE,
     GO,
     GAME_MODE_FFA_EXPLANATION,
+    GAME_MODE_TODDLER_EXPLANATION,
     AQUA_WINS,
     BLACK_WINS,
     BLUE_WINS,
@@ -233,6 +234,20 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
                 language = DE,
                 file = "game_mode_ffa_explanation",
                 localizedText = """Eine neue Runde "Jeder gegen Jeden" wird gestartet. Beschütze deinen Controller und versuche gleichzeitig die Controller deiner Gegner zu Beschleunigen. Beschleunigst du zu schnell bist du raus. Der letzte Spieler gewinnt. Alle Bereit? Das spiel startet in:"""
+            )
+        )
+    ),
+    GAME_MODE_TODDLER_EXPLANATION to Sound(
+        id = GAME_MODE_TODDLER_EXPLANATION, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "game_mode_toddler_explanation",
+                localizedText = """We start a round of color sorting game: Just sort yourselves by color! Here we go"""
+            ),
+            DE to SoundFile(
+                language = DE,
+                file = "game_mode_toddler_explanation",
+                localizedText = """Wir starten eine Runde Farbkasten-Spiel: Sortiert euch einfach nach Farben! Los gehts"""
             )
         )
     ),
