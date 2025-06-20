@@ -43,13 +43,10 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 
@@ -212,7 +209,7 @@ fun Application.configureRouting() {
                     }
 
                     logger.info { "force start was called. Start current selected game now." }
-                    LobbyLoop.startGame()
+                    LobbyLoop.tryStartGame()
                     call.respond(HttpStatusCode.OK, "Game started")
                     return@post
                 }

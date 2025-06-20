@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface Game {
     val name: String
     val currentPlayingController: MutableSet<PSMoveStub>
+    val minimumPlayers: Int
 
     suspend fun start(players: Set<PSMoveStub>)
 

@@ -31,6 +31,7 @@ class FreeForAll : Game {
 
     override val name = "FreeForAll"
     override val currentPlayingController: MutableSet<PSMoveStub> = mutableSetOf()
+    override val minimumPlayers: Int = 2
 
     private val _playerLostFlow: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val playerLostFlow: Flow<List<String>> = _playerLostFlow

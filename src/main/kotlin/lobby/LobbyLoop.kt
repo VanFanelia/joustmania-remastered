@@ -6,6 +6,7 @@ import de.vanfanel.joustmania.games.FreeForAll
 import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundId.ADMIN_GRANTED
 import de.vanfanel.joustmania.sound.SoundId.ADMIN_REVOKED
 import de.vanfanel.joustmania.sound.SoundId.ALL_PLAYERS_READY
@@ -146,7 +147,7 @@ object LobbyLoop {
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
                 soundManager.asyncAddSoundToQueue(CONTROLLER_JOINED)
                 if (isActive.all { it.value }) {
-                    startGame()
+                    tryStartGame()
                 }
             } else {
                 isActive[moveStub] = false
@@ -158,12 +159,21 @@ object LobbyLoop {
         }
     }
 
-    suspend fun startGame()
-    {
+    suspend fun tryStartGame() {
         if (selectedGame == null) {
             selectedGame = FreeForAll()
         }
+
         selectedGame?.let { game ->
+            val activePlayers = isActive.filter { isActiveEntry -> isActiveEntry.value }
+            if (activePlayers.size < game.minimumPlayers) {
+                SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+                    id = getMinimumPlayerSoundForPlayer(game.minimumPlayers),
+                    abortOnNewSound = false
+                )
+                logger.warn { "Not enough players to start the game. Minimum players needed: ${game.minimumPlayers} but only found ${activePlayers.size}" }
+                return
+            }
             logger.info { "All moves are ready. Start game: ${game.name}" }
             freezeLobby = true
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
@@ -171,9 +181,16 @@ object LobbyLoop {
                 abortOnNewSound = false
             )
             GameStateManager.startGame(
-                game, isActive.filter { isActiveEntry -> isActiveEntry.value }.keys
+                game, activePlayers.keys
             )
         }
+    }
+
+    private fun getMinimumPlayerSoundForPlayer(minimumPlayers: Int): SoundId {
+        if (minimumPlayers == 3) {
+            return SoundId.MINIMUM_PLAYERS_3
+        }
+        return SoundId.MINIMUM_PLAYERS_2
     }
 
     private suspend fun removeControllerFromLobbyOnDisconnect() {
