@@ -5,7 +5,6 @@ import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
-import de.vanfanel.joustmania.hardware.psmove.RUMBLE_MEDIUM
 import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFT
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
@@ -34,12 +33,14 @@ class SortingToddler : Game {
     private var disconnectedControllerJob: Job? = null
     private var numberOfPlayersOnGameStart: Int = 3
 
-    private val gameLengthInMilliseconds = 5 * 20 * 1000L
+    // change toddler game mode length per settings
+    private val gameLengthInMilliseconds = 5 * 60 * 1000L
     private val maxRounds = 10
     private val roundLength = gameLengthInMilliseconds / maxRounds
     private var gameHasEnded = false
     private var currentColorConfiguration: Map<MacAddress, MoveColor> = emptyMap()
 
+    private var gameLoopJob: Job? = null
 
     companion object {
         val gameColors = listOf(
@@ -99,12 +100,7 @@ class SortingToddler : Game {
         currentPlayingController += players
         numberOfPlayersOnGameStart = players.size
 
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(gameLengthInMilliseconds)
-            gameHasEnded = true
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
+        gameLoopJob = CoroutineScope(Dispatchers.IO).launch {
             for (round in 1..maxRounds) {
                 logger.info { "Round $round/$maxRounds in toddler game with ${currentPlayingController.size}" }
                 val colorsNeeded = getColorsForPlayer(currentPlayingController.size)
@@ -141,9 +137,14 @@ class SortingToddler : Game {
                     PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_SOFT, durationInMs = 3000)
                 }
                 delay(4000)
+                if (round == maxRounds) {
+                    gameHasEnded = true
+                }
             }
-            gameHasEnded = true
+
         }
+
+        GameStateManager.setGameRunning()
     }
 
     override suspend fun checkForGameFinished() {
@@ -159,6 +160,10 @@ class SortingToddler : Game {
     }
 
     override fun cleanUpGame() {
+        gameLoopJob?.cancel()
+        currentPlayingController.map { stub ->
+            stub.clearAnimation()
+        }
         disconnectedControllerJob?.cancel("FreeForAll game go cleanup call")
     }
 
