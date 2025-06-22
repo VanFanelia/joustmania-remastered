@@ -39,7 +39,6 @@ class FreeForAll : Game {
 
     private val gameJobs: MutableSet<Job> = mutableSetOf()
     private var disconnectedControllerJob: Job? = null
-    private var gameLoopJob: Job? = null
     private var gameRunning: Boolean = false
     private val playersLost: MutableSet<MacAddress> = mutableSetOf()
     private val playerColors: MutableMap<MacAddress, MoveColor> = mutableMapOf()
@@ -76,7 +75,6 @@ class FreeForAll : Game {
 
     override fun cleanUpGame() {
         gameJobs.forEach { it.cancel("FreeForAll game go cleanup call") }
-        gameLoopJob?.cancel("FreeForAll game go cleanup call")
         disconnectedControllerJob?.cancel("FreeForAll game go cleanup call")
     }
 
@@ -176,7 +174,7 @@ class FreeForAll : Game {
 
     override suspend fun start(players: Set<PSMoveStub>) {
         initDisconnectionObserver()
-        delay(100) // give lobby some time to kill all jobs
+        delay(100) // give the Lobby some time to kill all jobs
         currentPlayingController.clear()
         currentPlayingController += players
         initObservers(currentPlayingController)

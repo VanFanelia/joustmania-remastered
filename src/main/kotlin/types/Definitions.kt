@@ -170,11 +170,17 @@ data class MoveColor(
     }
 }
 
-val RainbowAnimation = ColorAnimation(colorToSet = listOf(
-    MoveColor.RED,
-    MoveColor.YELLOW,
-    MoveColor.GREEN,
-    MoveColor.AQUA,
-    MoveColor.BLUE,
-    MoveColor.MAGENTA
-), durationInMS = 8000)
+fun MoveColor.darken(): MoveColor {
+    return MoveColor(red = (red * 0.2).toInt(), green = (green * 0.2).toInt(), blue = (blue * 0.2).toInt())
+}
+
+val RainbowAnimation = ColorAnimation(
+    colorToSet = listOf(
+        MoveColor.RED,
+        MoveColor.YELLOW,
+        MoveColor.GREEN,
+        MoveColor.AQUA,
+        MoveColor.BLUE,
+        MoveColor.MAGENTA
+    ), durationInMS = 8000
+)
