@@ -79,9 +79,8 @@ function Game() {
 
     const gameStats = useGameStatsContext();
 
-    function callForceStartGame() {
-        console.debug("Force start: ", gameState);
-        forceStartGame().then((result) => {
+    function callForceStartGame(gameMode: string, forceActivateAllController: boolean) {
+        forceStartGame(gameMode, forceActivateAllController).then((result) => {
             if (result.status == ApiStatus.ERROR) {
                 setShowAlert(true)
                 setError(result.reason)
@@ -90,7 +89,6 @@ function Game() {
     }
 
     function callForceStopGame() {
-        console.debug("Force stop: ", gameState);
         forceStopGame().then((result) => {
             if (result.status == ApiStatus.ERROR) {
                 setShowAlert(true)

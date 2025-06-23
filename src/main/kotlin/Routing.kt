@@ -3,6 +3,7 @@ package de.vanfanel.joustmania
 import de.vanfanel.joustmania.GameStateManager.currentGameState
 import de.vanfanel.joustmania.GameStateManager.getPlayerInGameList
 import de.vanfanel.joustmania.GameStateManager.playerLostFlow
+import de.vanfanel.joustmania.games.ForceStartGameDto
 import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.games.Language
 import de.vanfanel.joustmania.games.Language.Companion.parseLanguage
@@ -212,17 +213,29 @@ fun Application.configureRouting() {
 
             // manipulate game
             post("/game/force-start") {
+                val parameters = call.receive<ForceStartGameDto>()
                 val gameState = currentGameState.firstOrNull()
+                val isValidGameMode = gameNamesToGameObject.keys.contains(parameters.gameMode)
+
+                if (!isValidGameMode) {
+                    logger.warn { "force start was called but game mode is not valid: ${parameters.gameMode}. Request ignored." }
+                    call.respond(HttpStatusCode.BadRequest, "Game mode is not valid")
+                    return@post
+                }
+
                 if (gameState == GameState.LOBBY) {
+                    logger.info { "force start was called with parameters: $parameters. " }
+
                     val activeMoves = activeMoves.firstOrNull()
-                    if (activeMoves.isNullOrEmpty()) {
+                    if (!parameters.forceActivateAllController && activeMoves.isNullOrEmpty()) {
                         logger.warn { "force start was called but no active moves found. Request ignored." }
                         call.respond(HttpStatusCode.BadRequest, "No active moves found")
                         return@post
                     }
 
-                    logger.info { "force start was called. Start current selected game now." }
-                    LobbyLoop.tryStartGame()
+                    logger.info { "Start current selected game now." }
+
+                    LobbyLoop.tryStartGame(gameMode = parameters.gameMode, forceActivateAllController = parameters.forceActivateAllController)
                     call.respond(HttpStatusCode.OK, "Game started")
                     return@post
                 }

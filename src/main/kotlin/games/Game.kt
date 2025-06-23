@@ -28,7 +28,7 @@ interface Game {
         )
 
         val gameNamesToGameObject =
-            listOfGames.map { return@map it.kotlin.constructors.first().call().name to it::class.java }.toMap()
+            listOfGames.map { return@map it.kotlin.constructors.first().call().name to it}.toMap()
 
         val gameNameToIndex = listOfGames.mapIndexed { index, classObject ->
             classObject.kotlin.constructors.first().call().name to index

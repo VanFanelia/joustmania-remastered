@@ -1,6 +1,6 @@
 import {ApiResult, ApiStatus} from "./api.definitions";
 
-export async function forceStartGame(): Promise<ApiResult> {
+export async function forceStartGame(gameMode: string, forceActivateAllController: boolean): Promise<ApiResult> {
     const url = `http://${window.location.hostname}/api/game/force-start`;
     try {
         const response = await fetch(url, {
@@ -8,7 +8,7 @@ export async function forceStartGame(): Promise<ApiResult> {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({}),
+            body: JSON.stringify({gameMode: gameMode, forceActivateAllController: forceActivateAllController}),
         })
         if (!response.ok) {
             const body = await response.text()

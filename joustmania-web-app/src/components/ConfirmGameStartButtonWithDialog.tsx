@@ -7,12 +7,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import PlayCircleOutline from '@mui/icons-material/PlayCircleOutline';
 import Box from "@mui/material/Box";
+import {Checkbox, FormControlLabel, FormGroup} from "@mui/material";
 
 
 interface ConfirmGameStartButtonWithDialogProps {
     gameNameToStart?: string;
     gameMode: string;
-    onConfirm: (gameMode: string) => void
+    onConfirm: (gameMode: string, forceActivateAllController: boolean) => void
 }
 
 export default function ConfirmGameStartButtonWithDialog({
@@ -21,6 +22,7 @@ export default function ConfirmGameStartButtonWithDialog({
                                                              onConfirm
                                                          }: ConfirmGameStartButtonWithDialogProps) {
     const [open, setOpen] = React.useState(false);
+    const [forceActivateAllController, setForceActivateAllController] = React.useState(false);
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -32,9 +34,8 @@ export default function ConfirmGameStartButtonWithDialog({
 
     const onConfirmClicked = () => {
         setOpen(false);
-        onConfirm(gameMode)
+        onConfirm(gameMode, forceActivateAllController)
     }
-
 
     return (
         <React.Fragment>
@@ -52,11 +53,16 @@ export default function ConfirmGameStartButtonWithDialog({
                     {`Force Start '${gameNameToStart}'`}
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
+                    <DialogContentText id="alert-dialog-description" sx={{fontSize: "1.25rem"}}>
                         Do you really want to force Start the game?
                     </DialogContentText>
+                    <FormGroup>
+                        <FormControlLabel checked={forceActivateAllController}
+                                          onChange={() => setForceActivateAllController(!forceActivateAllController)}
+                                          control={<Checkbox/>} label={"Activate all controllers before start"}/>
+                    </FormGroup>
                 </DialogContent>
-                <DialogActions >
+                <DialogActions>
                     <Box className={"flex justify-between w-full"}>
                         <Button variant={"outlined"} className={""} onClick={handleClose}>Abort</Button>
                         <Button variant={"contained"} className={""} color={"primary"}

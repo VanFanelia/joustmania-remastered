@@ -16,3 +16,6 @@ data class SetLanguage(val language: String)
 
 @Serializable
 data class SetGameMode(val gameMode: String)
+
+@Serializable
+data class ForceStartGameDto(val gameMode: String, val forceActivateAllController: Boolean)

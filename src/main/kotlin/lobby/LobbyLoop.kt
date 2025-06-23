@@ -4,6 +4,7 @@ import de.vanfanel.joustmania.GameState
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.games.Game.Companion.gameNameToIndex
+import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.games.Game.Companion.listOfGames
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
@@ -226,10 +227,19 @@ object LobbyLoop {
         }
     }
 
-    suspend fun tryStartGame() {
-        val selectedGame: Game = listOfGames[selectedGameIndex ?: 0].kotlin.constructors.first().call()
+    suspend fun tryStartGame(gameMode: String? = null, forceActivateAllController: Boolean = false) {
+        val selectedGame: Game = if (gameMode !== null && gameNamesToGameObject.keys.contains(gameMode)) {
+            gameNamesToGameObject[gameMode]!!.kotlin.constructors.first().call()
+        } else {
+            listOfGames[selectedGameIndex ?: 0].kotlin.constructors.first().call()
+        }
 
-        val activePlayers = isActive.filter { isActiveEntry -> isActiveEntry.value }
+        val activePlayers = if (forceActivateAllController) {
+            isActive.keys.associateWith { true }
+        } else {
+            isActive.filter { isActiveEntry -> isActiveEntry.value }
+        }
+
         if (activePlayers.size < selectedGame.minimumPlayers) {
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
                 id = getMinimumPlayerSoundForPlayer(selectedGame.minimumPlayers),
