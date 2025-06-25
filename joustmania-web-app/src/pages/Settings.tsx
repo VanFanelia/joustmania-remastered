@@ -47,7 +47,6 @@ function Settings() {
                 setError(result.reason)
             }
         })
-
     };
 
     const handleSensibilityChange = (event: SelectChangeEvent) => {
@@ -67,6 +66,8 @@ function Settings() {
         if (config !== null) {
             setCurrentSensibility(config.sensibility)
             setCurrentLanguage(config.language.toLowerCase())
+            setSortToddlerRoundDuration(config.sortToddlerGameOptions.roundDuration)
+            setSortToddlerAmountOfRounds(config.sortToddlerGameOptions.amountOfRounds)
         }
     }, [config])
 

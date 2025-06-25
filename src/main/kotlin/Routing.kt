@@ -12,6 +12,8 @@ import de.vanfanel.joustmania.games.Sensibility.Companion.parseSensibility
 import de.vanfanel.joustmania.games.SetGameMode
 import de.vanfanel.joustmania.games.SetLanguage
 import de.vanfanel.joustmania.games.SetSensitivity
+import de.vanfanel.joustmania.games.SetSortToddlerAmountOfRounds
+import de.vanfanel.joustmania.games.SetSortToddlerRoundDuration
 import de.vanfanel.joustmania.games.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager.blueToothControllerFlow
@@ -198,6 +200,30 @@ fun Application.configureRouting() {
                     parseLanguage(newLanguage.language) ?: return@post call.respond(HttpStatusCode.BadRequest)
                 Settings.setLanguage(language)
                 call.respond(HttpStatusCode.OK, "Language updated to $language")
+            }
+
+            post("/settings/sortToddler/duration") {
+                val newDuration = call.receive<SetSortToddlerRoundDuration>()
+                if (newDuration.duration < 10 || newDuration.duration > 180) {
+                    return@post call.respond(HttpStatusCode.BadRequest)
+                }
+                Settings.setSortToddlerGameOptionRoundDuration(newDuration.duration)
+                call.respond(
+                    HttpStatusCode.OK,
+                    "Sort toddler round duration updated to ${newDuration.duration} seconds"
+                )
+            }
+
+            post("/settings/sortToddler/amountOfRounds") {
+                val newAmount = call.receive<SetSortToddlerAmountOfRounds>()
+                if (newAmount.amountOfRounds < 1 || newAmount.amountOfRounds > 20) {
+                    return@post call.respond(HttpStatusCode.BadRequest)
+                }
+                Settings.setSortToddlerGameOptionAmountOfRounds(newAmount.amountOfRounds)
+                call.respond(
+                    HttpStatusCode.OK,
+                    "Sort toddler amount of rounds updated to ${newAmount.amountOfRounds}"
+                )
             }
 
             post("/settings/set-game-mode") {

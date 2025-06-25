@@ -66,13 +66,25 @@ enum class Sensibility {
 }
 
 @Serializable
+data class SortToddlerGameOptions(
+    val roundDuration: Int,
+    val amountOfRounds: Int
+)
+
+@Serializable
 data class Config(
     val sensibility: Sensibility,
     val language: Language,
-    val enableAP: Boolean
+    val enableAP: Boolean,
+    val sortToddlerGameOptions: SortToddlerGameOptions
 ) {
     companion object {
-        val DEFAULT_CONFIG = Config(sensibility = Sensibility.MEDIUM, language = Language.EN, enableAP = false)
+        val DEFAULT_CONFIG = Config(
+            sensibility = Sensibility.MEDIUM,
+            language = Language.EN,
+            enableAP = false,
+            sortToddlerGameOptions = SortToddlerGameOptions(roundDuration = 30, amountOfRounds = 10)
+        )
     }
 }
 
@@ -86,7 +98,6 @@ private fun getSettingsFile(): File? {
         if (file.exists()) {
             return file
         }
-        // create file
         file.createNewFile()
         file.writeText(text = Json.encodeToString(serializer = Config.serializer(), value = DEFAULT_CONFIG))
         return file
@@ -149,6 +160,16 @@ object Settings {
 
     fun getSensibility(): Sensibility {
         return currentConfig.sensibility
+    }
+
+    fun setSortToddlerGameOptionRoundDuration(duration: Int) {
+        currentConfig = currentConfig.copy(sortToddlerGameOptions = currentConfig.sortToddlerGameOptions.copy(roundDuration = duration))
+        saveSettings()
+    }
+
+    fun setSortToddlerGameOptionAmountOfRounds(amount: Int) {
+        currentConfig = currentConfig.copy(sortToddlerGameOptions = currentConfig.sortToddlerGameOptions.copy(amountOfRounds = amount))
+        saveSettings()
     }
 }
 

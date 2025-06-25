@@ -43,6 +43,11 @@ Content-Type: application/json
 
 { "sensitivity" : "VERY_LOW" }
 
+### test post sensitivity
+POST http://localhost:80/api/settings/sortToddler/duration
+Content-Type: application/json
+
+{ "duration" : 31 }
 
 ### test post language
 POST http://localhost:80/api/settings/language

@@ -19,3 +19,9 @@ data class SetGameMode(val gameMode: String)
 
 @Serializable
 data class ForceStartGameDto(val gameMode: String, val forceActivateAllController: Boolean)
+
+@Serializable
+data class SetSortToddlerRoundDuration(val duration: Int)
+
+@Serializable
+data class SetSortToddlerAmountOfRounds(val amountOfRounds: Int)

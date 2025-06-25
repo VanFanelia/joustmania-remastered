@@ -33,10 +33,8 @@ class SortingToddler : Game {
     private var disconnectedControllerJob: Job? = null
     private var numberOfPlayersOnGameStart: Int = 3
 
-    // change toddler game mode length per settings
-    private val gameLengthInMilliseconds = 5 * 60 * 1000L
-    private val maxRounds = 10
-    private val roundLength = gameLengthInMilliseconds / maxRounds
+    private var maxRounds = 10
+    private var roundLength = 30
     private var gameHasEnded = false
     private var currentColorConfiguration: Map<MacAddress, MoveColor> = emptyMap()
 
@@ -95,10 +93,22 @@ class SortingToddler : Game {
 
     override suspend fun start(players: Set<PSMoveStub>) {
         initDisconnectionObserver()
+        val config = Settings.currentConfig
+        maxRounds = config.sortToddlerGameOptions.amountOfRounds
+        roundLength = config.sortToddlerGameOptions.roundDuration
+
         delay(100) // give the Lobby some time to kill all jobs
         currentPlayingController.clear()
         currentPlayingController += players
         numberOfPlayersOnGameStart = players.size
+
+        SoundManager.clearSoundQueue()
+        logger.info { "play explanation..." }
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.GAME_MODE_TODDLER_EXPLANATION,
+            abortOnNewSound = false
+        )
+        logger.info { "explanation played" }
 
         gameLoopJob = CoroutineScope(Dispatchers.IO).launch {
             for (round in 1..maxRounds) {
@@ -116,7 +126,7 @@ class SortingToddler : Game {
                     logger.info { "Give color $color to player $player" }
                     PSMoveApi.setColor(player, color)
                 }
-                delay(roundLength - 3000)
+                delay((roundLength * 1000L) - 3000L)
                 // warn for change
 
                 currentPlayingController.map { stub ->
@@ -136,7 +146,7 @@ class SortingToddler : Game {
                     )
                     PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_SOFT, durationInMs = 3000)
                 }
-                delay(4000)
+                delay(4000L )
                 if (round == maxRounds) {
                     gameHasEnded = true
                 }
