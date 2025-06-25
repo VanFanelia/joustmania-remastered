@@ -53,7 +53,7 @@ class Config {
 const SettingsContext = createContext<Config>(Config.DEFAULT_CONFIG);
 
 export const SettingsProvider: FC<{ children: ReactNode }> = ({children}) => {
-    let config = useSSE<Config>("http://localhost:80/api/sse/settings");
+    let config = useSSE<Config>(`http://${window.location.hostname}/api/sse/settings`);
 
     if (config == null) {
         config = Config.DEFAULT_CONFIG

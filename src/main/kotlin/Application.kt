@@ -91,7 +91,11 @@ fun Application.configureCORS() {
         allowMethod(HttpMethod.Options)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
-        allowHost("localhost:5173", schemes = listOf("http"))
+        allowHost("localhost", schemes = listOf("http"))
         allowHost("localhost:80", schemes = listOf("http"))
+        allowHost("localhost:5173", schemes = listOf("http"))
+        allowHost("joust.mania", schemes = listOf("http"))
+        allowHost("joust.mania:80", schemes = listOf("http"))
+        allowHost("joust.mania:5173", schemes = listOf("http"))
     }
 }

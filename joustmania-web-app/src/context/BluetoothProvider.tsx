@@ -5,7 +5,7 @@ import {BlueToothControllerStats} from "../dto/HardwareDTOs.tsx";
 const BluetoothContext = createContext<BlueToothControllerStats[]>([]);
 
 export const BluetoothProvider: FC<{ children: ReactNode }> = ({children}) => {
-    let bluetoothDevices = useSSE<BlueToothControllerStats[]>("http://localhost:80/api/sse/bluetooth");
+    let bluetoothDevices = useSSE<BlueToothControllerStats[]>(`http://${window.location.hostname}/api/sse/bluetooth`);
 
     if (bluetoothDevices == null) {
         bluetoothDevices = []
