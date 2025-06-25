@@ -3,6 +3,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import {Alert, Avatar, FormHelperText, ListItemAvatar, ListItemText, Select, Switch, TextField} from "@mui/material";
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
+import * as React from "react";
 import {ChangeEvent, useEffect, useState} from "react";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -11,7 +12,12 @@ import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 
 import {SelectChangeEvent} from "@mui/material/Select";
 import {SensibilityLevel, useSettingsContext} from "../context/SettingsProvider.tsx";
-import {setLanguage, setSensitivity} from "../api/settings.api.client.ts";
+import {
+    setGameOptionSortToddlerAmountOfRounds,
+    setGameOptionSortToddlerRoundDuration,
+    setLanguage,
+    setSensitivity
+} from "../api/settings.api.client.ts";
 import {ApiStatus} from "../api/api.definitions.tsx";
 
 const supportedLanguages: Map<string, string> = new Map<string, string>(
@@ -33,12 +39,10 @@ function Settings() {
     };
 
     const handleLanguageChange = (event: SelectChangeEvent) => {
-        const oldLanguage = currentLanguage;
         const languageKey = event.target.value as string;
         setCurrentLanguage(languageKey);
         setLanguage(languageKey).then((result) => {
             if (result.status == ApiStatus.ERROR) {
-                setCurrentLanguage(oldLanguage)
                 setShowAlert(true)
                 setError(result.reason)
             }
@@ -47,12 +51,10 @@ function Settings() {
     };
 
     const handleSensibilityChange = (event: SelectChangeEvent) => {
-        const oldSensibility = currentSensibility;
         const sensibility = event.target.value as SensibilityLevel;
         setCurrentSensibility(sensibility)
         setSensitivity(sensibility.toString()).then((result) => {
             if (result.status == ApiStatus.ERROR) {
-                setCurrentSensibility(oldSensibility)
                 setShowAlert(true)
                 setError(result.reason)
             }
@@ -68,8 +70,34 @@ function Settings() {
         }
     }, [config])
 
-    const hasRoundDurationError = !sortToddlerRoundDuration || (sortToddlerRoundDuration < 10 || sortToddlerRoundDuration > 180)
-    const hasAmountOfRoundsError = !sortToddlerAmountOfRounds || (sortToddlerAmountOfRounds < 1 || sortToddlerAmountOfRounds > 20)
+    const hasRoundDurationError = (roundDuration: any) => !roundDuration || (roundDuration < 10 || roundDuration > 180)
+    const hasAmountOfRoundsError = (amountOfRounds: any) => !amountOfRounds || (amountOfRounds < 1 || amountOfRounds > 20)
+
+    const handleSortToddlerRoundDurationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const roundDuration = parseInt(event.target.value as string)
+        setSortToddlerRoundDuration(roundDuration)
+        if (!hasRoundDurationError(roundDuration)) {
+            setGameOptionSortToddlerRoundDuration(roundDuration).then((result) => {
+                if (result.status == ApiStatus.ERROR) {
+                    setShowAlert(true)
+                    setError(result.reason)
+                }
+            })
+        }
+    }
+
+    const handleSortToddlerAmountOfRounds = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const amountOfRounds = parseInt(event.target.value as string)
+        setSortToddlerAmountOfRounds(amountOfRounds)
+        if (!hasAmountOfRoundsError(amountOfRounds)) {
+            setGameOptionSortToddlerAmountOfRounds(amountOfRounds).then((result) => {
+                if (result.status == ApiStatus.ERROR) {
+                    setShowAlert(true)
+                    setError(result.reason)
+                }
+            })
+        }
+    }
 
     return (
 
@@ -155,19 +183,20 @@ function Settings() {
                     <ListItemText primary="Round Duration in S"/>
                     <FormControl sx={{m: 1, maxWidth: 120}}>
                         <TextField
-                            error={hasRoundDurationError}
+                            error={hasRoundDurationError(sortToddlerRoundDuration)}
                             variant="outlined"
                             className="text-right"
                             id="settings-sensibility-select"
                             value={sortToddlerRoundDuration}
-                            onChange={(event) => setSortToddlerRoundDuration(parseInt(event.target.value))}
+                            onChange={handleSortToddlerRoundDurationChange}
                             type="number"
                             label="Duration"
                             aria-describedby="component-error-text"
                         />
                         {
-                            hasRoundDurationError && (
-                                <FormHelperText id="component-error-text" sx={{"color": "var(--color-red-500)"}}>10s - 180s</FormHelperText>
+                            hasRoundDurationError(sortToddlerRoundDuration) && (
+                                <FormHelperText id="component-error-text" sx={{"color": "var(--color-red-500)"}}>10s -
+                                    180s</FormHelperText>
                             )
                         }
                     </FormControl>
@@ -181,18 +210,19 @@ function Settings() {
                     <ListItemText primary="Number of Rounds"/>
                     <FormControl sx={{m: 1, maxWidth: 120}}>
                         <TextField
-                            error={hasAmountOfRoundsError}
+                            error={hasAmountOfRoundsError(sortToddlerAmountOfRounds)}
                             variant="outlined"
                             className="text-right"
                             id="settings-sensibility-select"
                             value={sortToddlerAmountOfRounds}
-                            onChange={(event) => setSortToddlerAmountOfRounds(parseInt(event.target.value))}
+                            onChange={handleSortToddlerAmountOfRounds}
                             type="number"
                             label="Rounds"
                         />
                         {
-                            hasAmountOfRoundsError && (
-                                <FormHelperText id="component-error-text" sx={{"color": "var(--color-red-500)"}}>1 - 20</FormHelperText>
+                            hasAmountOfRoundsError(sortToddlerAmountOfRounds) && (
+                                <FormHelperText id="component-error-text" sx={{"color": "var(--color-red-500)"}}>1 -
+                                    20</FormHelperText>
                             )
                         }
                     </FormControl>

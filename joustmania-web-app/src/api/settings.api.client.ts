@@ -88,3 +88,60 @@ export async function setLanguage(newLanguage: string): Promise<ApiResult> {
     }
 }
 
+export async function setGameOptionSortToddlerRoundDuration(newDuration: number): Promise<ApiResult> {
+    const url = `http://${window.location.hostname}/api/settings/sortToddler/duration`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({duration: newDuration}),
+        })
+        if (!response.ok) {
+            const body = await response.text()
+            console.error(body);
+            return {
+                status: ApiStatus.ERROR,
+                reason: `Failed to set the new duration for Sort Toddler Game. Reason: ${body}`
+            }
+        } else {
+            return {status: ApiStatus.OK}
+        }
+    } catch (error) {
+        console.error(error)
+        return {
+            status: ApiStatus.ERROR,
+            reason: `Failed to set the new duration for Sort Toddler Game. Reason: ${error}`
+        }
+    }
+}
+
+export async function setGameOptionSortToddlerAmountOfRounds(newAmount: number): Promise<ApiResult> {
+    const url = `http://${window.location.hostname}/api/settings/sortToddler/amountOfRounds`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({amountOfRounds: newAmount}),
+        })
+        if (!response.ok) {
+            const body = await response.text()
+            console.error(body);
+            return {
+                status: ApiStatus.ERROR,
+                reason: `Failed to set the new amount of rounds for Sort Toddler Game. Reason: ${body}`
+            }
+        } else {
+            return {status: ApiStatus.OK}
+        }
+    } catch (error) {
+        console.error(error)
+        return {
+            status: ApiStatus.ERROR,
+            reason: `Failed to set the new amount of rounds for Sort Toddler Game. Reason: ${error}`
+        }
+    }
+}
