@@ -38,6 +38,7 @@ import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
 import io.ktor.server.response.cacheControl
 import io.ktor.server.response.respond
@@ -58,9 +59,7 @@ import kotlinx.serialization.json.Json
 private val logger = KotlinLogging.logger {}
 fun Application.configureRouting() {
     routing {
-
-        // TODO enable me
-        // staticResources("/", "static", "index.html")
+        staticResources("/", "static", "index.html")
 
         route("/api") {
 
