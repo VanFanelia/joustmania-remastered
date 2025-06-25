@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import {Avatar, ListItemAvatar, ListItemText, Select, Switch} from "@mui/material";
+import {Alert, Avatar, FormHelperText, ListItemAvatar, ListItemText, Select, Switch, TextField} from "@mui/material";
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
 import {ChangeEvent, useEffect, useState} from "react";
 import FormControl from "@mui/material/FormControl";
@@ -11,6 +11,8 @@ import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 
 import {SelectChangeEvent} from "@mui/material/Select";
 import {SensibilityLevel, useSettingsContext} from "../context/SettingsProvider.tsx";
+import {setLanguage, setSensitivity} from "../api/settings.api.client.ts";
+import {ApiStatus} from "../api/api.definitions.tsx";
 
 const supportedLanguages: Map<string, string> = new Map<string, string>(
     [['en', "Englisch"], ['de', 'German']]
@@ -18,67 +20,56 @@ const supportedLanguages: Map<string, string> = new Map<string, string>(
 
 function Settings() {
     const [everyoneCanBecomeAdmin, setEveryoneCanBecomeAdmin] = useState(true);
-    const [language, setLanguage] = useState<string>("en");
-    const [sensibility, setSensibility] = useState<SensibilityLevel>(SensibilityLevel.MEDIUM);
+    const [currentLanguage, setCurrentLanguage] = useState<string>("en");
+    const [currentSensibility, setCurrentSensibility] = useState<SensibilityLevel>(SensibilityLevel.MEDIUM);
+    const [sortToddlerRoundDuration, setSortToddlerRoundDuration] = useState(30);
+    const [sortToddlerAmountOfRounds, setSortToddlerAmountOfRounds] = useState(10);
+
+    const [error, setError] = useState<string | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
 
     const changeEveryoneCanBecomeAdmin = (event: ChangeEvent<HTMLInputElement>) => {
         setEveryoneCanBecomeAdmin(event.target.checked);
     };
 
     const handleLanguageChange = (event: SelectChangeEvent) => {
+        const oldLanguage = currentLanguage;
         const languageKey = event.target.value as string;
-        setLanguage(languageKey);
-
-        const url = `http://${window.location.hostname}/api/settings/language`;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({language: languageKey}),
+        setCurrentLanguage(languageKey);
+        setLanguage(languageKey).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setCurrentLanguage(oldLanguage)
+                setShowAlert(true)
+                setError(result.reason)
+            }
         })
-            .then((response) => {
-                if (!response.ok) throw new Error('Failed to set sensitivity');
-            })
-            .then((result) => {
-                console.log('Success:', result);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+
     };
 
     const handleSensibilityChange = (event: SelectChangeEvent) => {
-        const sensitivity = event.target.value as SensibilityLevel;
-        setSensibility(sensitivity)
-
-        const url = `http://${window.location.hostname}/api/settings/sensitivity`;
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({sensitivity: sensitivity.toString()}),
+        const oldSensibility = currentSensibility;
+        const sensibility = event.target.value as SensibilityLevel;
+        setCurrentSensibility(sensibility)
+        setSensitivity(sensibility.toString()).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setCurrentSensibility(oldSensibility)
+                setShowAlert(true)
+                setError(result.reason)
+            }
         })
-            .then((response) => {
-                if (!response.ok) throw new Error('Failed to set sensitivity');
-            })
-            .then((result) => {
-                console.log('Success:', result);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
     }
 
     const config = useSettingsContext();
 
     useEffect(() => {
         if (config !== null) {
-            setSensibility(config.sensibility)
-            setLanguage(config.language.toLowerCase())
+            setCurrentSensibility(config.sensibility)
+            setCurrentLanguage(config.language.toLowerCase())
         }
     }, [config])
+
+    const hasRoundDurationError = !sortToddlerRoundDuration || (sortToddlerRoundDuration < 10 || sortToddlerRoundDuration > 180)
+    const hasAmountOfRoundsError = !sortToddlerAmountOfRounds || (sortToddlerAmountOfRounds < 1 || sortToddlerAmountOfRounds > 20)
 
     return (
 
@@ -113,7 +104,7 @@ function Settings() {
                             className="text-right"
                             labelId="settings-language-select-label"
                             id="settings-language-select"
-                            value={language}
+                            value={currentLanguage}
                             label="Language"
                             onChange={handleLanguageChange}
                             disabled={false}
@@ -137,7 +128,7 @@ function Settings() {
                             className="text-right"
                             labelId="settings-sensibility-select-label"
                             id="settings-sensibility-select"
-                            value={sensibility.valueOf()}
+                            value={currentSensibility.valueOf()}
                             label="Sensibility"
                             onChange={handleSensibilityChange}
                         >
@@ -152,7 +143,65 @@ function Settings() {
                         </Select>
                     </FormControl>
                 </ListItem>
+                <ListItem>
+                    <h2 className="mb-2 text-2xl">Sort Toddler Game Settings</h2>
+                </ListItem>
+                <ListItem className="w-full flex justify-between">
+                    <ListItemAvatar>
+                        <Avatar>
+                            <RecordVoiceOverIcon style={{color: "#000"}}/>
+                        </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Round Duration in S"/>
+                    <FormControl sx={{m: 1, maxWidth: 120}}>
+                        <TextField
+                            error={hasRoundDurationError}
+                            variant="outlined"
+                            className="text-right"
+                            id="settings-sensibility-select"
+                            value={sortToddlerRoundDuration}
+                            onChange={(event) => setSortToddlerRoundDuration(parseInt(event.target.value))}
+                            type="number"
+                            label="Duration"
+                            aria-describedby="component-error-text"
+                        />
+                        {
+                            hasRoundDurationError && (
+                                <FormHelperText id="component-error-text" sx={{"color": "var(--color-red-500)"}}>10s - 180s</FormHelperText>
+                            )
+                        }
+                    </FormControl>
+                </ListItem>
+                <ListItem className="w-full flex justify-between">
+                    <ListItemAvatar>
+                        <Avatar>
+                            <RecordVoiceOverIcon style={{color: "#000"}}/>
+                        </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Number of Rounds"/>
+                    <FormControl sx={{m: 1, maxWidth: 120}}>
+                        <TextField
+                            error={hasAmountOfRoundsError}
+                            variant="outlined"
+                            className="text-right"
+                            id="settings-sensibility-select"
+                            value={sortToddlerAmountOfRounds}
+                            onChange={(event) => setSortToddlerAmountOfRounds(parseInt(event.target.value))}
+                            type="number"
+                            label="Rounds"
+                        />
+                        {
+                            hasAmountOfRoundsError && (
+                                <FormHelperText id="component-error-text" sx={{"color": "var(--color-red-500)"}}>1 - 20</FormHelperText>
+                            )
+                        }
+                    </FormControl>
+                </ListItem>
             </List>
+
+            {showAlert && (
+                <Alert severity="error" className={"absolute bottom-16"}>{error}</Alert>
+            )}
         </Box>
     )
 }
