@@ -8,6 +8,7 @@ import Settings from './pages/Settings.tsx'
 import {SettingsProvider} from "./context/SettingsProvider.tsx";
 import {BluetoothProvider} from "./context/BluetoothProvider.tsx";
 import {GameStatsProvider} from "./context/GameStatsProvider.tsx";
+import {PSMoveStubStatisticsProvider} from "./context/PSMoveStubStatisticsProvider.tsx";
 
 function App() {
     return (
@@ -15,14 +16,16 @@ function App() {
             <SettingsProvider>
                 <BluetoothProvider>
                     <GameStatsProvider>
-                        <Routes>
-                            <Route path="/" element={<Navigate to="/game"/>}/>
-                            <Route path="/game" element={<Game/>}/>
-                            <Route path="/settings" element={<Settings/>}/>
-                            <Route path="/hardware" element={<Hardware/>}/>
-                            <Route path="/debug" element={<Debug/>}/>
-                        </Routes>
-                        <SimpleBottomNavigation/>
+                        <PSMoveStubStatisticsProvider>
+                            <Routes>
+                                <Route path="/" element={<Navigate to="/game"/>}/>
+                                <Route path="/game" element={<Game/>}/>
+                                <Route path="/settings" element={<Settings/>}/>
+                                <Route path="/hardware" element={<Hardware/>}/>
+                                <Route path="/debug" element={<Debug/>}/>
+                            </Routes>
+                            <SimpleBottomNavigation/>
+                        </PSMoveStubStatisticsProvider>
                     </GameStatsProvider>
                 </BluetoothProvider>
             </SettingsProvider>

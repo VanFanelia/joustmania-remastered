@@ -16,6 +16,7 @@ import de.vanfanel.joustmania.games.SetSortToddlerAmountOfRounds
 import de.vanfanel.joustmania.games.SetSortToddlerRoundDuration
 import de.vanfanel.joustmania.games.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
+import de.vanfanel.joustmania.hardware.AccelerationDebugger.psMoveStubStatistics
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager.blueToothControllerFlow
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
@@ -23,6 +24,7 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.connectedPSMoveController
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
+import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.lobby.LobbyLoop.activeMoves
 import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
@@ -351,6 +353,18 @@ fun Application.configureRouting() {
                     combinedFlow.collect { gameStats ->
                         logger.debug { "new gameStats pushed to client: $gameStats" }
                         write("data: ${Json.encodeToString(gameStats)}\n\n")
+                        flush()
+                    }
+                }
+            }
+
+            get("/sse/stubsStatistics") {
+                call.response.cacheControl(CacheControl.NoCache(null))
+                logger.debug { "new client connected to sse/stubsStatistics endpoint" }
+                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
+                    psMoveStubStatistics.collect { statistics ->
+                        logger.debug { "new psMoveStubStatistics pushed to client: $statistics" }
+                        write("data: ${Json.encodeToString(statistics)}\n\n")
                         flush()
                     }
                 }

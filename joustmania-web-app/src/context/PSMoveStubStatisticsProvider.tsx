@@ -1,0 +1,44 @@
+import {createContext, FC, ReactNode, useContext} from "react";
+import {useSSE} from "../hooks/useSSE.tsx";
+
+export class MoveStatistics {
+    constructor(
+        public firstPoll: number,
+        public pollCount: number,
+        public averagePollTime: number,
+        public longPollingDistanceCounter: number,
+        public longestPollingGap: number
+    ) {
+    }
+}
+
+type MoveStatisticsMap = {
+    [key: string]: MoveStatistics;
+};
+
+const PSMoveStubStatisticsContext = createContext<MoveStatisticsMap>({});
+
+export const PSMoveStubStatisticsProvider: FC<{ children: ReactNode }> = ({children}) => {
+    let config = useSSE<MoveStatisticsMap>(`http://${window.location.hostname}/api/sse/stubsStatistics`);
+
+    console.log("jeha?")
+    console.log(config)
+
+    if (config == null) {
+        config = {}
+    }
+
+    return (
+        <PSMoveStubStatisticsContext.Provider value={config}>
+            {children}
+        </PSMoveStubStatisticsContext.Provider>
+    );
+};
+
+export const usePSMoveStubStatisticsContext = (): MoveStatisticsMap => {
+    const ctx = useContext(PSMoveStubStatisticsContext);
+    if (!ctx) {
+        throw new Error("usePSMoveStubStatisticsContext must be used inside PSMoveStubStatisticsProvider");
+    }
+    return ctx;
+};

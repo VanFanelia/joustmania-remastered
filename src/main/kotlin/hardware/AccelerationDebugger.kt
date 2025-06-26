@@ -3,11 +3,12 @@ package de.vanfanel.joustmania.hardware
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.util.FixedSizeQueue
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.map
@@ -29,9 +30,9 @@ data class StubAcceleration(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 object AccelerationDebugger {
+    private val logger = KotlinLogging.logger {}
     private const val HISTORY_LENGTH = 333
 
-    private var accelerationDebuggerJob: Job? = null
     private val accelerationHistory: MutableMap<MacAddress, FixedSizeQueue<Pair<Long, Double>>> = mutableMapOf()
 
     private fun getHistoryByMac(mac: MacAddress): FixedSizeQueue<Pair<Long, Double>> {
@@ -43,8 +44,7 @@ object AccelerationDebugger {
     }
 
     init {
-        accelerationDebuggerJob = CoroutineScope(Dispatchers.IO).launch {
-
+        CoroutineScope(Dispatchers.IO).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
                 newMoves.asFlow().flatMapMerge { move ->
                     move.accelerationFlow.map { accelerationData -> Pair(move.macAddress, accelerationData.change) }
@@ -52,6 +52,20 @@ object AccelerationDebugger {
             }.collect { accelerationData ->
                 val currentTime = System.currentTimeMillis()
                 getHistoryByMac(accelerationData.first).add(Pair(currentTime, accelerationData.second))
+            }
+        }
+    }
+
+    val psMoveStubStatistics = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+        combine(newMoves.map { stub -> stub.moveStatisticsFlow.map { statistics -> stub.macAddress to statistics } }) { pairs ->
+            pairs.associate { it }
+        }
+    }
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            psMoveStubStatistics.collect { stats ->
+                logger.debug { "PSMove stats: $stats" }
             }
         }
     }

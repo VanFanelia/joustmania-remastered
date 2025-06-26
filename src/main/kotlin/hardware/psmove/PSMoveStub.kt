@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.Date
 import kotlin.math.floor
@@ -63,15 +64,34 @@ private fun Int.min(min: Int): Int {
     return min(this, min)
 }
 
+@Serializable
+data class MoveStatistics(
+    val firstPoll: Long,
+    val pollCount: Long,
+    val averagePollTime: Double,
+    val longPollingDistanceCounter: Long,
+    val longestPollingGap: Long,
+)
+
 class PSMoveStub(val macAddress: MacAddress) {
     private val logger = KotlinLogging.logger {}
     private val buttonObserverTicker = Ticker(5.milliseconds)
     private val colorChangeTicker = Ticker(50.milliseconds)
     private val movementObserverTicker = Ticker(5.milliseconds)
     private val batteryLevelTicker = Ticker(10.seconds)
+    private val moveStatisticTicker = Ticker(10.seconds)
+
     private var colorAnimation: ColorAnimation? = null
     private var animationStarted: Long = 0
     private var lastTick: Long = 0
+
+    // statistics
+    private var firstPoll: Long? = null
+    private var lastPoll: Long = 0
+    private var pollCount: Long = 0
+    private var averagePollTime: Double = 0.0
+    private var longPollingDistanceCounter: Long = 0
+    private var longestPollingGap: Long = 0
 
     private val buttonsWithPressedState: MutableSet<PSMoveButton> = mutableSetOf()
     private val _buttonPressedFlow: MutableSharedFlow<Set<PSMoveButton>> = MutableSharedFlow(
@@ -91,6 +111,9 @@ class PSMoveStub(val macAddress: MacAddress) {
     private val _batteryLevelFlow: MutableSharedFlow<PSMoveBatteryLevel?> = MutableStateFlow(null)
     val batteryLevelFlow: Flow<PSMoveBatteryLevel?> = _batteryLevelFlow
 
+    private val _moveStatisticsFlow: MutableSharedFlow<MoveStatistics> =
+        MutableStateFlow(MoveStatistics(0, 0, 0.0, 0, 0))
+    val moveStatisticsFlow: Flow<MoveStatistics> = _moveStatisticsFlow
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -112,10 +135,32 @@ class PSMoveStub(val macAddress: MacAddress) {
             movementObserverTicker.tick.collect {
                 try {
                     val lastMovement = PSMoveApi.pollMovement(macAddress, oldChange) ?: return@collect
+                    val now = Instant.now().toEpochMilli()
+                    if (firstPoll == null) {
+                        firstPoll = now
+                    }
+                    pollCount = pollCount + 1
+
+                    // calculate average poll time
+                    if (pollCount > 2) {
+                        val difference = now - lastPoll
+                        averagePollTime =
+                            difference * (1.0 / pollCount) + averagePollTime * (pollCount - 1.0) / pollCount
+
+                        if (difference > 150) {
+                            longPollingDistanceCounter += 1
+                        }
+
+                        if (difference > longestPollingGap) {
+                            longestPollingGap = difference
+                        }
+                    }
+
+                    lastPoll = now
                     oldChange = lastMovement.change
                     _accelerationFlow.tryEmit(lastMovement)
                 } catch (e: MoveNotFoundException) {
-                    logger.error(e) { "Could not poll move buttons for $macAddress. start cancel stub" }
+                    logger.error(e) { "Could not calculate statistics for $macAddress" }
                     cancel()
                 }
             }
@@ -164,6 +209,20 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
+            moveStatisticTicker.tick.collect {
+                _moveStatisticsFlow.tryEmit(
+                    MoveStatistics(
+                        firstPoll ?: 0,
+                        pollCount,
+                        averagePollTime,
+                        longPollingDistanceCounter,
+                        longestPollingGap
+                    )
+                )
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
             _buttonPressedFlow.collect {
                 val oldButtonPressList = buttonsWithPressedState
                 val newButtonPressList = it
@@ -190,6 +249,7 @@ class PSMoveStub(val macAddress: MacAddress) {
                 buttonObserverTicker.start()
                 colorChangeTicker.start()
                 movementObserverTicker.start()
+                moveStatisticTicker.start()
             }
         }
 
@@ -197,6 +257,7 @@ class PSMoveStub(val macAddress: MacAddress) {
         delay(50)
         colorChangeTicker.start()
         movementObserverTicker.start()
+        moveStatisticTicker.start()
     }
 
     val getTriggerClickFlow: Flow<Unit> = _buttonClickFlow.filter {
