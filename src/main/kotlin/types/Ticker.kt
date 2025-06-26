@@ -24,7 +24,7 @@ class Ticker(private val interval: Duration) {
         if (_state.value) return // Bereits gestartet
         _state.value = true
 
-        job = CoroutineScope(Dispatchers.Default).launch {
+        job = CoroutineScope(Dispatchers.IO).launch {
             var count = 0L
             while (_state.value) {
                 _tickerFlow.emit(count++)
