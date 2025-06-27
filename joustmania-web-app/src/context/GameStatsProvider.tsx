@@ -17,8 +17,6 @@ const GameStatsContext = createContext<GameStats>(GameStats.DEFAULT_GAME_STATS);
 export const GameStatsProvider: FC<{ children: ReactNode }> = ({children}) => {
     let config = useSSE<GameStats>(`http://${window.location.hostname}/api/sse/game`);
 
-    console.log(config)
-
     if (config == null) {
         config = GameStats.DEFAULT_GAME_STATS
     }

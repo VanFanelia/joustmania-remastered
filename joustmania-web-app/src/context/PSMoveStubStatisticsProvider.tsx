@@ -21,9 +21,6 @@ const PSMoveStubStatisticsContext = createContext<MoveStatisticsMap>({});
 export const PSMoveStubStatisticsProvider: FC<{ children: ReactNode }> = ({children}) => {
     let config = useSSE<MoveStatisticsMap>(`http://${window.location.hostname}/api/sse/stubsStatistics`);
 
-    console.log("jeha?")
-    console.log(config)
-
     if (config == null) {
         config = {}
     }

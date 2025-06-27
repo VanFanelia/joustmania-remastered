@@ -9,6 +9,8 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
+import RepeatIcon from '@mui/icons-material/Repeat';
 
 import {SelectChangeEvent} from "@mui/material/Select";
 import {SensibilityLevel, useSettingsContext} from "../context/SettingsProvider.tsx";
@@ -172,13 +174,13 @@ function Settings() {
                         </Select>
                     </FormControl>
                 </ListItem>
-                <ListItem>
-                    <h2 className="mb-2 text-2xl">Sort Toddler Game Settings</h2>
-                </ListItem>
+            </List>
+            <h2 className="mb-2 text-2xl">Sort Toddler Game Settings</h2>
+            <List className={"w-full"} sx={{bgcolor: 'background.paper'}}>
                 <ListItem className="w-full flex justify-between">
                     <ListItemAvatar>
                         <Avatar>
-                            <RecordVoiceOverIcon style={{color: "#000"}}/>
+                            <HourglassBottomIcon style={{color: "#000"}}/>
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Round Duration in S"/>
@@ -205,7 +207,7 @@ function Settings() {
                 <ListItem className="w-full flex justify-between">
                     <ListItemAvatar>
                         <Avatar>
-                            <RecordVoiceOverIcon style={{color: "#000"}}/>
+                            <RepeatIcon style={{color: "#000"}}/>
                         </Avatar>
                     </ListItemAvatar>
                     <ListItemText primary="Number of Rounds"/>
@@ -230,9 +232,11 @@ function Settings() {
                 </ListItem>
             </List>
 
-            {showAlert && (
-                <Alert severity="error" className={"absolute bottom-16"}>{error}</Alert>
-            )}
+            {
+                showAlert && (
+                    <Alert severity="error" className={"absolute bottom-16"}>{error}</Alert>
+                )
+            }
         </Box>
     )
 }
