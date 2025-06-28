@@ -2,13 +2,18 @@ import {createContext, FC, ReactNode, useContext} from "react";
 import {useSSE} from "../hooks/useSSE.tsx";
 
 export class MoveStatistics {
-    constructor(
-        public firstPoll: number,
-        public pollCount: number,
-        public averagePollTime: number,
-        public longPollingDistanceCounter: number,
-        public longestPollingGap: number
-    ) {
+    public firstPoll: number;
+    public pollCount: number;
+    public averagePollTime: number;
+    public longPollingDistanceCounter: number;
+    public longestPollingGap: number;
+
+    constructor(firstPoll: number, pollCount: number, averagePollTime: number, longPollingDistanceCounter: number, longestPollingGap: number) {
+        this.firstPoll = firstPoll;
+        this.pollCount = pollCount;
+        this.averagePollTime = averagePollTime;
+        this.longPollingDistanceCounter = longPollingDistanceCounter;
+        this.longestPollingGap = longestPollingGap;
     }
 }
 
