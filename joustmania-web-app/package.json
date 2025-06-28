@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@types/luxon": "^3.6.2",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-legacy": "^6.1.1",
