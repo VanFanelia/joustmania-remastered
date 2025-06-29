@@ -65,7 +65,7 @@ object GameStateManager {
             }
         }
 
-        CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             currentGameState.collect { newState ->
                 when (newState) {
                     GameState.LOBBY -> gameModeChangedToLobby()
@@ -108,7 +108,7 @@ object GameStateManager {
         playersInGame = emptySet()
         gameWatcherJob?.cancel()
         playerLostJob?.cancel()
-        CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             _currentGameState.emit(GameState.LOBBY)
             _playerLostFlow.emit(emptySet())
         }
@@ -122,7 +122,7 @@ object GameStateManager {
         currentGame = game
         val currentGameState = _currentGameState.value
         if (currentGameState == GameState.LOBBY) {
-            CoroutineScope(Dispatchers.Default).launch {
+            CoroutineScope(Dispatchers.IO).launch {
                 playersInGame = players.map { it.macAddress }.toSet()
                 game.start(players = players)
             }
