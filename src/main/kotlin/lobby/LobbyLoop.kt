@@ -6,6 +6,7 @@ import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.games.Game.Companion.gameNameToIndex
 import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.games.Game.Companion.listOfGames
+import de.vanfanel.joustmania.hardware.psmove.PSMOVE_COLOR_MAP
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
@@ -109,6 +110,10 @@ object LobbyLoop {
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             changeGameOnStartButtonClicked()
         })
+
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+            forceStartWithAllControllerWhenAdminForcedByButtonPress()
+        })
     }
 
     private suspend fun observeButtonPressForDebugging() {
@@ -168,6 +173,20 @@ object LobbyLoop {
             // only admins can change the current game
             if (!admins.contains(moveStub)) return@collect
             setCurrentGameToNextGameFromList()
+        }
+        updateActiveMovesFlow()
+    }
+
+    private suspend fun forceStartWithAllControllerWhenAdminForcedByButtonPress() {
+        PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
+            newMoves.asFlow().flatMapMerge { move ->
+                move.getForceStartClickFlow.map { move }
+            }
+        }.collect { moveStub ->
+            if (freezeLobby) return@collect
+            // only admins can change the current game
+            if (!admins.contains(moveStub)) return@collect
+            tryStartGame(gameMode = null, forceActivateAllController = true)
         }
         updateActiveMovesFlow()
     }
