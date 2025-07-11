@@ -50,14 +50,9 @@ object PSMoveApi {
         }
     }
 
-    fun pollMoveButtons(macAddress: MacAddress): Set<PSMoveButton>? {
+    fun pollData(macAddress: MacAddress): PollResult? {
         val move = PSMoveBluetoothConnectionWatcher.getMove(macAddress) ?: throw MoveNotFoundException(macAddress)
-        return move.pollButtons()
-    }
-
-    fun pollMovement(macAddress: MacAddress, oldChange: Double): RawMovingData? {
-        val move = PSMoveBluetoothConnectionWatcher.getMove(macAddress) ?: throw MoveNotFoundException(macAddress)
-        return move.getMovingParameters(oldChange)
+        return move.pollData()
     }
 
     fun setColor(macAddress: MacAddress, colorToSet: MoveColor) {

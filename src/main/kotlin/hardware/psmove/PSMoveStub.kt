@@ -22,7 +22,6 @@ import java.time.Instant
 import java.util.Date
 import kotlin.math.floor
 import kotlin.math.min
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 data class ColorAnimation(
@@ -75,9 +74,6 @@ data class MoveStatistics(
 
 class PSMoveStub(val macAddress: MacAddress) {
     private val logger = KotlinLogging.logger {}
-    private val buttonObserverTicker = Ticker(5.milliseconds)
-    private val colorChangeTicker = Ticker(50.milliseconds)
-    private val movementObserverTicker = Ticker(5.milliseconds)
     private val batteryLevelTicker = Ticker(10.seconds)
     private val moveStatisticTicker = Ticker(10.seconds)
 
@@ -116,55 +112,6 @@ class PSMoveStub(val macAddress: MacAddress) {
     val moveStatisticsFlow: Flow<MoveStatistics> = _moveStatisticsFlow
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
-            buttonObserverTicker.tick.collect {
-                try {
-                    val buttonsPressed = PSMoveApi.pollMoveButtons(macAddress)
-                    if (buttonsPressed != null) {
-                        _buttonPressedFlow.tryEmit(buttonsPressed)
-                    }
-                } catch (e: MoveNotFoundException) {
-                    logger.error(e) { "Could not poll move buttons for $macAddress. start cancel stub" }
-                    cancel()
-                }
-            }
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            var oldChange = 0.0
-            movementObserverTicker.tick.collect {
-                try {
-                    val lastMovement = PSMoveApi.pollMovement(macAddress, oldChange) ?: return@collect
-                    val now = Instant.now().toEpochMilli()
-                    if (firstPoll == null) {
-                        firstPoll = now
-                    }
-                    pollCount = pollCount + 1
-
-                    // calculate average poll time
-                    if (pollCount > 2) {
-                        val difference = now - lastPoll
-                        averagePollTime =
-                            difference * (1.0 / pollCount) + averagePollTime * (pollCount - 1.0) / pollCount
-
-                        if (difference > 150) {
-                            longPollingDistanceCounter += 1
-                        }
-
-                        if (difference > longestPollingGap) {
-                            longestPollingGap = difference
-                        }
-                    }
-
-                    lastPoll = now
-                    oldChange = lastMovement.change
-                    _accelerationFlow.tryEmit(lastMovement)
-                } catch (e: MoveNotFoundException) {
-                    logger.error(e) { "Could not calculate statistics for $macAddress" }
-                    cancel()
-                }
-            }
-        }
 
         CoroutineScope(Dispatchers.IO).launch {
             batteryLevelTicker.tick.collect {
@@ -172,37 +119,6 @@ class PSMoveStub(val macAddress: MacAddress) {
                     checkBatteryLevel()
                 } catch (e: MoveNotFoundException) {
                     logger.error(e) { "Could not get battery state of move controller" }
-                    cancel()
-                }
-            }
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            colorChangeTicker.tick.collect {
-                try {
-                    colorAnimation?.let { animation ->
-                        if (!animation.loop && animationStarted > 0 && Instant.now()
-                                .toEpochMilli() > (animationStarted + animation.durationInMS)
-                        ) {
-                            clearAnimation()
-                            return@collect
-                        }
-                        if (lastTick == 0L) {
-                            setCurrentColor(
-                                colorToSet = animation.colorToSet.firstOrNull() ?: MoveColor.BLACK,
-                                clearAnimation = false
-                            )
-                            val now = Instant.now().toEpochMilli()
-                            lastTick = now
-                            animationStarted = now
-                        } else {
-                            val color = animation.calculateNextColor(elapsedTime = lastTick - animationStarted)
-                            setCurrentColor(colorToSet = color, clearAnimation = false)
-                            lastTick = Instant.now().toEpochMilli()
-                        }
-                    }
-                } catch (e: MoveNotFoundException) {
-                    logger.error(e) { "Could not set color animation for $macAddress. start cancel stub" }
                     cancel()
                 }
             }
@@ -242,21 +158,77 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
     }
 
+    fun changeColor() {
+        try {
+            colorAnimation?.let { animation ->
+                if (!animation.loop && animationStarted > 0 && Instant.now()
+                        .toEpochMilli() > (animationStarted + animation.durationInMS)
+                ) {
+                    clearAnimation()
+                    return
+                }
+                if (lastTick == 0L) {
+                    setCurrentColor(
+                        colorToSet = animation.colorToSet.firstOrNull() ?: MoveColor.BLACK,
+                        clearAnimation = false
+                    )
+                    val now = Instant.now().toEpochMilli()
+                    lastTick = now
+                    animationStarted = now
+                } else {
+                    val color = animation.calculateNextColor(elapsedTime = lastTick - animationStarted)
+                    setCurrentColor(colorToSet = color, clearAnimation = false)
+                    lastTick = Instant.now().toEpochMilli()
+                }
+            }
+        } catch (e: MoveNotFoundException) {
+            logger.error(e) { "Could not set color animation for $macAddress. start cancel stub" }
+        }
+    }
+
+    fun pollMoveControllerState(){
+        try {
+            val pollResult = PSMoveApi.pollData(macAddress) ?: return
+            val now = Instant.now().toEpochMilli()
+            if (firstPoll == null) {
+                firstPoll = now
+            }
+            pollCount = pollCount + 1
+
+            // calculate average poll time
+            if (pollCount > 2) {
+                val difference = now - lastPoll
+                averagePollTime =
+                    difference * (1.0 / pollCount) + averagePollTime * (pollCount - 1.0) / pollCount
+
+                if (difference > 150) {
+                    longPollingDistanceCounter += 1
+                }
+
+                if (difference > longestPollingGap) {
+                    longestPollingGap = difference
+                }
+            }
+
+            lastPoll = now
+            _accelerationFlow.tryEmit(pollResult.movingData)
+            _buttonPressedFlow.tryEmit(pollResult.buttons)
+
+        } catch (e: MoveNotFoundException) {
+            logger.error(e) { "Could not poll data for Move: $macAddress" }
+        }
+    }
+
     val buttonPressFlow: Flow<Set<PSMoveButton>>
         get() {
             return _buttonPressedFlow.distinctUntilChanged().onStart {
                 delay(50)
-                buttonObserverTicker.start()
-                colorChangeTicker.start()
-                movementObserverTicker.start()
                 moveStatisticTicker.start()
             }
         }
 
     val accelerationFlow: Flow<RawMovingData> = _accelerationFlow.onStart {
         delay(50)
-        colorChangeTicker.start()
-        movementObserverTicker.start()
         moveStatisticTicker.start()
     }
 

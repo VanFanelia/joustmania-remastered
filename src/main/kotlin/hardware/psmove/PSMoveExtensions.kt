@@ -9,6 +9,8 @@ import io.thp.psmove.PSMove
 import kotlinx.coroutines.delay
 import kotlin.math.sqrt
 
+data class PollResult(val buttons: Set<PSMoveButton>, val movingData: RawMovingData)
+
 fun PSMove.getMacAddress(): String {
     return this._serial.uppercase()
 }
@@ -43,32 +45,41 @@ var PSMove.currentColor: MoveColor
         this.update_leds()
     }
 
+val PSMOVE_OLD_CHANGE_VALUES_MAP: MutableMap<MacAddress, Double> = mutableMapOf()
 
-fun PSMove.pollButtons(): Set<PSMoveButton>? {
+var PSMove.oldChange: Double
+    get() {
+        return PSMOVE_OLD_CHANGE_VALUES_MAP[this.getMacAddress()] ?: 0.0
+    }
+    set(value) {
+        PSMOVE_OLD_CHANGE_VALUES_MAP[this.getMacAddress()] = value
+    }
+
+fun PSMove.pollData(): PollResult? {
     val poll = this.poll()
     if (poll > 0) {
         val buttons = this._buttons
         val trigger = this._trigger
-        return calculatedPressedButtons(buttons, trigger)
-    }
-    return null
-}
+        val buttonResult = calculatedPressedButtons(buttons, trigger)
 
-fun PSMove.getMovingParameters(oldChange: Double): RawMovingData? {
-    val poll = this.poll()
-    if (poll > 0) {
         val aX = floatArrayOf(0f)
         val aY = floatArrayOf(0f)
         val aZ = floatArrayOf(0f)
         this.get_accelerometer_frame(Frame.Frame_SecondHalf, aX, aY, aZ)
         val total = sqrt((aX.first() * aX.first() + aY.first() * aY.first() + aZ.first() * aZ.first()).toDouble())
-        return RawMovingData(
+
+        val newChange = (oldChange * 4 + total) / 5
+        oldChange = newChange
+
+        val movingData = RawMovingData(
             accelerationX = aX.first(),
             accelerationY = aY.first(),
             accelerationZ = aZ.first(),
             total = total,
-            change = (oldChange * 4 + total) / 5
+            change = newChange
         )
+
+        return PollResult(buttonResult, movingData)
     }
     return null
 }

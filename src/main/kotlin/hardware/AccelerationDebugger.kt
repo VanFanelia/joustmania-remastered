@@ -3,6 +3,7 @@ package de.vanfanel.joustmania.hardware
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.util.FixedSizeQueue
+import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +53,14 @@ object AccelerationDebugger {
             }.collect { accelerationData ->
                 val currentTime = System.currentTimeMillis()
                 getHistoryByMac(accelerationData.first).add(Pair(currentTime, accelerationData.second))
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
+                moves.forEach { move ->
+                    accelerationHistory.remove(move.macAddress)
+                }
             }
         }
     }
