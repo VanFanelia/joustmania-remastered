@@ -57,6 +57,7 @@ object PSMoveBluetoothConnectionWatcher {
     private val _psmoveControllerMap: MutableMap<MacAddress, PSMove> = ConcurrentHashMap()
 
     suspend fun startEndlessLoopWithPSMoveConnectionScan() {
+        val moveStubs = ConcurrentHashMap<MacAddress, PSMoveStub>()
         coroutineScope {
             while (true) {
                 try {
@@ -66,7 +67,7 @@ object PSMoveBluetoothConnectionWatcher {
                         continue
                     }
                     lastCountOfConnectedMoves = currentCount
-                    val moveStubs = mutableSetOf<PSMoveStub>()
+
                     val moves = mutableMapOf<MacAddress, PSMove>()
                     for (i in 0..<currentCount) {
                         val move = PSMove(i)
@@ -75,11 +76,14 @@ object PSMoveBluetoothConnectionWatcher {
                             continue
                         }
                         moves[move.getMacAddress()] = move
-                        moveStubs.add(PSMoveStub(macAddress = move.getMacAddress()))
+                        moveStubs.putIfAbsent(move.getMacAddress(), PSMoveStub(move.getMacAddress()))
 
                         logger.info { "New move found: ${move.getMacAddress()}" }
                     }
-                    _bluetoothConnectedPSMoves.emit(moveStubs)
+                    for (movesToRemove: MacAddress in (moveStubs.keys - moves.keys)) {
+                        moveStubs.remove(movesToRemove)
+                    }
+                    _bluetoothConnectedPSMoves.emit(moveStubs.values.toSet())
                     _psmoveControllerMap.clear()
                     _psmoveControllerMap.putAll(moves)
                 } catch (e: Exception) {

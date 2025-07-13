@@ -57,7 +57,6 @@ object GameStateManager {
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            // TODO: move changes of connected Bluetooth to Lobby and game!
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
                 if (_currentGameState.value == GameState.LOBBY) {
                     lobbyLoop.handleConnectedMovesChangeDuringGameStateLobby(newMoves)

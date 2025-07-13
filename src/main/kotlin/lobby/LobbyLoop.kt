@@ -6,7 +6,6 @@ import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.games.Game.Companion.gameNameToIndex
 import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.games.Game.Companion.listOfGames
-import de.vanfanel.joustmania.hardware.psmove.PSMOVE_COLOR_MAP
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
@@ -43,13 +42,13 @@ object LobbyLoop {
     private val logger = KotlinLogging.logger {}
     private val soundManager = SoundManager
 
-    private val isActive: MutableMap<PSMoveStub, Boolean> = ConcurrentHashMap()
+    private val isActive: MutableMap<MacAddress, Boolean> = ConcurrentHashMap()
     private val _activeMoves: MutableStateFlow<List<MacAddress>> = MutableStateFlow(emptyList())
     val activeMoves: Flow<List<MacAddress>> = _activeMoves
 
-    private val movesInLobby: MutableMap<String, PSMoveStub> = mutableMapOf()
+    private val movesInLobby: MutableSet<MacAddress> = mutableSetOf()
 
-    private val admins: MutableSet<PSMoveStub> = ConcurrentSet()
+    private val admins: MutableSet<MacAddress> = ConcurrentSet()
     private val _controllersWithAdminRights: MutableStateFlow<List<MacAddress>> = MutableStateFlow(emptyList())
     val controllersWithAdminRights: Flow<List<MacAddress>> = _controllersWithAdminRights
 
@@ -93,7 +92,7 @@ object LobbyLoop {
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             val connectedPSMoves = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
             connectedPSMoves?.forEach { moveStub ->
-                isActive[moveStub] = false
+                isActive[moveStub.macAddress] = false
                 moveStub.setNotActivatedInLobbyColor()
             }
             updateActiveMovesFlow()
@@ -134,16 +133,16 @@ object LobbyLoop {
                 move.getSquareCrossTriangleCircleClickFlow.map { move }
             }
         }.collect { moveStub ->
-            if (!admins.contains(moveStub)) {
-                admins.add(moveStub)
+            if (!admins.contains(moveStub.macAddress)) {
+                admins.add(moveStub.macAddress)
                 soundManager.asyncAddSoundToQueue(ADMIN_GRANTED)
                 logger.info { "Move with ${moveStub.macAddress} granted admin privileges" }
             } else {
-                admins.remove(moveStub)
+                admins.remove(moveStub.macAddress)
                 soundManager.asyncAddSoundToQueue(ADMIN_REVOKED)
                 logger.info { "Move with ${moveStub.macAddress} lost its admin privileges" }
             }
-            _controllersWithAdminRights.emit(admins.map { it.macAddress })
+            _controllersWithAdminRights.emit(admins.toList())
 
             updateLobbyColorByState()
         }
@@ -157,7 +156,7 @@ object LobbyLoop {
         }.collect { moveStub ->
             if (freezeLobby) return@collect
             // only admins can change the current game
-            if (!admins.contains(moveStub)) return@collect
+            if (!admins.contains(moveStub.macAddress)) return@collect
             setCurrentGameToPreviousGameFromList()
         }
         updateActiveMovesFlow()
@@ -171,7 +170,7 @@ object LobbyLoop {
         }.collect { moveStub ->
             if (freezeLobby) return@collect
             // only admins can change the current game
-            if (!admins.contains(moveStub)) return@collect
+            if (!admins.contains(moveStub.macAddress)) return@collect
             setCurrentGameToNextGameFromList()
         }
         updateActiveMovesFlow()
@@ -185,7 +184,7 @@ object LobbyLoop {
         }.collect { moveStub ->
             if (freezeLobby) return@collect
             // only admins can change the current game
-            if (!admins.contains(moveStub)) return@collect
+            if (!admins.contains(moveStub.macAddress)) return@collect
             tryStartGame(gameMode = null, forceActivateAllController = true)
         }
         updateActiveMovesFlow()
@@ -228,8 +227,8 @@ object LobbyLoop {
             }
         }.collect { moveStub ->
             if (freezeLobby) return@collect
-            if (isActive[moveStub] == false) {
-                isActive[moveStub] = true
+            if (isActive[moveStub.macAddress] == false) {
+                isActive[moveStub.macAddress] = true
                 updateLobbyColorByState()
                 logger.info { "Move with ${moveStub.macAddress} was set to active" }
                 soundManager.asyncAddSoundToQueue(CONTROLLER_JOINED)
@@ -237,7 +236,7 @@ object LobbyLoop {
                     tryStartGame()
                 }
             } else {
-                isActive[moveStub] = false
+                isActive[moveStub.macAddress] = false
                 updateLobbyColorByState()
                 soundManager.asyncAddSoundToQueue(CONTROLLER_LEFT)
                 logger.info { "Move with ${moveStub.macAddress} was set to inactive" }
@@ -273,8 +272,10 @@ object LobbyLoop {
             id = ALL_PLAYERS_READY,
             abortOnNewSound = false
         )
+        val players = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
+            ?.filter { isActive[it.macAddress] == true }?.toSet() ?: emptySet()
         GameStateManager.startGame(
-            selectedGame, activePlayers.keys
+            selectedGame, players
         )
     }
 
@@ -288,10 +289,10 @@ object LobbyLoop {
     private suspend fun removeControllerFromLobbyOnDisconnect() {
         PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
             isActive.keys.forEach { oldMove ->
-                if (!newMoves.map { move -> move.macAddress }.contains(oldMove.macAddress)) {
+                if (!newMoves.map { move -> move.macAddress }.contains(oldMove)) {
                     isActive.remove(oldMove)
                     admins.remove(oldMove)
-                    _controllersWithAdminRights.emit(admins.map { it.macAddress })
+                    _controllersWithAdminRights.emit(admins.toList())
                     soundManager.asyncAddSoundToQueue(CONTROLLER_DISCONNECTED)
                     logger.info { "Controller seems disconnecting. Remove PSMove from lobby with address: $oldMove" }
                 }
@@ -301,36 +302,38 @@ object LobbyLoop {
     }
 
     private suspend fun updateActiveMovesFlow() {
-        _activeMoves.emit(isActive.filter { (_, value) -> value }.map { it.key.macAddress })
+        _activeMoves.emit(isActive.filter { (_, value) -> value }.map { it.key })
     }
 
-    private fun updateLobbyColorByState() {
+    private suspend fun updateLobbyColorByState() {
+        val stubs =
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()?.associate { it.macAddress to it }
+                ?: emptyMap()
         isActive.entries.forEach {
             val colorToSet = when {
                 admins.contains(it.key) -> if (it.value) MoveColor.VIOLET else MoveColor.VIOLET_INACTIVE
                 it.value -> MoveColor.ORANGE
                 else -> MoveColor.ORANGE_INACTIVE
             }
-
-            it.key.setCurrentColor(colorToSet)
+            stubs[it.key]?.setCurrentColor(colorToSet)
         }
     }
 
     suspend fun handleConnectedMovesChangeDuringGameStateLobby(newMoves: Set<PSMoveStub>) {
         val newMovesMacAddresses = newMoves.map { it.macAddress }
         newMoves.forEach { newMove ->
-            if (!movesInLobby.containsKey(newMove.macAddress)) {
-                movesInLobby[newMove.macAddress] = newMove
+            if (!movesInLobby.contains(newMove.macAddress)) {
+                movesInLobby.add(newMove.macAddress)
                 newControllerConnected(newMove)
                 logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
             }
-            movesInLobby.entries.removeIf { !newMovesMacAddresses.contains(it.key) }
+            movesInLobby.removeIf { it -> !newMovesMacAddresses.contains(it) }
         }
     }
 
     suspend fun newControllerConnected(move: PSMoveStub) {
-        if (!isActive.containsKey(move)) {
-            isActive[move] = false
+        if (!isActive.containsKey(move.macAddress)) {
+            isActive[move.macAddress] = false
         }
         move.setNotActivatedInLobbyColor()
         updateActiveMovesFlow()

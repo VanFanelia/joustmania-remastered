@@ -4,10 +4,11 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.types.MacAddress
 import kotlinx.coroutines.flow.Flow
+import javax.crypto.Mac
 
 interface Game {
     val name: String
-    val currentPlayingController: MutableSet<PSMoveStub>
+    val currentPlayingController: MutableMap<MacAddress,PSMoveStub>
     val minimumPlayers: Int
     val gameSelectedSound: SoundId
 

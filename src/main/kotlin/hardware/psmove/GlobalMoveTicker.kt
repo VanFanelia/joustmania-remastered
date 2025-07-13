@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania.hardware.psmove
 
+import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.util.SingleThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -8,24 +9,26 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object GlobalMoveTicker {
     private val logger = KotlinLogging.logger {}
 
-    private val currentMovesToWatch: MutableMap<String, PSMoveStub> = ConcurrentHashMap()
+    private val lock = ReentrantLock()
+    private val currentMovesToWatch: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
+
     private var colorJob: kotlinx.coroutines.Job? = null // 50ms
     private var pollJob: kotlinx.coroutines.Job? = null // 5ms
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moveStubs ->
-                val moveMacs = moveStubs.map { it.macAddress }.toSet()
-                moveStubs.forEach { moveStub ->
-                    currentMovesToWatch.put(moveStub.macAddress, moveStub)
+                lock.withLock {
+                    currentMovesToWatch.clear()
+                    currentMovesToWatch.putAll(moveStubs.associateBy { it.macAddress })
                 }
-                currentMovesToWatch.keys.map { macAddress ->
-                    if (!moveMacs.contains(macAddress)) currentMovesToWatch.remove(macAddress)
-                }
+
             }
         }
 
@@ -36,8 +39,10 @@ object GlobalMoveTicker {
         pollJob = CoroutineScope(SingleThreadDispatcher.BUTTONS).launch {
             while (true) {
                 val startOfPoll = System.nanoTime()
-                for (move in currentMovesToWatch) {
-                    move.value.pollMoveControllerState()
+                lock.withLock {
+                    for (move in currentMovesToWatch) {
+                        move.value.pollMoveControllerState()
+                    }
                 }
                 val duration = (System.nanoTime() - startOfPoll) / 1000000
                 if (duration > 5) {
@@ -51,8 +56,10 @@ object GlobalMoveTicker {
         colorJob = CoroutineScope(SingleThreadDispatcher.COLORS).launch {
             while (true) {
                 val startOfPoll = System.nanoTime()
-                for (move in currentMovesToWatch) {
-                    move.value.changeColor()
+                lock.withLock {
+                    for (move in currentMovesToWatch) {
+                        move.value.changeColor()
+                    }
                 }
                 val duration = (System.nanoTime() - startOfPoll) / 1000000
                 if (duration > 50) {

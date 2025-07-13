@@ -25,12 +25,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class FreeForAll : Game {
     private val logger = KotlinLogging.logger {}
 
     override val name = "FreeForAll"
-    override val currentPlayingController: MutableSet<PSMoveStub> = mutableSetOf()
+    private val currentPlayingControllerLock = ReentrantLock()
+    override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
     override val minimumPlayers: Int = 2
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_FFA
 
@@ -53,7 +57,7 @@ class FreeForAll : Game {
         val defaultPlayerColor = MoveColor.WHITE
     }
 
-    private fun getMoveColor(stub: PSMoveStub): MoveColor = playerColors[stub.macAddress] ?: defaultPlayerColor
+    private fun getMoveColor(address: MacAddress): MoveColor = playerColors[address] ?: defaultPlayerColor
 
     private fun initDisconnectionObserver() {
         disconnectedControllerJob = CoroutineScope(Dispatchers.IO).launch {
@@ -67,8 +71,8 @@ class FreeForAll : Game {
         }
     }
 
-    private fun initObservers(currentPlayingController: MutableSet<PSMoveStub>) {
-        currentPlayingController.forEach { stub ->
+    private fun initObservers(stubs: MutableSet<PSMoveStub>) {
+        stubs.forEach { stub ->
             gameJobs.add(observeAcceleration(stub))
         }
     }
@@ -110,7 +114,7 @@ class FreeForAll : Game {
                         stub.setColorAnimation(
                             ColorAnimation(
                                 colorToSet = listOf(
-                                    MoveColor.ORANGE, getMoveColor(stub)
+                                    MoveColor.ORANGE, getMoveColor(stub.macAddress)
                                 ), durationInMS = 1000, loop = false
                             )
                         )
@@ -122,7 +126,7 @@ class FreeForAll : Game {
     }
 
     override suspend fun checkForGameFinished() {
-        val allPlayers = currentPlayingController.map { stub -> stub.macAddress }.toSet()
+        val allPlayers = currentPlayingController.keys
 
         if (allPlayers.size - playersLost.size == 1) {
             gameRunning = false
@@ -131,7 +135,7 @@ class FreeForAll : Game {
             return
         }
 
-        // should not happen, only if in 5ms every remaining players was defeated
+        // should not happen, only if inside 5 ms every remaining player was defeated
         if (allPlayers == playersLost) {
             gameRunning = false
             val winner = playersLost.last()
@@ -153,7 +157,7 @@ class FreeForAll : Game {
         GameStateManager.setGameFinishing()
         SoundManager.stopSoundPlay()
         cleanUpGame()
-        val winnerStub = currentPlayingController.find { it.macAddress == winner }
+        val winnerStub = currentPlayingController[winner]
         winnerStub?.setColorAnimation(animation = RainbowAnimation)
 
         val colorOfWinner = playerColors[winner]
@@ -175,26 +179,29 @@ class FreeForAll : Game {
     override suspend fun start(players: Set<PSMoveStub>) {
         initDisconnectionObserver()
         delay(100) // give the Lobby some time to kill all jobs
-        currentPlayingController.clear()
-        currentPlayingController += players
-        initObservers(currentPlayingController)
-
         // set game sensitivity
         currentSensitivity = Settings.getSensibility()
         logger.info { "Set current Sensitivity to ${currentSensitivity.getSensibilityValues()}" }
 
-        // set player colors
-        currentPlayingController.forEachIndexed { index, player ->
-            val color = listOfPlayerColors[index % listOfPlayerColors.size]
-            player.setCurrentColor(color)
-            playerColors[player.macAddress] = color
+        currentPlayingControllerLock.withLock {
+            currentPlayingController.clear()
+            currentPlayingController.putAll(players.associateBy { it.macAddress })
+            initObservers(currentPlayingController.values.toMutableSet())
+
+            // set player colors
+            currentPlayingController.onEachIndexed { index, player ->
+                val color = listOfPlayerColors[index % listOfPlayerColors.size]
+                player.value.setCurrentColor(color)
+                playerColors[player.key] = color
+            }
+
+            PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
+
+            currentPlayingController.forEach { player ->
+                player.value.setColorAnimation(RainbowAnimation)
+            }
         }
 
-        PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
-
-        currentPlayingController.forEach { player ->
-            player.setColorAnimation(RainbowAnimation)
-        }
 
         SoundManager.clearSoundQueue()
         logger.info { "play explanation..." }
@@ -204,70 +211,80 @@ class FreeForAll : Game {
         )
         logger.info { "explanation played" }
 
-        PSMoveApi.setColor(moves = currentPlayingController.map { it.macAddress }.toSet(), color = MoveColor.RED)
-        currentPlayingController.forEach { player ->
-            player.setColorAnimation(
-                ColorAnimation(
-                    colorToSet = listOf(
-                        MoveColor.RED, MoveColor.RED_INACTIVE
-                    ), durationInMS = 1000, loop = false
+        currentPlayingControllerLock.withLock {
+
+            currentPlayingController.forEach { player -> player.value.setCurrentColor(MoveColor.RED)}
+            currentPlayingController.forEach { player ->
+                player.value.setColorAnimation(
+                    ColorAnimation(
+                        colorToSet = listOf(
+                            MoveColor.RED, MoveColor.RED_INACTIVE
+                        ), durationInMS = 1000, loop = false
+                    )
                 )
+            }
+            PSMoveApi.rumble(
+                moves = currentPlayingController.keys,
+                intensity = RUMBLE_SOFTEST,
+                durationInMs = 200
             )
         }
-        PSMoveApi.rumble(
-            moves = currentPlayingController.map { it.macAddress }.toSet(),
-            intensity = RUMBLE_SOFTEST,
-            durationInMs = 200
-        )
+
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
             id = SoundId.THREE,
             abortOnNewSound = false,
             minDelay = 1000L
         )
-
-        currentPlayingController.forEach { player ->
-            player.setColorAnimation(
-                ColorAnimation(
-                    colorToSet = listOf(
-                        MoveColor.YELLOW, MoveColor.YELLOW_INACTIVE
-                    ), durationInMS = 1000, loop = false
+        currentPlayingControllerLock.withLock {
+            currentPlayingController.forEach { player ->
+                player.value.setColorAnimation(
+                    ColorAnimation(
+                        colorToSet = listOf(
+                            MoveColor.YELLOW, MoveColor.YELLOW_INACTIVE
+                        ), durationInMS = 1000, loop = false
+                    )
                 )
+            }
+            PSMoveApi.rumble(
+                moves = currentPlayingController.keys,
+                intensity = RUMBLE_SOFT,
+                durationInMs = 200
             )
         }
-        PSMoveApi.rumble(
-            moves = currentPlayingController.map { it.macAddress }.toSet(),
-            intensity = RUMBLE_SOFT,
-            durationInMs = 200
-        )
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
             id = SoundId.TWO,
             abortOnNewSound = false,
             minDelay = 1000L
         )
 
-        currentPlayingController.forEach { player ->
-            player.setColorAnimation(
-                ColorAnimation(
-                    colorToSet = listOf(
-                        MoveColor.GREEN, MoveColor.GREEN_INACTIVE
-                    ), durationInMS = 1000, loop = false
+        currentPlayingControllerLock.withLock {
+            currentPlayingController.forEach { player ->
+                player.value.setColorAnimation(
+                    ColorAnimation(
+                        colorToSet = listOf(
+                            MoveColor.GREEN, MoveColor.GREEN_INACTIVE
+                        ), durationInMS = 1000, loop = false
+                    )
                 )
+            }
+            PSMoveApi.rumble(
+                moves = currentPlayingController.keys,
+                intensity = RUMBLE_MEDIUM,
+                durationInMs = 200
             )
         }
-        PSMoveApi.rumble(
-            moves = currentPlayingController.map { it.macAddress }.toSet(),
-            intensity = RUMBLE_MEDIUM,
-            durationInMs = 200
-        )
+
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
             id = SoundId.ONE,
             abortOnNewSound = false,
             minDelay = 1000L
         )
-
-        currentPlayingController.forEach { player ->
-            player.setCurrentColor(colorToSet = getMoveColor(player))
+        currentPlayingControllerLock.withLock {
+            currentPlayingController.forEach { player ->
+                player.value.setCurrentColor(colorToSet = getMoveColor(player.key))
+            }
         }
+
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(id = SoundId.GO, abortOnNewSound = false)
 
         this.gameRunning = true
