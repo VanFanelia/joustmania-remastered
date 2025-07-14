@@ -22,15 +22,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 class SortingToddler : Game {
     private val logger = KotlinLogging.logger {}
 
     override val name: String = "SortingToddler"
 
-    private val currentPlayingControllerLock = ReentrantLock()
     override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
     override val minimumPlayers: Int = 3
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_TODDLERS
@@ -90,12 +87,10 @@ class SortingToddler : Game {
         connectedControllerChangeJob = CoroutineScope(Dispatchers.IO).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moves ->
                 logger.info { "Connected PSMoves change during game. Detected ${moves.size} connected PSMoves. Update game" }
-                currentPlayingControllerLock.withLock {
-                    currentPlayingController.clear()
-                    moves.forEach { move ->
-                        logger.info { "Moves changed with address: ${move.macAddress} connected. add player to game" }
-                        currentPlayingController[move.macAddress] = move
-                    }
+                currentPlayingController.clear()
+                moves.forEach { move ->
+                    logger.info { "Moves changed with address: ${move.macAddress} connected. add player to game" }
+                    currentPlayingController[move.macAddress] = move
                 }
             }
         }
@@ -106,9 +101,7 @@ class SortingToddler : Game {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
                 moves.forEach { move ->
                     logger.info { "Move with address: ${move.macAddress} was disconnected. remove player from game" }
-                    currentPlayingControllerLock.withLock {
-                        currentPlayingController.remove(move.macAddress)
-                    }
+                    currentPlayingController.remove(move.macAddress)
                 }
             }
         }
@@ -122,10 +115,8 @@ class SortingToddler : Game {
         roundLength = config.sortToddlerGameOptions.roundDuration
 
         delay(100) // give the Lobby some time to kill all jobs
-        currentPlayingControllerLock.withLock {
-            currentPlayingController.clear()
-            currentPlayingController.putAll(players.associateBy { it.macAddress })
-        }
+        currentPlayingController.clear()
+        currentPlayingController.putAll(players.associateBy { it.macAddress })
         numberOfPlayersOnGameStart = players.size
 
         SoundManager.clearSoundQueue()
@@ -138,44 +129,41 @@ class SortingToddler : Game {
 
         gameLoopJob = CoroutineScope(Dispatchers.IO).launch {
             for (round in 1..maxRounds) {
-                currentPlayingControllerLock.withLock {
-                    logger.info { "Round $round/$maxRounds in toddler game with ${currentPlayingController.size}" }
-                    val colorsNeeded = getColorsForPlayer(currentPlayingController.size)
-                    val colors = gameColors.shuffled().take(colorsNeeded)
-                    val shuffledPlayers = currentPlayingController.keys.shuffled()
-                    val colorsOfRound = shuffledPlayers
-                        .mapIndexed { index, player ->
-                            player to colors[index % colors.size]
-                        }.toMap()
-                    // set new colors
-                    currentColorConfiguration = colorsOfRound
-                    colorsOfRound.forEach { (player, color) ->
-                        logger.info { "Give color $color to player $player" }
-                        PSMoveApi.setColor(player, color)
-                    }
+                logger.info { "Round $round/$maxRounds in toddler game with ${currentPlayingController.size}" }
+                val colorsNeeded = getColorsForPlayer(currentPlayingController.size)
+                val colors = gameColors.shuffled().take(colorsNeeded)
+                val shuffledPlayers = currentPlayingController.keys.shuffled()
+                val colorsOfRound = shuffledPlayers
+                    .mapIndexed { index, player ->
+                        player to colors[index % colors.size]
+                    }.toMap()
+                // set new colors
+                currentColorConfiguration = colorsOfRound
+                colorsOfRound.forEach { (player, color) ->
+                    logger.info { "Give color $color to player $player" }
+                    PSMoveApi.setColor(player, color)
                 }
 
                 delay((roundLength * 1000L) - 3000L)
                 // warn for change
-                currentPlayingControllerLock.withLock {
-                    currentPlayingController.map { stub ->
-                        val stubColor = currentColorConfiguration[stub.key] ?: MoveColor.WHITE
-                        stub.value.setColorAnimation(
-                            ColorAnimation(
-                                colorToSet = listOf(
-                                    stubColor,
-                                    stubColor.darken(),
-                                    stubColor,
-                                    stubColor.darken(),
-                                    MoveColor.BLACK
-                                ),
-                                durationInMS = 3000,
-                                loop = false,
-                            )
+                currentPlayingController.map { stub ->
+                    val stubColor = currentColorConfiguration[stub.key] ?: MoveColor.WHITE
+                    stub.value.setColorAnimation(
+                        ColorAnimation(
+                            colorToSet = listOf(
+                                stubColor,
+                                stubColor.darken(),
+                                stubColor,
+                                stubColor.darken(),
+                                MoveColor.BLACK
+                            ),
+                            durationInMS = 3000,
+                            loop = false,
                         )
-                        PSMoveApi.rumble(macAddress = stub.key, intensity = RUMBLE_SOFT, durationInMs = 3000)
-                    }
+                    )
+                    PSMoveApi.rumble(macAddress = stub.key, intensity = RUMBLE_SOFT, durationInMs = 3000)
                 }
+
                 delay(4000L)
                 if (round == maxRounds) {
                     gameHasEnded = true
@@ -200,10 +188,8 @@ class SortingToddler : Game {
 
     override fun cleanUpGame() {
         gameLoopJob?.cancel()
-        currentPlayingControllerLock.withLock {
-            currentPlayingController.forEach { it ->
-                it.value.clearAnimation()
-            }
+        currentPlayingController.forEach { it ->
+            it.value.clearAnimation()
         }
 
         disconnectedControllerJob?.cancel("FreeForAll game go cleanup call")

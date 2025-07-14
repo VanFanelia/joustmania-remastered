@@ -19,6 +19,7 @@ import org.freedesktop.dbus.exceptions.DBusException
 import org.freedesktop.dbus.interfaces.DBusInterface
 import org.freedesktop.dbus.interfaces.ObjectManager
 import org.freedesktop.dbus.types.Variant
+import java.util.concurrent.ConcurrentHashMap
 
 
 // Magic adapter interface
@@ -39,7 +40,7 @@ interface DBusProperties : DBusInterface {
  */
 object BluetoothControllerManager {
     private val logger = KotlinLogging.logger {}
-    private val blueToothController = mutableMapOf<AdapterId, BlueToothController>()
+    private val blueToothController = ConcurrentHashMap<AdapterId, BlueToothController>()
 
     private val _blueToothControllerFlow: MutableStateFlow<Set<BlueToothController>> = MutableStateFlow(emptySet())
     val blueToothControllerFlow: Flow<Set<BlueToothController>> = _blueToothControllerFlow

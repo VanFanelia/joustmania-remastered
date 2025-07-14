@@ -68,7 +68,7 @@ object PSMoveBluetoothConnectionWatcher {
                     }
                     lastCountOfConnectedMoves = currentCount
 
-                    val moves = mutableMapOf<MacAddress, PSMove>()
+                    val moves = ConcurrentHashMap<MacAddress, PSMove>()
                     for (i in 0..<currentCount) {
                         val move = PSMove(i)
                         if (move.connection_type == ConnectionType.Conn_USB.swigValue()) {

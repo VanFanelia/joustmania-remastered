@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.time.Duration.Companion.seconds
@@ -186,7 +187,7 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
     }
 
-    fun pollMoveControllerState(){
+    fun pollMoveControllerState() {
         try {
             val pollResult = PSMoveApi.pollData(macAddress) ?: return
             val now = Instant.now().toEpochMilli()
@@ -248,23 +249,25 @@ class PSMoveStub(val macAddress: MacAddress) {
 
     val getForceStartClickFlow: Flow<Unit> = _buttonClickFlow.filter {
         it.contains(PSMoveButton.MOVE_MENU) && it.contains(PSMoveButton.PLAYSTATION)
-    }.map {  }
+    }.map { }
 
     private suspend fun checkBatteryLevel() {
         val batteryLevel = PSMoveApi.getBatteryLevel(macAddress = macAddress)
         _batteryLevelFlow.tryEmit(batteryLevel)
     }
 
-    private val lasClicksTimestamps: MutableMap<PSMoveButton, Long> = mutableMapOf(
-        PSMoveButton.SQUARE to 0L,
-        PSMoveButton.CROSS to 0L,
-        PSMoveButton.TRIANGLE to 0L,
-        PSMoveButton.CIRCLE to 0L,
-        PSMoveButton.MOVE_MENU to 0L,
-        PSMoveButton.PLAYSTATION to 0L,
-        PSMoveButton.START to 0L,
-        PSMoveButton.SELECT to 0L,
-        PSMoveButton.TRIANGLE to 0L,
+    private val lasClicksTimestamps: MutableMap<PSMoveButton, Long> = ConcurrentHashMap(
+        mapOf(
+            PSMoveButton.SQUARE to 0L,
+            PSMoveButton.CROSS to 0L,
+            PSMoveButton.TRIANGLE to 0L,
+            PSMoveButton.CIRCLE to 0L,
+            PSMoveButton.MOVE_MENU to 0L,
+            PSMoveButton.PLAYSTATION to 0L,
+            PSMoveButton.START to 0L,
+            PSMoveButton.SELECT to 0L,
+            PSMoveButton.TRIANGLE to 0L,
+        )
     )
 
     val getSquareCrossTriangleCircleClickFlow: Flow<Unit> = _buttonClickFlow.filter { buttonSet ->
@@ -307,16 +310,5 @@ class PSMoveStub(val macAddress: MacAddress) {
 
     fun setNotActivatedInLobbyColor() {
         PSMoveApi.setColor(macAddress = this.macAddress, colorToSet = MoveColor.ORANGE_INACTIVE)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        return this.macAddress == (other as PSMoveStub).macAddress
-    }
-
-    override fun hashCode(): Int {
-        return javaClass.hashCode()
     }
 }

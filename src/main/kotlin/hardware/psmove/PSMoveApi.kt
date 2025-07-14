@@ -3,6 +3,7 @@ package de.vanfanel.joustmania.hardware.psmove
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.PSMoveBatteryLevel
+import de.vanfanel.joustmania.util.SingleThreadDispatcher
 import de.vanfanel.joustmania.util.withLock
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +40,7 @@ object PSMoveApi {
     fun refreshColor() {
         PSMoveBluetoothConnectionWatcher.getAllMoves().map { move ->
             try {
-                CoroutineScope(Dispatchers.IO).launch {
+                CoroutineScope(SingleThreadDispatcher.COLORS).launch {
                     withLock(globalHardwareLock) {
                         move.refreshColor()
                     }
@@ -57,7 +58,7 @@ object PSMoveApi {
 
     fun setColor(macAddress: MacAddress, colorToSet: MoveColor) {
         try {
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(SingleThreadDispatcher.COLORS).launch {
                 withLock(globalHardwareLock) {
                     PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.currentColor = colorToSet
                 }
@@ -65,15 +66,6 @@ object PSMoveApi {
         } catch (e: Exception) {
             logger.error(e) { "Failed to set color. Reason: ${e.message}" }
         }
-    }
-
-    private val rumbleLocks: MutableMap<MacAddress, Boolean> = mutableMapOf()
-
-    private fun getRumbleLock(macAddress: MacAddress): Boolean {
-        if (!rumbleLocks.containsKey(macAddress)) {
-            rumbleLocks[macAddress] = false
-        }
-        return rumbleLocks[macAddress] ?: false
     }
 
     fun rumble(moves: Set<MacAddress>, intensity: Int, durationInMs: Long = 1000) {
@@ -84,10 +76,6 @@ object PSMoveApi {
 
     fun rumble(macAddress: MacAddress, intensity: Int, durationInMs: Long = 1000) {
         try {
-            if (getRumbleLock(macAddress)) {
-                return
-            }
-            rumbleLocks[macAddress] = true
             CoroutineScope(Dispatchers.IO).launch {
                 withLock(globalHardwareLock) {
                     PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.set_rumble(intensity)
@@ -96,10 +84,8 @@ object PSMoveApi {
                 withLock(globalHardwareLock) {
                     PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.set_rumble(0)
                 }
-                rumbleLocks[macAddress] = false
             }
         } catch (e: Exception) {
-            rumbleLocks[macAddress] = false
             logger.error(e) { "Failed to set rumble. Reason: ${e.message}" }
         }
     }
@@ -108,7 +94,6 @@ object PSMoveApi {
         withLock(globalHardwareLock) {
             PSMoveBluetoothConnectionWatcher.getMove(macAddress)?.set_rumble(0)
         }
-        rumbleLocks[macAddress] = false
     }
 
     suspend fun getBatteryLevel(macAddress: MacAddress): PSMoveBatteryLevel? {
@@ -116,7 +101,6 @@ object PSMoveApi {
         withLock(globalHardwareLock) {
             battery = PSMoveBluetoothConnectionWatcher.getMove(macAddress)?._battery
         }
-        rumbleLocks[macAddress] = false
         return PSMoveBatteryLevel.fromInt(battery)
     }
 

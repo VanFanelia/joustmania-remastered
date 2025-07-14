@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.concurrent.ConcurrentHashMap
 
 @Serializable
 data class Acceleration(
@@ -34,7 +35,7 @@ object AccelerationDebugger {
     private val logger = KotlinLogging.logger {}
     private const val HISTORY_LENGTH = 333
 
-    private val accelerationHistory: MutableMap<MacAddress, FixedSizeQueue<Pair<Long, Double>>> = mutableMapOf()
+    private val accelerationHistory: MutableMap<MacAddress, FixedSizeQueue<Pair<Long, Double>>> = ConcurrentHashMap()
 
     private fun getHistoryByMac(mac: MacAddress): FixedSizeQueue<Pair<Long, Double>> {
         return accelerationHistory[mac] ?: let {

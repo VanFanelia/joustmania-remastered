@@ -81,9 +81,11 @@ object LobbyLoop {
     }
 
     private fun initLobbyCoroutines() {
+        /*
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             observeButtonPressForDebugging()
         })
+         */
 
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             removeControllerFromLobbyOnDisconnect()
@@ -273,7 +275,7 @@ object LobbyLoop {
             abortOnNewSound = false
         )
         val players = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
-            ?.filter { isActive[it.macAddress] == true }?.toSet() ?: emptySet()
+            ?.filter { activePlayers.contains(it.macAddress)}?.toSet() ?: emptySet()
         GameStateManager.startGame(
             selectedGame, players
         )
@@ -337,7 +339,7 @@ object LobbyLoop {
         }
         move.setNotActivatedInLobbyColor()
         updateActiveMovesFlow()
-        soundManager.asyncAddSoundToQueue(NEW_CONTROLLER)
+        soundManager.asyncAddSoundToQueue(NEW_CONTROLLER, abortOnNewSound = true)
     }
 
 }
