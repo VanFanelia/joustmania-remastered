@@ -7,15 +7,15 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.hardware.psmove.RUMBLE_HARDEST
 import de.vanfanel.joustmania.hardware.psmove.RUMBLE_MEDIUM
-import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFT
 import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFTEST
+import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundId.Companion.colorToSound
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
-import de.vanfanel.joustmania.util.SingleThreadDispatcher
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -81,7 +81,7 @@ class FreeForAll : Game {
     }
 
     private fun observeAcceleration(stubId: MacAddress): Job {
-        val currentJob = CoroutineScope(SingleThreadDispatcher.GAME_LOOP).launch {
+        val currentJob = CoroutineScope(CustomThreadDispatcher.GAME_LOOP).launch {
             val stub = currentPlayingController[stubId]
             if (stub == null) {
                 return@launch
@@ -93,7 +93,6 @@ class FreeForAll : Game {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and lost the game" }
                         val randomSoundId = listOf(SoundId.PLAYER_LOSE_1, SoundId.PLAYER_LOSE_2).random()
                         SoundManager.asyncAddSoundToQueue(id = randomSoundId, abortOnNewSound = false)
-                        PSMoveApi.stopRumble(macAddress = stub.macAddress)
                         stub.setColorAnimation(
                             ColorAnimation(
                                 colorToSet = listOf(
@@ -105,15 +104,14 @@ class FreeForAll : Game {
                                 ), durationInMS = 3000, loop = false
                             )
                         )
-                        PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_HARDEST, 3000)
+                        addRumbleEvent(move = stub.macAddress, intensity = RUMBLE_HARDEST, durationInMs = 3000)
                         playersLost.add(stub.macAddress)
                         _playerLostFlow.emit(playersLost.toList())
                         delay(3100) // add some delay to get sure animation was stopped
                         stub.setCurrentColor(colorToSet = MoveColor.BLACK)
                     } else if (acceleration.change > currentSensitivity.getSensibilityValues().warningThreshold) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and got a warning" }
-                        PSMoveApi.stopRumble(macAddress = stub.macAddress)
-                        PSMoveApi.rumble(macAddress = stub.macAddress, intensity = RUMBLE_MEDIUM, 1000)
+                        addRumbleEvent(move = stub.macAddress, intensity = RUMBLE_MEDIUM, durationInMs = 1000)
                         stub.setColorAnimation(
                             ColorAnimation(
                                 colorToSet = listOf(
@@ -228,7 +226,7 @@ class FreeForAll : Game {
         PSMoveApi.rumble(
             moves = currentPlayingController.keys,
             intensity = RUMBLE_SOFTEST,
-            durationInMs = 200
+            durationInMs = 500
         )
 
 
@@ -248,8 +246,8 @@ class FreeForAll : Game {
         }
         PSMoveApi.rumble(
             moves = currentPlayingController.keys,
-            intensity = RUMBLE_SOFT,
-            durationInMs = 200
+            intensity = RUMBLE_MEDIUM,
+            durationInMs = 500
         )
 
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
@@ -270,8 +268,8 @@ class FreeForAll : Game {
         }
         PSMoveApi.rumble(
             moves = currentPlayingController.keys,
-            intensity = RUMBLE_MEDIUM,
-            durationInMs = 200
+            intensity = RUMBLE_HARDEST,
+            durationInMs = 500
         )
 
 

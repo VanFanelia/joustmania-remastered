@@ -24,7 +24,7 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.connectedPSMoveController
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
-import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
+import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.lobby.LobbyLoop.activeMoves
 import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
@@ -102,7 +102,7 @@ fun Application.configureRouting() {
                 logger.info { "Rumble all move controller" }
                 val intensity = call.parameters["intensity"]?.toIntOrNull() ?: 0
                 PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()?.map { move ->
-                    PSMoveApi.rumble(macAddress = move.macAddress, intensity = intensity)
+                    addRumbleEvent(move = move.macAddress, intensity = intensity)
                 }
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -180,7 +180,7 @@ fun Application.configureRouting() {
                     return@put
                 }
 
-                PSMoveApi.rumble(macAddress = move.macAddress, intensity = 255)
+                addRumbleEvent(move = move.macAddress, intensity = 255)
 
                 logger.info { "move: $macAddress was forced to rumble" }
                 call.respond(HttpStatusCode.NoContent)

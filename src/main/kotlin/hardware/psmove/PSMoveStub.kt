@@ -159,7 +159,7 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
     }
 
-    fun changeColor() {
+    fun changeColorIfAnimationIsActive() {
         try {
             colorAnimation?.let { animation ->
                 if (!animation.loop && animationStarted > 0 && Instant.now()
@@ -187,9 +187,9 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
     }
 
-    fun pollMoveControllerState() {
+    suspend fun refreshMoveStatusAndEmitChanges() {
         try {
-            val pollResult = PSMoveApi.pollData(macAddress) ?: return
+            val pollResult = PSMoveApi.refreshMoveStatus(macAddress) ?: return
             val now = Instant.now().toEpochMilli()
             if (firstPoll == null) {
                 firstPoll = now
@@ -251,7 +251,7 @@ class PSMoveStub(val macAddress: MacAddress) {
         it.contains(PSMoveButton.MOVE_MENU) && it.contains(PSMoveButton.PLAYSTATION)
     }.map { }
 
-    private suspend fun checkBatteryLevel() {
+    private fun checkBatteryLevel() {
         val batteryLevel = PSMoveApi.getBatteryLevel(macAddress = macAddress)
         _batteryLevelFlow.tryEmit(batteryLevel)
     }

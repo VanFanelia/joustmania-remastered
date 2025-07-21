@@ -6,6 +6,7 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFT
+import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MacAddress
@@ -161,7 +162,7 @@ class SortingToddler : Game {
                             loop = false,
                         )
                     )
-                    PSMoveApi.rumble(macAddress = stub.key, intensity = RUMBLE_SOFT, durationInMs = 3000)
+                    addRumbleEvent(move = stub.key, intensity = RUMBLE_SOFT, durationInMs = 3000)
                 }
 
                 delay(4000L)

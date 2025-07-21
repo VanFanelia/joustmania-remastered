@@ -6,10 +6,9 @@ import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher
 import de.vanfanel.joustmania.hardware.psmove.GlobalMoveTicker
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.psmove.PSMoveLightRefresher
 import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
 import de.vanfanel.joustmania.os.dependencies.NativeLoader
-import de.vanfanel.joustmania.util.SingleThreadDispatcher
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -49,9 +48,6 @@ fun main() {
     val gameStateManager = GameStateManager
 
     @Suppress("unused")
-    val lightRefresher = PSMoveLightRefresher
-
-    @Suppress("unused")
     val globalMoveTicker = GlobalMoveTicker
 
     @Suppress("unused")
@@ -79,7 +75,7 @@ fun main() {
     val server = embeddedServer(Netty, port = 80, host = "0.0.0.0", module = Application::module).start(wait = true)
 
     server.monitor.subscribe(ApplicationStopped) {
-        SingleThreadDispatcher.shutdown()
+        CustomThreadDispatcher.shutdown()
         GlobalMoveTicker.stopPSMoveJobs()
     }
 }

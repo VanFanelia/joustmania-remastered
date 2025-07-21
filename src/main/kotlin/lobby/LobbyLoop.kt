@@ -81,11 +81,9 @@ object LobbyLoop {
     }
 
     private fun initLobbyCoroutines() {
-        /*
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             observeButtonPressForDebugging()
         })
-         */
 
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             removeControllerFromLobbyOnDisconnect()

@@ -1,10 +1,13 @@
 package de.vanfanel.joustmania.hardware.psmove
 
 import de.vanfanel.joustmania.types.MacAddress
-import de.vanfanel.joustmania.util.SingleThreadDispatcher
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
+import de.vanfanel.joustmania.util.onlyAddedFromPrevious
+import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -15,55 +18,61 @@ object GlobalMoveTicker {
 
     private val currentMovesToWatch: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
 
-    private var colorJob: kotlinx.coroutines.Job? = null // 50ms
-    private var pollJob: kotlinx.coroutines.Job? = null // 5ms
+    private var calculateColorsJob: Job? = null // 50ms
+    private var pollJobs: MutableMap<MacAddress, Job> = ConcurrentHashMap() // 5ms
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moveStubs ->
-                    currentMovesToWatch.clear()
-                    currentMovesToWatch.putAll(moveStubs.associateBy { it.macAddress })
-
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
+                moves.forEach { move ->
+                    pollJobs[move.macAddress]?.cancel("move disconnected - cleanup old jobs")
+                    pollJobs.remove(move.macAddress)
+                    currentMovesToWatch.remove(move.macAddress)
+                }
             }
         }
 
-        startPSMoveJobs()
+        CoroutineScope(Dispatchers.IO).launch {
+            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyAddedFromPrevious().collect { moves ->
+                for (move in moves) {
+                    currentMovesToWatch.putIfAbsent(move.macAddress, move)
+                    pollJobs[move.macAddress] = CoroutineScope(CustomThreadDispatcher.POLLING).launch {
+                        while (true) {
+                            val startOfPoll = System.nanoTime()
+                            move.refreshMoveStatusAndEmitChanges()
+                            val duration = (System.nanoTime() - startOfPoll) / 1000000
+                            if (duration > 10) {
+                                logger.warn { "PSMove status polling took $duration ms. This is more then the 10ms threshold." }
+                            }
+                            delay(10)
+                        }
+                    }
+                }
+            }
+        }
+        startColorCalculationJob()
     }
 
-    fun startPSMoveJobs() {
-        pollJob = CoroutineScope(SingleThreadDispatcher.BUTTONS).launch {
+    fun startColorCalculationJob() {
+        calculateColorsJob = CoroutineScope(CustomThreadDispatcher.COLOR_CALCULATION).launch {
             while (true) {
+                logger.trace { "Starting color calculation job" }
                 val startOfPoll = System.nanoTime()
-                    for (move in currentMovesToWatch) {
-                        move.value.pollMoveControllerState()
-                    }
-                val duration = (System.nanoTime() - startOfPoll) / 1000000
-                if (duration > 5) {
-                    logger.debug { "PSMove status polling took $duration ms. This is more then the 5ms threshold." }
-                    continue
+                for (move in currentMovesToWatch) {
+                    move.value.changeColorIfAnimationIsActive()
                 }
-                delay(5 - duration)
-            }
-        }
-
-        colorJob = CoroutineScope(SingleThreadDispatcher.COLORS).launch {
-            while (true) {
-                val startOfPoll = System.nanoTime()
-                    for (move in currentMovesToWatch) {
-                        move.value.changeColor()
-                    }
                 val duration = (System.nanoTime() - startOfPoll) / 1000000
                 if (duration > 50) {
                     logger.debug { "PSMove color updates took $duration ms. This is more then the 50ms threshold." }
                     continue
                 }
-                delay(50 - duration)
+                delay(50)
             }
         }
     }
 
     fun stopPSMoveJobs() {
-        pollJob?.cancel("stoped by method call")
-        colorJob?.cancel("stoped by method call")
+        pollJobs.values.forEach { it.cancel("stoped by method call") }
+        calculateColorsJob?.cancel("stoped by method call")
     }
 }

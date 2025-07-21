@@ -16,8 +16,27 @@ private val logger = KotlinLogging.logger {}
 
 data class PollResult(val buttons: Set<PSMoveButton>, val movingData: RawMovingData)
 
-fun PSMove.getMacAddress(): String {
-    return this._serial.uppercase()
+sealed class RumbleCommands(val time: Long = System.currentTimeMillis()) {
+    class RUMBLE(
+        val intensity: Int,
+        time: Long = System.currentTimeMillis()
+    ) : RumbleCommands(time = time)
+
+    class STOP(
+        time: Long = System.currentTimeMillis()
+    ) : RumbleCommands(time = time)
+}
+
+/* why a map here? too many accesses to this._serial create crashes */
+val macs: MutableMap<Any, MacAddress> = ConcurrentHashMap()
+fun PSMove.getMacAddress(): MacAddress {
+    if (macs.containsKey(this)) {
+        return macs[this] ?: this._serial.uppercase()
+    } else {
+        val serial = this._serial.uppercase()
+        macs[this] = serial
+        return serial
+    }
 }
 
 suspend fun PSMove.indicatePairingComplete() {
@@ -28,7 +47,7 @@ suspend fun PSMove.indicatePairingComplete() {
         this.set_leds(0, 0, 0)
         this.update_leds()
     } catch (e: Exception) {
-        logger.warn(e) { "Failed to indicate pairing of new controller ${this.getMacAddress()}. Ignore indicating and try to continue"}
+        logger.warn(e) { "Failed to indicate pairing of new controller ${this.getMacAddress()}. Ignore indicating and try to continue" }
     }
 
 }
@@ -37,32 +56,72 @@ fun PSMove.trust() {
     BluetoothControllerManager.trustBluetoothDevice(this.getMacAddress())
 }
 
-fun PSMove.refreshColor() {
+private fun PSMove.refreshColor() {
     try {
         val color = this.currentColor
         this.set_leds(color.red, color.green, color.blue)
-        this.update_leds()
+        PSMOVE_COLOR_UPDATE_MAP[this.getMacAddress()] = System.currentTimeMillis()
+        PSMOVE_LAST_COLOR_SET_COLOR_MAP[this.getMacAddress()] = this.currentColor
     } catch (e: Exception) {
         logger.warn(e) { " Failed to refresh color for ${this.getMacAddress()}. Ignore color and try to continue" }
     }
 }
 
 val PSMOVE_COLOR_MAP: MutableMap<MacAddress, MoveColor> = ConcurrentHashMap()
-
 var PSMove.currentColor: MoveColor
     get() {
         return PSMOVE_COLOR_MAP[this.getMacAddress()] ?: MoveColor.BLACK
     }
     set(value) {
-        try {
-            PSMOVE_COLOR_MAP[this.getMacAddress()] = value
-            this.set_leds(value.red, value.green, value.blue)
-            this.update_leds()
-        } catch (e: Exception) {
-            logger.warn(e){ "Failed to set color to ${this.getMacAddress()}. Ignore color and try to continue" }
-        }
-
+        PSMOVE_COLOR_MAP[this.getMacAddress()] = value
     }
+
+const val COLOR_UPDATE_INTERVALL_MS = 1000L
+val PSMOVE_COLOR_UPDATE_MAP: MutableMap<MacAddress, Long> = ConcurrentHashMap()
+val PSMOVE_LAST_COLOR_SET_COLOR_MAP: MutableMap<MacAddress, MoveColor> = ConcurrentHashMap()
+
+val PSMove.colorUpdatedNeeded: Boolean
+    get() {
+        val lastUpdate = PSMOVE_COLOR_UPDATE_MAP[this.getMacAddress()] ?: return true
+        val needUpdateByTime = lastUpdate + COLOR_UPDATE_INTERVALL_MS < System.currentTimeMillis()
+        val newColorNeeded = PSMOVE_COLOR_MAP[this.getMacAddress()] != PSMOVE_LAST_COLOR_SET_COLOR_MAP[this.getMacAddress()]
+
+        return needUpdateByTime || newColorNeeded
+    }
+
+
+val PSMOVE_RUMBLE_UPDATE_MAP: MutableMap<MacAddress, List<RumbleCommands>> = ConcurrentHashMap()
+private fun getRumbleCommands(move: MacAddress): List<RumbleCommands> {
+    if (!PSMOVE_RUMBLE_UPDATE_MAP.containsKey(move)) {
+        PSMOVE_RUMBLE_UPDATE_MAP[move] = listOf()
+        return emptyList()
+    }
+    return PSMOVE_RUMBLE_UPDATE_MAP[move] ?: emptyList()
+}
+
+fun addRumbleEvent(move: MacAddress, intensity: Int, durationInMs: Long = 1000) {
+    val newEvent = RumbleCommands.RUMBLE(intensity = intensity, time = System.currentTimeMillis())
+    val stopEvent = RumbleCommands.STOP(System.currentTimeMillis() + durationInMs)
+    PSMOVE_RUMBLE_UPDATE_MAP[move] = listOf(newEvent, stopEvent)
+}
+
+private fun getLatestRumbleEventAndRemoveFromList(move: MacAddress): RumbleCommands? {
+    val events = getRumbleCommands(move)
+    if (events.isEmpty()) {
+        return null
+    }
+    val eventsToTrigger = events.filter { it.time < System.currentTimeMillis() }
+    if (eventsToTrigger.isEmpty()) return null
+
+    // remove events that are triggered now
+    PSMOVE_RUMBLE_UPDATE_MAP[move] = events - eventsToTrigger
+
+    if (eventsToTrigger.size > 1) {
+        logger.debug { "Found multiple rumble events to trigger for $move. Only use the latest one. Found: $eventsToTrigger" }
+    }
+
+    return eventsToTrigger.maxByOrNull { it.time }
+}
 
 val PSMOVE_OLD_CHANGE_VALUES_MAP: MutableMap<MacAddress, Double> = ConcurrentHashMap()
 
@@ -74,8 +133,58 @@ var PSMove.oldChange: Double
         PSMOVE_OLD_CHANGE_VALUES_MAP[this.getMacAddress()] = value
     }
 
-fun PSMove.pollData(): PollResult? {
+val PSMOVE_LAST_UPDATE_CALLED: MutableMap<MacAddress, Long> = ConcurrentHashMap()
+
+var PSMove.lastUpdateCalled: Long
+    get() {
+        return PSMOVE_LAST_UPDATE_CALLED[this.getMacAddress()] ?: 0L
+    }
+    set(value) {
+        PSMOVE_LAST_UPDATE_CALLED[this.getMacAddress()] = value
+    }
+
+const val UPDATE_DELAY = 5
+suspend fun PSMove.refreshMoveStatus(): PollResult? {
+    // To avoid race conditions and crashes because of memory leaks, we do all controller
+    // manipulations in one function, one by one
     try {
+        var callUpdate = false
+        logger.trace { "[${this.getMacAddress()}] Polling data" }
+        if (this.colorUpdatedNeeded) {
+            logger.trace { "[${this.getMacAddress()}] color update needed" }
+            refreshColor()
+            callUpdate = true
+            logger.trace { "[${this.getMacAddress()}] color update finished" }
+        }
+        val nextRumbleEvent = getLatestRumbleEventAndRemoveFromList(this.getMacAddress())
+        if (nextRumbleEvent != null) {
+            logger.debug { "[${this.getMacAddress()}] got rumble event: $nextRumbleEvent " }
+            try {
+                when (nextRumbleEvent) {
+                    is RumbleCommands.RUMBLE -> {
+                        logger.debug { "[${this.getMacAddress()}] rumble set to ${nextRumbleEvent.intensity}" }
+                        this.set_rumble(nextRumbleEvent.intensity)
+                    }
+
+                    is RumbleCommands.STOP -> {
+                        logger.debug { "[${this.getMacAddress()}] rumble set to 0" }
+                        this.set_rumble(0)
+                    }
+                }
+                callUpdate = true
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to handle rumble event $nextRumbleEvent Reason: ${e.message}" }
+            }
+        }
+        if (callUpdate) {
+            // This updates the color and the rumble state. Only call it if a minimum of 100 ms passed
+            if (this.lastUpdateCalled + UPDATE_DELAY < System.currentTimeMillis()) {
+                this.update_leds()
+                this.lastUpdateCalled = System.currentTimeMillis()
+                delay(5)
+            }
+        }
+        logger.trace { "[${this.getMacAddress()}] rumble poll called" }
         val poll = this.poll()
         if (poll > 0) {
             val buttons = this._buttons
