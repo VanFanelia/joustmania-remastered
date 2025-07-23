@@ -1,6 +1,7 @@
 package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.GameStateManager
+import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher

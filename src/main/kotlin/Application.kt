@@ -1,6 +1,6 @@
 package de.vanfanel.joustmania
 
-import de.vanfanel.joustmania.games.Settings
+import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher

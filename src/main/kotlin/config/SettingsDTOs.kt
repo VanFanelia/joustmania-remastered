@@ -1,4 +1,4 @@
-package de.vanfanel.joustmania.games
+package de.vanfanel.joustmania.config
 
 import kotlinx.serialization.Serializable
 

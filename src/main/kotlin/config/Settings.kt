@@ -1,6 +1,6 @@
-package de.vanfanel.joustmania.games
+package de.vanfanel.joustmania.config
 
-import de.vanfanel.joustmania.games.Config.Companion.DEFAULT_CONFIG
+import de.vanfanel.joustmania.config.Config.Companion.DEFAULT_CONFIG
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ enum class Language {
     companion object {
         fun parseLanguage(value: String?): Language? {
             try {
-                return Language.valueOf(value?.uppercase() ?: "")
+                return valueOf(value?.uppercase() ?: "")
             } catch (e: IllegalArgumentException) {
                 logger.error(e) { "Ignore unknown enum value with length: ${value?.length}" }
                 return null
@@ -56,7 +56,7 @@ enum class Sensibility {
     companion object {
         fun parseSensibility(value: String?): Sensibility? {
             try {
-                return Sensibility.valueOf(value?.uppercase() ?: "")
+                return valueOf(value?.uppercase() ?: "")
             } catch (e: IllegalArgumentException) {
                 logger.error(e) { "Ignore unknown enum value with length: ${value?.length}" }
                 return null
