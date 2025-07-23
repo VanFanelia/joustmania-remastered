@@ -24,14 +24,18 @@ import kotlin.collections.iterator
 
 
 // Magic adapter interface
+// Function name needs to be uppercase
 @DBusInterfaceName("org.bluez.Adapter1")
 interface Adapter1 : DBusInterface {
+    @Suppress("FunctionName")
     fun RemoveDevice(device: DBusPath)
 }
 
 // Magic Property Set interface for trusting devices
+// Function name needs to be uppercase
 @DBusInterfaceName("org.freedesktop.DBus.Properties")
 interface DBusProperties : DBusInterface {
+    @Suppress("FunctionName")
     fun Set(interfaceName: String, propertyName: String, value: Variant<*>)
 }
 
@@ -129,7 +133,7 @@ object BluetoothControllerManager {
                     DBusProperties::class.java
                 )
 
-                // set trusted flag to true
+                // set the trusted flag to true
                 properties.Set("org.bluez.Device1", "Trusted", Variant(true))
                 logger.info { "Device $macAddress is now trusted" }
             } catch (e: DBusException) {

@@ -31,7 +31,7 @@ object USBDevicesChangeWatcher {
                     BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
                         var line: String?
                         while (reader.readLine().also { line = it } != null) {
-                            val trimmedLine: String = line!!.toString().trim()
+                            val trimmedLine: String = line!!.trim()
                             try {
                                 // parse this
                                 // Bus 007 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
