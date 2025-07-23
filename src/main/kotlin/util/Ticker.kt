@@ -1,4 +1,4 @@
-package de.vanfanel.joustmania.types
+package de.vanfanel.joustmania.util
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ class Ticker(private val interval: Duration) {
 
     private var job: Job? = null
 
-    // Öffentlicher Flow, der die Tick-Werte sendet
+    // public flow which emits the ticks
     val tick: Flow<Long> = _tickerFlow
 
     fun start() {
@@ -39,6 +39,7 @@ class Ticker(private val interval: Duration) {
         job = null
     }
 
+    @Suppress("unused")
     fun restart() {
         stop()
         start()

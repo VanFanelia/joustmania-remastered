@@ -37,6 +37,15 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * Represents the main loop of the game lobby, managing connected controllers, handling admin rights,
+ * and allowing the transition between game states. This class is responsible for observing controller actions,
+ * administrating user roles, changing game configurations, and starting games.
+ *
+ * The `LobbyLoop` maintains the state of controllers in the lobby and manages the interaction logic
+ * via coroutines that are executed concurrently. It listens to various button press events from controllers
+ * and updates the relevant states accordingly.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 object LobbyLoop {
     private val logger = KotlinLogging.logger {}

@@ -77,7 +77,6 @@ object NativeLoader {
 
     private fun loadLibPsMoveApi() {
         val path = System.getProperty("user.dir")
-        // bindings upfuck so we make a shortcut here :(
 
         try {
             when (osType) {

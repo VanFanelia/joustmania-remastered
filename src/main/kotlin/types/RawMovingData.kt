@@ -1,4 +1,4 @@
-package de.vanfanel.joustmania.hardware.psmove
+package de.vanfanel.joustmania.types
 
 data class RawMovingData(
     val accelerationX: Float,

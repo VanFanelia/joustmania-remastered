@@ -1,5 +1,8 @@
-package de.vanfanel.joustmania.hardware.psmove
+package de.vanfanel.joustmania.types
 
+/**
+ * Represents the buttons available on a PlayStation Move controller.
+ */
 enum class PSMoveButton(val rawValue: Int = 0) {
     TRIANGLE (rawValue = 1 shl 4),
     CIRCLE(rawValue = 1 shl 5),

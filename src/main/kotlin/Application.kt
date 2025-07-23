@@ -2,11 +2,11 @@ package de.vanfanel.joustmania
 
 import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
-import de.vanfanel.joustmania.hardware.BluetoothControllerManager
-import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher
+import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager
+import de.vanfanel.joustmania.hardware.usb.USBDevicesChangeWatcher
 import de.vanfanel.joustmania.hardware.psmove.GlobalMoveTicker
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.psmove.PSMovePairingManager
+import de.vanfanel.joustmania.hardware.PSMovePairingManager
 import de.vanfanel.joustmania.os.dependencies.NativeLoader
 import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging

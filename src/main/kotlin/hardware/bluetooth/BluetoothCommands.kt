@@ -1,6 +1,6 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.bluetooth
 
-import de.vanfanel.joustmania.os.dependencies.NativeLoader.getOSType
+import de.vanfanel.joustmania.os.dependencies.NativeLoader
 import de.vanfanel.joustmania.os.dependencies.OSType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
@@ -10,7 +10,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 /**
- * Object contains raw bluetooth commands. E.g. restart system bluetooth service
+ * Object contains raw bluetooth commands. E.g., restart system bluetooth service
  */
 object BluetoothCommands {
 
@@ -20,6 +20,7 @@ object BluetoothCommands {
         replay = 0,
         extraBufferCapacity = 1
     )
+    @Suppress("unused")
     val blueToothRestarted: Flow<Unit> = _blueToothRestarted
 
     private fun runCommand(command: String): String {
@@ -39,7 +40,7 @@ object BluetoothCommands {
     suspend fun restartBluetooth() {
         logger.info { "try to restart bluetooth ..." }
 
-        when (getOSType()) {
+        when (NativeLoader.getOSType()) {
             OSType.ANDROID -> logger.warn { "Detect Android. Cannot restart bluetooth on Android yet :(" }
             OSType.LINUX -> runCommand("systemctl restart bluetooth.service")
             OSType.MAC -> logger.warn { "Detect MAC OS. Cannot restart bluetooth on MAC OS yet :(" }

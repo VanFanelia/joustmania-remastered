@@ -1,15 +1,14 @@
 package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.GameStateManager
-import de.vanfanel.joustmania.config.Sensibility
 import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
-import de.vanfanel.joustmania.hardware.psmove.PSMoveApi
+import de.vanfanel.joustmania.hardware.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
-import de.vanfanel.joustmania.hardware.psmove.RUMBLE_HARDEST
-import de.vanfanel.joustmania.hardware.psmove.RUMBLE_MEDIUM
-import de.vanfanel.joustmania.hardware.psmove.RUMBLE_SOFTEST
+import de.vanfanel.joustmania.hardware.RUMBLE_HARDEST
+import de.vanfanel.joustmania.hardware.RUMBLE_MEDIUM
+import de.vanfanel.joustmania.hardware.RUMBLE_SOFTEST
 import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundId.Companion.colorToSound
@@ -17,6 +16,7 @@ import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
+import de.vanfanel.joustmania.types.Sensibility
 import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging

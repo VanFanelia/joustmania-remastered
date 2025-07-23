@@ -1,13 +1,19 @@
-package de.vanfanel.joustmania.hardware.psmove
+package de.vanfanel.joustmania.hardware
 
+import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
+import de.vanfanel.joustmania.hardware.psmove.PollResult
+import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
+import de.vanfanel.joustmania.hardware.psmove.currentColor
+import de.vanfanel.joustmania.hardware.psmove.getMacAddress
+import de.vanfanel.joustmania.hardware.psmove.refreshMoveStatus
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.PSMoveBatteryLevel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 /**
- * Object sends commands to the connected PSMove Controller
- *
+ * The `PSMoveApi` object provides methods to interact with PlayStation Move controllers over a Bluetooth connection.
+ * To Avoid crashes and memory leaks, this api should be the only interaction with the move itself and the PSMove class
  */
 object PSMoveApi {
     private val logger = KotlinLogging.logger {}
@@ -46,7 +52,7 @@ object PSMoveApi {
 
     fun rumble(moves: Set<MacAddress>, intensity: Int, durationInMs: Long = 1000) {
         moves.forEach {
-            addRumbleEvent(move = it, intensity = intensity, durationInMs =durationInMs)
+            addRumbleEvent(move = it, intensity = intensity, durationInMs = durationInMs)
         }
     }
 

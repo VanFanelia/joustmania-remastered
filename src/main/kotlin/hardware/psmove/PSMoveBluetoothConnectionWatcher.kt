@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Object observes the amount of connected psmove controller and publishes the actual set of PSMoveController via flow
  *
  * Important! Duo to native Exceptions we do not publish PSMove classes outside this package.
- * We use the MACAddress as an identifier and if someone outside want to do stuff with a PSMove
+ * We use the MACAddress as an identifier, and if someone outside wants to do stuff with a PSMove,
  * PSMoveApi is the entry point / api to call
  */
 object PSMoveBluetoothConnectionWatcher {

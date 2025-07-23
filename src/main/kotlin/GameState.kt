@@ -5,7 +5,7 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.types.MacAddress
-import de.vanfanel.joustmania.types.Ticker
+import de.vanfanel.joustmania.util.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

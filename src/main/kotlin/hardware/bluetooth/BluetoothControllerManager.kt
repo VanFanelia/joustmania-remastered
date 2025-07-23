@@ -1,7 +1,7 @@
-package de.vanfanel.joustmania.hardware
+package de.vanfanel.joustmania.hardware.bluetooth
 
-import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
-import de.vanfanel.joustmania.hardware.psmove.PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME
+import de.vanfanel.joustmania.hardware.PLAYSTATION_MOTION_CONTROLLER_USB_SHORT_DEVICE_NAME
+import de.vanfanel.joustmania.hardware.usb.USBDevicesChangeWatcher.usbDevicesChangeFlow
 import de.vanfanel.joustmania.types.AdapterId
 import de.vanfanel.joustmania.types.BlueToothController
 import de.vanfanel.joustmania.types.MacAddress
@@ -20,6 +20,7 @@ import org.freedesktop.dbus.interfaces.DBusInterface
 import org.freedesktop.dbus.interfaces.ObjectManager
 import org.freedesktop.dbus.types.Variant
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.iterator
 
 
 // Magic adapter interface
@@ -36,7 +37,7 @@ interface DBusProperties : DBusInterface {
 
 /**
  * Object observes the devices connected via usb and publish
- * all connected bluetooth adapters and there paired devices
+ * all connected bluetooth adapters and their paired devices
  */
 object BluetoothControllerManager {
     private val logger = KotlinLogging.logger {}

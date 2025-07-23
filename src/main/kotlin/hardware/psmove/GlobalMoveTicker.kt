@@ -13,6 +13,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * The `GlobalMoveTicker` singleton is responsible for managing and monitoring the connected PSMove controllers.
+ * It performs periodic tasks such as polling the status of connected devices and calculating color changes for active animations.
+ *
+ * This class uses coroutines extensively to perform tasks asynchronously and efficiently.
+ * It relies on multiple custom dispatchers for different operations, such as polling and color calculations.
+ *
+ * Key responsibilities:
+ * - Performs frequent polling the status of active PSMove devices to ensure up-to-date state information.
+ * - Initiates periodic color calculation tasks to handle animations on connected devices.
+ */
 object GlobalMoveTicker {
     private val logger = KotlinLogging.logger {}
 

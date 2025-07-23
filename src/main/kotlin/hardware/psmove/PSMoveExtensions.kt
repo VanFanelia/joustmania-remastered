@@ -1,7 +1,9 @@
 package de.vanfanel.joustmania.hardware.psmove
 
-import de.vanfanel.joustmania.hardware.BluetoothControllerManager
-import de.vanfanel.joustmania.hardware.psmove.PSMoveButton.Companion.calculatedPressedButtons
+import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager
+import de.vanfanel.joustmania.types.PSMoveButton
+import de.vanfanel.joustmania.types.PSMoveButton.Companion.calculatedPressedButtons
+import de.vanfanel.joustmania.types.RawMovingData
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -12,22 +14,34 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.sqrt
 
 
+/**
+ * This Class Contains extensions on the PSMove class for
+ */
+
 private val logger = KotlinLogging.logger {}
 
-data class PollResult(val buttons: Set<PSMoveButton>, val movingData: RawMovingData)
-
-sealed class RumbleCommands(val time: Long = System.currentTimeMillis()) {
-    class RUMBLE(
-        val intensity: Int,
-        time: Long = System.currentTimeMillis()
-    ) : RumbleCommands(time = time)
-
-    class STOP(
-        time: Long = System.currentTimeMillis()
-    ) : RumbleCommands(time = time)
+/**
+ * Pairing and Bluetooth trust commands
+ */
+suspend fun PSMove.indicatePairingComplete() {
+    try {
+        this.set_leds(255, 255, 255)
+        this.update_leds()
+        delay(3000)
+        this.set_leds(0, 0, 0)
+        this.update_leds()
+    } catch (e: Exception) {
+        logger.warn(e) { "Failed to indicate pairing of new controller ${this.getMacAddress()}. Ignore indicating and try to continue" }
+    }
 }
 
-/* why a map here? too many accesses to this._serial create crashes */
+fun PSMove.trust() {
+    BluetoothControllerManager.trustBluetoothDevice(this.getMacAddress())
+}
+
+/**
+ * why a map here? too many accesses to this._serial create crashes
+ */
 val macs: MutableMap<Any, MacAddress> = ConcurrentHashMap()
 fun PSMove.getMacAddress(): MacAddress {
     if (macs.containsKey(this)) {
@@ -39,33 +53,9 @@ fun PSMove.getMacAddress(): MacAddress {
     }
 }
 
-suspend fun PSMove.indicatePairingComplete() {
-    try {
-        this.set_leds(255, 255, 255)
-        this.update_leds()
-        delay(3000)
-        this.set_leds(0, 0, 0)
-        this.update_leds()
-    } catch (e: Exception) {
-        logger.warn(e) { "Failed to indicate pairing of new controller ${this.getMacAddress()}. Ignore indicating and try to continue" }
-    }
-
-}
-
-fun PSMove.trust() {
-    BluetoothControllerManager.trustBluetoothDevice(this.getMacAddress())
-}
-
-private fun PSMove.refreshColor() {
-    try {
-        val color = this.currentColor
-        this.set_leds(color.red, color.green, color.blue)
-        PSMOVE_COLOR_UPDATE_MAP[this.getMacAddress()] = System.currentTimeMillis()
-        PSMOVE_LAST_COLOR_SET_COLOR_MAP[this.getMacAddress()] = this.currentColor
-    } catch (e: Exception) {
-        logger.warn(e) { " Failed to refresh color for ${this.getMacAddress()}. Ignore color and try to continue" }
-    }
-}
+/**
+ * Color commands and color handling variables / maps
+ */
 
 val PSMOVE_COLOR_MAP: MutableMap<MacAddress, MoveColor> = ConcurrentHashMap()
 var PSMove.currentColor: MoveColor
@@ -89,6 +79,32 @@ val PSMove.colorUpdatedNeeded: Boolean
         return needUpdateByTime || newColorNeeded
     }
 
+private fun PSMove.refreshColor() {
+    try {
+        val color = this.currentColor
+        this.set_leds(color.red, color.green, color.blue)
+        PSMOVE_COLOR_UPDATE_MAP[this.getMacAddress()] = System.currentTimeMillis()
+        PSMOVE_LAST_COLOR_SET_COLOR_MAP[this.getMacAddress()] = this.currentColor
+    } catch (e: Exception) {
+        logger.warn(e) { " Failed to refresh color for ${this.getMacAddress()}. Ignore color and try to continue" }
+    }
+}
+
+
+/**
+ * Rumble commands and handling
+ */
+
+sealed class RumbleCommands(val time: Long = System.currentTimeMillis()) {
+    class RUMBLE(
+        val intensity: Int,
+        time: Long = System.currentTimeMillis()
+    ) : RumbleCommands(time = time)
+
+    class STOP(
+        time: Long = System.currentTimeMillis()
+    ) : RumbleCommands(time = time)
+}
 
 val PSMOVE_RUMBLE_UPDATE_MAP: MutableMap<MacAddress, List<RumbleCommands>> = ConcurrentHashMap()
 private fun getRumbleCommands(move: MacAddress): List<RumbleCommands> {
@@ -123,8 +139,11 @@ private fun getLatestRumbleEventAndRemoveFromList(move: MacAddress): RumbleComma
     return eventsToTrigger.maxByOrNull { it.time }
 }
 
-val PSMOVE_OLD_CHANGE_VALUES_MAP: MutableMap<MacAddress, Double> = ConcurrentHashMap()
+/**
+ * Functions and variables needed to poll the status of the PSMove and set rumble strength / light color
+ */
 
+val PSMOVE_OLD_CHANGE_VALUES_MAP: MutableMap<MacAddress, Double> = ConcurrentHashMap()
 var PSMove.oldChange: Double
     get() {
         return PSMOVE_OLD_CHANGE_VALUES_MAP[this.getMacAddress()] ?: 0.0
@@ -134,7 +153,6 @@ var PSMove.oldChange: Double
     }
 
 val PSMOVE_LAST_UPDATE_CALLED: MutableMap<MacAddress, Long> = ConcurrentHashMap()
-
 var PSMove.lastUpdateCalled: Long
     get() {
         return PSMOVE_LAST_UPDATE_CALLED[this.getMacAddress()] ?: 0L
@@ -144,9 +162,20 @@ var PSMove.lastUpdateCalled: Long
     }
 
 const val UPDATE_DELAY = 5
+
+/**
+ * Polling
+ */
+
+data class PollResult(val buttons: Set<PSMoveButton>, val movingData: RawMovingData)
+
+/**
+ * Why mixing up polling and setting of the PSMove?
+ *
+ * To avoid memory issues, native crashes this method makes every native call called in sequence.
+ * So all controller manipulations and readings are done one by one
+ */
 suspend fun PSMove.refreshMoveStatus(): PollResult? {
-    // To avoid race conditions and crashes because of memory leaks, we do all controller
-    // manipulations in one function, one by one
     try {
         var callUpdate = false
         logger.trace { "[${this.getMacAddress()}] Polling data" }

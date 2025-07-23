@@ -1,10 +1,13 @@
-package de.vanfanel.joustmania.hardware.psmove
+package de.vanfanel.joustmania.hardware
 
 
-import de.vanfanel.joustmania.hardware.BluetoothCommands.restartBluetooth
-import de.vanfanel.joustmania.hardware.BluetoothControllerManager
-import de.vanfanel.joustmania.hardware.BluetoothControllerManager.pairedDevices
-import de.vanfanel.joustmania.hardware.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.hardware.bluetooth.BluetoothCommands.restartBluetooth
+import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager.pairedDevices
+import de.vanfanel.joustmania.hardware.usb.USBDevicesChangeWatcher.usbDevicesChangeFlow
+import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager
+import de.vanfanel.joustmania.hardware.psmove.getMacAddress
+import de.vanfanel.joustmania.hardware.psmove.indicatePairingComplete
+import de.vanfanel.joustmania.hardware.psmove.trust
 import de.vanfanel.joustmania.types.PairedDevice
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
