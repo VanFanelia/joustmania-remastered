@@ -4,22 +4,22 @@ import de.vanfanel.joustmania.GameStateManager.currentGameState
 import de.vanfanel.joustmania.GameStateManager.getPlayerInGameList
 import de.vanfanel.joustmania.GameStateManager.playerLostFlow
 import de.vanfanel.joustmania.config.ForceStartGameDto
-import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.config.SetGameMode
 import de.vanfanel.joustmania.config.SetLanguage
 import de.vanfanel.joustmania.config.SetSensitivity
 import de.vanfanel.joustmania.config.SetSortToddlerAmountOfRounds
 import de.vanfanel.joustmania.config.SetSortToddlerRoundDuration
 import de.vanfanel.joustmania.config.Settings
+import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.AccelerationDebugger.psMoveStubStatistics
+import de.vanfanel.joustmania.hardware.PSMoveApi
+import de.vanfanel.joustmania.hardware.PSMovePairingManager
 import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager.blueToothControllerFlow
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
-import de.vanfanel.joustmania.hardware.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.allBatteryStates
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher.connectedPSMoveController
-import de.vanfanel.joustmania.hardware.PSMovePairingManager
 import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.lobby.LobbyLoop.activeMoves
@@ -42,6 +42,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
+import io.ktor.server.request.uri
 import io.ktor.server.response.cacheControl
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
@@ -62,6 +63,13 @@ private val logger = KotlinLogging.logger {}
 fun Application.configureRouting() {
     routing {
         staticResources("/", "static", "index.html")
+
+        get("{path:^(game|hardware|settings|debug)$}") {
+            call.respondText(this::class.java.classLoader.getResource("static/index.html")!!.readText(), ContentType.Text.Html)
+        }
+
+        //staticResources("/game", "static", )
+        // Fallback für alle anderen GET-Anfragen (außer /api)
 
         route("/api") {
 
@@ -262,7 +270,10 @@ fun Application.configureRouting() {
 
                     logger.info { "Start current selected game now." }
 
-                    LobbyLoop.tryStartGame(gameMode = parameters.gameMode, forceActivateAllController = parameters.forceActivateAllController)
+                    LobbyLoop.tryStartGame(
+                        gameMode = parameters.gameMode,
+                        forceActivateAllController = parameters.forceActivateAllController
+                    )
                     call.respond(HttpStatusCode.OK, "Game started")
                     return@post
                 }
