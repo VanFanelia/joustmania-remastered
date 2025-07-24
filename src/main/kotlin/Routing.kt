@@ -24,6 +24,7 @@ import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.lobby.LobbyLoop.activeMoves
 import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
+import de.vanfanel.joustmania.lobby.LobbyLoop.lastSelectedGameName
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.BlueToothControllerStats
@@ -351,10 +352,12 @@ fun Application.configureRouting() {
                     val combinedFlow: Flow<GameStats> = combine(
                         currentGameState,
                         activeMoves,
-                        playerLostFlow
+                        playerLostFlow,
+                        lastSelectedGameName
 
-                    ) { gameState, activeMoveList, playerLost ->
+                    ) { gameState, activeMoveList, playerLost, gameName ->
                         return@combine GameStats(
+                            selectedGame = gameName,
                             currentGameState = gameState.toDisplayString(),
                             activeController = activeMoveList,
                             playerInGame = getPlayerInGameList().toList(),

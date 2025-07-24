@@ -5,6 +5,8 @@ import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.types.MacAddress
 import kotlinx.coroutines.flow.Flow
 
+const val DEFAULT_GAME_NAME = "FreeForAll"
+
 interface Game {
     val name: String
     val currentPlayingController: MutableMap<MacAddress,PSMoveStub>

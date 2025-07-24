@@ -47,6 +47,7 @@ data class MotionControllerStats(
 
 @Serializable
 data class GameStats(
+    val selectedGame: String,
     val currentGameState: String,
     val activeController: List<MacAddress>,
     val playerInGame: List<MacAddress>,

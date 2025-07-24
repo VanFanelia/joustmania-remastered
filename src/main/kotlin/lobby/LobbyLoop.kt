@@ -2,6 +2,7 @@ package de.vanfanel.joustmania.lobby
 
 import de.vanfanel.joustmania.GameState
 import de.vanfanel.joustmania.GameStateManager
+import de.vanfanel.joustmania.games.DEFAULT_GAME_NAME
 import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.games.Game.Companion.gameNameToIndex
 import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
@@ -66,6 +67,9 @@ object LobbyLoop {
     private val lobbyJobs: MutableSet<Job> = mutableSetOf()
 
     private var selectedGameIndex: Int? = 0
+
+    private val _lastSelectedGameName: MutableStateFlow<String> = MutableStateFlow(DEFAULT_GAME_NAME)
+    val lastSelectedGameName: Flow<String> = _lastSelectedGameName
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
@@ -199,31 +203,30 @@ object LobbyLoop {
         updateActiveMovesFlow()
     }
 
+    fun setCurrentGameMode(gameMode: String) {
+        val newIndex = gameNameToIndex[gameMode] ?: 0
+        changeGame(newIndex)
+    }
+
     private fun setCurrentGameToPreviousGameFromList() {
         val currentIndex = this.selectedGameIndex ?: 0
         var newIndex = (currentIndex - 1) % listOfGames.size
         if (newIndex < 0) newIndex += listOfGames.size
-        this.selectedGameIndex = newIndex
-        val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
-
-        logger.info { "change current game to ${game.name}" }
-        soundManager.asyncAddSoundToQueue(id = game.gameSelectedSound, abortOnNewSound = true)
+        changeGame(newIndex)
     }
 
     private fun setCurrentGameToNextGameFromList() {
         val currentIndex = this.selectedGameIndex ?: 0
         val newIndex = (currentIndex + 1) % listOfGames.size
-        this.selectedGameIndex = newIndex
-        val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
-
-        logger.info { "change current game to ${game.name}" }
-        soundManager.asyncAddSoundToQueue(id = game.gameSelectedSound, abortOnNewSound = true)
+        changeGame(newIndex)
     }
 
-    fun setCurrentGameMode(gameMode: String) {
-        val newIndex = gameNameToIndex[gameMode] ?: 0
+    private fun changeGame(newIndex: Int) {
         this.selectedGameIndex = newIndex
         val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
+        CoroutineScope(Dispatchers.IO).launch {
+            _lastSelectedGameName.emit(game.name)
+        }
 
         logger.info { "change current game to ${game.name}" }
         soundManager.asyncAddSoundToQueue(id = game.gameSelectedSound, abortOnNewSound = true)

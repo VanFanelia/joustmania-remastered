@@ -100,6 +100,7 @@ function Game() {
     useEffect(() => {
         setGameState(gameStats.currentGameState);
         setActivePlayer(gameStats.activeController.length)
+        setCurrentGame(gameStats.selectedGame)
     }, [gameStats]);
 
     const isGameStateInLobby = gameState == "Lobby"
