@@ -2,52 +2,27 @@ package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.config.Settings
-import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.PSMoveApi
-import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
-import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.hardware.RUMBLE_HARDEST
 import de.vanfanel.joustmania.hardware.RUMBLE_MEDIUM
 import de.vanfanel.joustmania.hardware.RUMBLE_SOFTEST
-import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
+import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
+import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundId.Companion.colorToSound
 import de.vanfanel.joustmania.sound.SoundManager
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
-import de.vanfanel.joustmania.types.Sensibility
-import de.vanfanel.joustmania.util.CustomThreadDispatcher
-import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
-class FreeForAll : Game {
-    private val logger = KotlinLogging.logger {}
-
+class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
     override val name = "FreeForAll"
     override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
     override val minimumPlayers: Int = 2
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_FFA
-
-    private val _playerLostFlow: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
-    override val playerLostFlow: Flow<List<String>> = _playerLostFlow
-
-    private val gameJobs: MutableSet<Job> = mutableSetOf()
-    private var disconnectedControllerJob: Job? = null
-    private var gameRunning: Boolean = false
-    private val playersLost: MutableSet<MacAddress> = mutableSetOf()
-    private val playerColors: MutableMap<MacAddress, MoveColor> = mutableMapOf()
-
-    private var currentSensitivity: Sensibility = Sensibility.MEDIUM
 
     companion object {
         val listOfPlayerColors = listOf(
@@ -55,77 +30,6 @@ class FreeForAll : Game {
         )
 
         val defaultPlayerColor = MoveColor.WHITE
-    }
-
-    private fun getMoveColor(address: MacAddress): MoveColor = playerColors[address] ?: defaultPlayerColor
-
-    private fun initDisconnectionObserver() {
-        disconnectedControllerJob = CoroutineScope(Dispatchers.IO).launch {
-            PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
-                moves.forEach { move ->
-                    logger.info { "Move with address: ${move.macAddress} was disconnected. Set Player to game Over" }
-                    playersLost.add(move.macAddress)
-                    _playerLostFlow.emit(playersLost.toList())
-                }
-            }
-        }
-    }
-
-    private fun initObservers(stubs: MutableSet<MacAddress>) {
-        stubs.forEach { stub ->
-            gameJobs.add(observeAcceleration(stub))
-        }
-    }
-
-    override fun cleanUpGame() {
-        gameJobs.forEach { it.cancel("FreeForAll game go cleanup call") }
-        disconnectedControllerJob?.cancel("FreeForAll game go cleanup call")
-    }
-
-    private fun observeAcceleration(stubId: MacAddress): Job {
-        val currentJob = CoroutineScope(CustomThreadDispatcher.GAME_LOOP).launch {
-            val stub = currentPlayingController[stubId]
-            if (stub == null) {
-                return@launch
-            }
-
-            stub.accelerationFlow.collect { acceleration ->
-                if (acceleration.change > 1.2 && gameRunning && !playersLost.contains(stub.macAddress)) {
-                    if (acceleration.change > currentSensitivity.getSensibilityValues().deathThreshold) {
-                        logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and lost the game" }
-                        val randomSoundId = listOf(SoundId.PLAYER_LOSE_1, SoundId.PLAYER_LOSE_2).random()
-                        SoundManager.asyncAddSoundToQueue(id = randomSoundId, abortOnNewSound = false)
-                        stub.setColorAnimation(
-                            ColorAnimation(
-                                colorToSet = listOf(
-                                    MoveColor.RED,
-                                    MoveColor.RED_INACTIVE,
-                                    MoveColor.RED,
-                                    MoveColor.RED_INACTIVE,
-                                    MoveColor.BLACK
-                                ), durationInMS = 3000, loop = false
-                            )
-                        )
-                        addRumbleEvent(move = stub.macAddress, intensity = RUMBLE_HARDEST, durationInMs = 3000)
-                        playersLost.add(stub.macAddress)
-                        _playerLostFlow.emit(playersLost.toList())
-                        delay(3100) // add some delay to get sure animation was stopped
-                        stub.setCurrentColor(colorToSet = MoveColor.BLACK)
-                    } else if (acceleration.change > currentSensitivity.getSensibilityValues().warningThreshold) {
-                        logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and got a warning" }
-                        addRumbleEvent(move = stub.macAddress, intensity = RUMBLE_MEDIUM, durationInMs = 1000)
-                        stub.setColorAnimation(
-                            ColorAnimation(
-                                colorToSet = listOf(
-                                    MoveColor.ORANGE, getMoveColor(stub.macAddress)
-                                ), durationInMS = 1000, loop = false
-                            )
-                        )
-                    }
-                }
-            }
-        }
-        return currentJob
     }
 
     override suspend fun checkForGameFinished() {
@@ -147,15 +51,6 @@ class FreeForAll : Game {
         }
     }
 
-    override suspend fun forceGameEnd() {
-        gameRunning = false
-        GameStateManager.setGameFinishing()
-        SoundManager.stopSoundPlay()
-        cleanUpGame()
-        //TODO Play game forced to stop sound
-        GameStateManager.setGameFinished()
-    }
-
     private suspend fun playWinnerAnimationAndChangeGameState(winner: MacAddress) {
         GameStateManager.setGameFinishing()
         SoundManager.stopSoundPlay()
@@ -164,7 +59,7 @@ class FreeForAll : Game {
         val winnerStub: PSMoveStub? = currentPlayingController[winner]
         winnerStub?.setColorAnimation(animation = RainbowAnimation)
 
-        val colorOfWinner = playerColors[winner]
+        val colorOfWinner = getMoveColor(winner)
         val colorWinsSound = colorToSound(colorOfWinner)
 
         colorWinsSound?.let {
@@ -197,7 +92,7 @@ class FreeForAll : Game {
         currentPlayingController.onEachIndexed { index, player ->
             val color = listOfPlayerColors[index % listOfPlayerColors.size]
             player.value.setCurrentColor(color)
-            playerColors[player.key] = color
+            setMoveColor(player.key, color)
         }
 
         currentPlayingController.forEach { player ->

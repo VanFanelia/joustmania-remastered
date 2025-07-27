@@ -34,6 +34,10 @@ class SortingToddler : Game {
     override val minimumPlayers: Int = 3
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_TODDLERS
 
+    override val playersLost: MutableSet<MacAddress> = emptySet<MacAddress>().toMutableSet()
+    override val playerLostFlow: Flow<List<MacAddress>>
+        get() = flowOf(emptyList())
+
     private var connectedControllerChangeJob: Job? = null
     private var disconnectedControllerJob: Job? = null
     private var numberOfPlayersOnGameStart: Int = 3
@@ -204,7 +208,4 @@ class SortingToddler : Game {
         cleanUpGame()
         GameStateManager.setGameFinished()
     }
-
-    override val playerLostFlow: Flow<List<MacAddress>>
-        get() = flowOf(emptyList())
 }
