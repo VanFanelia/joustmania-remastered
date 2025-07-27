@@ -52,6 +52,7 @@ enum class SoundId {
     CONTROLLER_LEFT,
     GAME_MODE_FFA,
     GAME_MODE_TODDLERS,
+    GAME_MODE_WEREWOLF,
     ALL_PLAYERS_READY,
     THREE,
     TWO,
@@ -59,6 +60,8 @@ enum class SoundId {
     GO,
     GAME_MODE_FFA_EXPLANATION,
     GAME_MODE_TODDLER_EXPLANATION,
+    GAME_MODE_WEREWOLF_EXPLANATION,
+    GAME_MODE_WEREWOLF_EXPLANATION_TWO,
     AQUA_WINS,
     BLACK_WINS,
     BLUE_WINS,
@@ -178,6 +181,15 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
             )
         )
     ),
+    GAME_MODE_WEREWOLF to Sound(
+        id = GAME_MODE_WEREWOLF, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "game_mode_werewolf",
+                localizedText = "Game Mode: Werewolf"
+            )
+        )
+    ),
     ALL_PLAYERS_READY to Sound(
         id = ALL_PLAYERS_READY, soundFiles = mapOf(
             EN to SoundFile(
@@ -251,6 +263,35 @@ private val soundMap: Map<SoundId, Sound> = mapOf(
             )
         )
     ),
+    GAME_MODE_WEREWOLF_EXPLANATION to Sound(
+        id = GAME_MODE_WEREWOLF_EXPLANATION, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "game_mode_werewolf_explanation",
+                localizedText = """Let's play a round of werewolf! There are two teams: the villagers and the werewolves. The team that has eliminated all opponents at the end wins. You will be shown which team you are on straight away. Now hide your controller so that only you can see the color. If your controller lights up red, you are werewolves. If it lights up green, you are villagers. Everyone ready? Your team is now displayed!"""
+            ),
+            DE to SoundFile(
+                language = DE,
+                file = "game_mode_werewolf_explanation",
+                localizedText = """Lasst uns eine Runde Werwolf spielen! Es gibt zwei Teams: die Dorfbewohner und die Werwölfe. Das Team, das am Ende alle Gegner eliminiert hat, gewinnt. In welchem Team ihr seid, wird euch gleich angezeigt. Versteckt nun eure Controller, sodass nur ihr die Farbe sehen könnt. Leuchtet euer Controller rot, seid ihr Werwölfe. Leuchtet er grün, seid ihr Dorfbewohner. Alle bereit? Euer Team wird jetzt angezeigt!"""
+            )
+        )
+    ),
+    GAME_MODE_WEREWOLF_EXPLANATION_TWO to Sound(
+        id = GAME_MODE_WEREWOLF_EXPLANATION_TWO, soundFiles = mapOf(
+            EN to SoundFile(
+                language = EN,
+                file = "game_mode_werewolf_explanation",
+                localizedText = """So remember: if you accelerate to fast, you are out! The game starts now!"""
+            ),
+            DE to SoundFile(
+                language = DE,
+                file = "game_mode_werewolf_explanation",
+                localizedText = """Vergesst nicht: Wenn ihr zu schnell beschleunigt, seid ihr raus! Das Spiel startet jetzt!"""
+            )
+        )
+    ),
+
     AQUA_WINS to Sound(
         id = AQUA_WINS, soundFiles = mapOf(
             EN to SoundFile(

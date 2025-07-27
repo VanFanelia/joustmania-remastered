@@ -26,7 +26,8 @@ function Game() {
     const possibleGames: Map<string, string> = new Map<string, string>(
         [
             ['FreeForAll', "Free For All"],
-            ['SortingToddler', 'Sorting Toddler']
+            ['SortingToddler', 'Sorting Toddler'],
+            ['Werewolf', 'Werewolf'],
         ]
     );
 

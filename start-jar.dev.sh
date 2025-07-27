@@ -3,12 +3,12 @@
 # sudo apt-get install libdbus-1-3 libdbus-glib-1-2
 
 ## build web package
-node --version
-npm --prefix joustmania-web-app run build
+##node --version
+##npm --prefix joustmania-web-app run build
 
 ## copy dist to static resource of java project
-rm -rf ./src/main/resources/static/*
-cp -r ./joustmania-web-app/dist/* ./src/main/resources/static
+##rm -rf ./src/main/resources/static/*
+##cp -r ./joustmania-web-app/dist/* ./src/main/resources/static
 
 ## build java file
 ./gradlew clean
