@@ -1,0 +1,372 @@
+{
+  "NEW_CONTROLLER": {
+    "id": "NEW_CONTROLLER",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "new_controller",
+        "localizedText": "New Controller connected"
+      }
+    }
+  },
+  "CONTROLLER_DISCONNECTED": {
+    "id": "CONTROLLER_DISCONNECTED",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "controller_disconnected",
+        "localizedText": "Controller disconnected"
+      }
+    }
+  },
+  "ADMIN_GRANTED": {
+    "id": "ADMIN_GRANTED",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "admin_granted",
+        "localizedText": "TODO fill me"
+      }
+    }
+  },
+  "ADMIN_REVOKED": {
+    "id": "ADMIN_REVOKED",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "admin_revoked",
+        "localizedText": "TODO fill me"
+      }
+    }
+  },
+  "CONTROLLER_JOINED": {
+    "id": "CONTROLLER_JOINED",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "controller_joined",
+        "localizedText": "TODO fill me"
+      }
+    }
+  },
+  "CONTROLLER_LEFT": {
+    "id": "CONTROLLER_LEFT",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "controller_left",
+        "localizedText": "TODO fill me"
+      }
+    }
+  },
+  "GAME_MODE_FFA": {
+    "id": "GAME_MODE_FFA",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_ffa",
+        "localizedText": "Game Mode: Free For All"
+      }
+    }
+  },
+  "GAME_MODE_TODDLERS": {
+    "id": "GAME_MODE_TODDLERS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_toddlers",
+        "localizedText": "Game Mode: Sort Toddlers"
+      }
+    }
+  },
+  "GAME_MODE_WEREWOLF": {
+    "id": "GAME_MODE_WEREWOLF",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_werewolf",
+        "localizedText": "Game Mode: Werewolf"
+      }
+    }
+  },
+  "ALL_PLAYERS_READY": {
+    "id": "ALL_PLAYERS_READY",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "all_players_ready",
+        "localizedText": "All players are ready."
+      }
+    }
+  },
+  "THREE": {
+    "id": "THREE",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "three",
+        "localizedText": "3"
+      }
+    }
+  },
+  "TWO": {
+    "id": "TWO",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "two",
+        "localizedText": "two"
+      }
+    }
+  },
+  "ONE": {
+    "id": "TWO",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "one",
+        "localizedText": "1"
+      }
+    }
+  },
+  "GO": {
+    "id": "GO",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "go",
+        "localizedText": "GO!"
+      }
+    }
+  },
+  "GAME_MODE_FFA_EXPLANATION": {
+    "id": "GAME_MODE_FFA_EXPLANATION",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_ffa_explanation",
+        "localizedText": "A new round of \"Free for all\" is started. Protect your controller and try to accelerate your opponents' controllers at the same time. If you accelerate too quickly, you are out. The last player wins. Everyone ready? The game starts in:"
+      },
+      "DE": {
+        "language": "DE",
+        "file": "game_mode_ffa_explanation",
+        "localizedText": "Eine neue Runde \"Jeder gegen Jeden\" wird gestartet. Beschütze deinen Controller und versuche gleichzeitig die Controller deiner Gegner zu Beschleunigen. Beschleunigst du zu schnell bist du raus. Der letzte Spieler gewinnt. Alle Bereit? Das spiel startet in:"
+      }
+    }
+  },
+  "GAME_MODE_TODDLER_EXPLANATION": {
+    "id": "GAME_MODE_TODDLER_EXPLANATION",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_toddler_explanation",
+        "localizedText": "We start a round of color sorting game: Just sort yourselves by color! Here we go"
+      },
+      "DE": {
+        "language": "DE",
+        "file": "game_mode_toddler_explanation",
+        "localizedText": "Wir starten eine Runde Farbkasten-Spiel: Sortiert euch einfach nach Farben! Los gehts"
+      }
+    }
+  },
+  "GAME_MODE_WEREWOLF_EXPLANATION": {
+    "id": "GAME_MODE_WEREWOLF_EXPLANATION",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_werewolf_explanation",
+        "localizedText": "Let's play a round of werewolf! There are two teams: the villagers and the werewolves. The team that has eliminated all opponents at the end wins. You will be shown which team you are on straight away. Now hide your controller so that only you can see the color. If your controller lights up red, you are werewolves. If it lights up green, you are villagers. Everyone ready? Your team is now displayed!"
+      },
+      "DE": {
+        "language": "DE",
+        "file": "game_mode_werewolf_explanation",
+        "localizedText": "Lasst uns eine Runde Werwolf spielen! Es gibt zwei Teams: die Dorfbewohner und die Werwölfe. Das Team, das am Ende alle Gegner eliminiert hat, gewinnt. In welchem Team ihr seid, wird euch gleich angezeigt. Versteckt nun eure Controller, sodass nur ihr die Farbe sehen könnt. Leuchtet euer Controller rot, seid ihr Werwölfe. Leuchtet er grün, seid ihr Dorfbewohner. Alle bereit? Euer Team wird jetzt angezeigt!"
+      }
+    }
+  },
+  "GAME_MODE_WEREWOLF_EXPLANATION_TWO": {
+    "id": "GAME_MODE_WEREWOLF_EXPLANATION_TWO",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_werewolf_explanation",
+        "localizedText": "So remember: if you accelerate to fast, you are out! The game starts now!"
+      },
+      "DE": {
+        "language": "DE",
+        "file": "game_mode_werewolf_explanation",
+        "localizedText": "Vergesst nicht: Wenn ihr zu schnell beschleunigt, seid ihr raus! Das Spiel startet jetzt!"
+      }
+    }
+  },
+  "AQUA_WINS": {
+    "id": "AQUA_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "aqua_wins",
+        "localizedText": "player \"aqua\" wins!"
+      }
+    }
+  },
+  "BLACK_WINS": {
+    "id": "BLACK_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "black_wins",
+        "localizedText": "player \"black\" wins!"
+      }
+    }
+  },
+  "BLUE_WINS": {
+    "id": "BLACK_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "blue_wins",
+        "localizedText": "player \"blue\" wins!"
+      }
+    }
+  },
+  "GREEN_WINS": {
+    "id": "GREEN_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "green_wins",
+        "localizedText": "player \"green\" wins!"
+      }
+    }
+  },
+  "LIGHT_BLUE_WINS": {
+    "id": "LIGHT_BLUE_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "light_blue_wins",
+        "localizedText": "player \"light blue\" wins!"
+      }
+    }
+  },
+  "LIME_WINS": {
+    "id": "LIME_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "lime_wins",
+        "localizedText": "player \"lime\" wins!"
+      }
+    }
+  },
+  "MAGENTA_WINS": {
+    "id": "MAGENTA_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "magenta_wins",
+        "localizedText": "player \"magenta\" wins!"
+      }
+    }
+  },
+  "ORANGE_WINS": {
+    "id": "ORANGE_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "orange_wins",
+        "localizedText": "player \"orange\" wins!"
+      }
+    }
+  },
+  "PINK_WINS": {
+    "id": "PINK_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "pink_wins",
+        "localizedText": "player \"pink\" wins!"
+      }
+    }
+  },
+  "RED_WINS": {
+    "id": "RED_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "red_wins",
+        "localizedText": "player \"red\" wins!"
+      }
+    }
+  },
+  "VIOLET_WINS": {
+    "id": "VIOLET_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "violet_wins",
+        "localizedText": "player \"violet\" wins!"
+      }
+    }
+  },
+  "WHITE_WINS": {
+    "id": "WHITE_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "white_wins",
+        "localizedText": "player \"white\" wins!"
+      }
+    }
+  },
+  "YELLOW_WINS": {
+    "id": "YELLOW_WINS",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "yellow_wins",
+        "localizedText": "player \"yellow\" wins!"
+      }
+    }
+  },
+  "PLAYER_LOSE_1": {
+    "id": "PLAYER_LOSE_1",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "player_lose_1",
+        "localizedText": ""
+      }
+    }
+  },
+  "PLAYER_LOSE_2": {
+    "id": "PLAYER_LOSE_2",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "player_lose_2",
+        "localizedText": ""
+      }
+    }
+  },
+  "MINIMUM_PLAYERS_2": {
+    "id": "MINIMUM_PLAYERS_2",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "minimum_players_2",
+        "localizedText": "To play this game, you need at least 2 players"
+      }
+    }
+  },
+  "MINIMUM_PLAYERS_3": {
+    "id": "MINIMUM_PLAYERS_3",
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "minimum_players_3",
+        "localizedText": "To play this game, you need at least 3 players"
+      }
+    }
+  }
+}

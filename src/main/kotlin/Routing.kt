@@ -27,6 +27,7 @@ import de.vanfanel.joustmania.lobby.LobbyLoop.controllersWithAdminRights
 import de.vanfanel.joustmania.lobby.LobbyLoop.lastSelectedGameName
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.sound.soundMap
 import de.vanfanel.joustmania.types.BlueToothControllerStats
 import de.vanfanel.joustmania.types.GameStats
 import de.vanfanel.joustmania.types.Language
@@ -145,6 +146,11 @@ fun Application.configureRouting() {
 
             get("/accelerations") {
                 val json = AccelerationDebugger.getHistoryAsJson()
+                call.respondText(json, contentType = ContentType.Application.Json)
+            }
+
+            get("/soundmap") {
+                val json = Json.encodeToString(soundMap)
                 call.respondText(json, contentType = ContentType.Application.Json)
             }
 

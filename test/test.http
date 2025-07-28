@@ -72,3 +72,6 @@ Content-Type: application/json
 
 ### play sound test
 GET http://localhost:80/api/playsound/player_lose_2
+
+### get sound map
+GET http://localhost:80/api/soundmap
