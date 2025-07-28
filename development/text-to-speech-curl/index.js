@@ -1,4 +1,4 @@
-import {ElevenLabsClient, play} from '@elevenlabs/elevenlabs-js';
+import {ElevenLabsClient} from '@elevenlabs/elevenlabs-js';
 import 'dotenv/config';
 
 import fs from 'fs';
