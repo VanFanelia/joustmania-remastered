@@ -1,0 +1,16 @@
+{
+  "name": "text-to-speech-curl",
+  "version": "0.0.1",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Van",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.7.0",
+    "dotenv": "^17.2.1"
+  }
+}

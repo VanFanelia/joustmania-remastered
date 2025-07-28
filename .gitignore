@@ -47,3 +47,5 @@ out/
 
 ### mac ###
 **.DS_Store
+/development/text-to-speech-curl/.env
+/development/text-to-speech-curl/node_modules/
