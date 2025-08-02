@@ -30,6 +30,7 @@ enum class SupportedSoundLocale {
 @Serializable
 data class Sound(
     val id: SoundId,
+    val isSpokenText: Boolean,
     val soundFiles: Map<SupportedSoundLocale, SoundFile>
 )
 

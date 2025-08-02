@@ -75,3 +75,6 @@ GET http://localhost:80/api/playsound/player_lose_2
 
 ### get sound map
 GET http://localhost:80/api/soundmap
+
+### play all sounds
+GET http://localhost:80/api/playAllSounds

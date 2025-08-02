@@ -1,6 +1,7 @@
 {
   "NEW_CONTROLLER": {
     "id": "NEW_CONTROLLER",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -11,6 +12,7 @@
   },
   "CONTROLLER_DISCONNECTED": {
     "id": "CONTROLLER_DISCONNECTED",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -21,46 +23,51 @@
   },
   "ADMIN_GRANTED": {
     "id": "ADMIN_GRANTED",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "admin_granted",
-        "localizedText": "TODO fill me"
+        "localizedText": "admin rights granted"
       }
     }
   },
   "ADMIN_REVOKED": {
     "id": "ADMIN_REVOKED",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "admin_revoked",
-        "localizedText": "TODO fill me"
+        "localizedText": "admin rights revoked"
       }
     }
   },
   "CONTROLLER_JOINED": {
     "id": "CONTROLLER_JOINED",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "controller_joined",
-        "localizedText": "TODO fill me"
+        "localizedText": "Controller joined"
       }
     }
   },
   "CONTROLLER_LEFT": {
     "id": "CONTROLLER_LEFT",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "controller_left",
-        "localizedText": "TODO fill me"
+        "localizedText": "Controller left"
       }
     }
   },
   "GAME_MODE_FFA": {
     "id": "GAME_MODE_FFA",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -71,6 +78,7 @@
   },
   "GAME_MODE_TODDLERS": {
     "id": "GAME_MODE_TODDLERS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -81,6 +89,7 @@
   },
   "GAME_MODE_WEREWOLF": {
     "id": "GAME_MODE_WEREWOLF",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -91,6 +100,7 @@
   },
   "ALL_PLAYERS_READY": {
     "id": "ALL_PLAYERS_READY",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -101,16 +111,18 @@
   },
   "THREE": {
     "id": "THREE",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "three",
-        "localizedText": "3"
+        "localizedText": "three"
       }
     }
   },
   "TWO": {
     "id": "TWO",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -120,17 +132,19 @@
     }
   },
   "ONE": {
-    "id": "TWO",
+    "id": "ONE",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "one",
-        "localizedText": "1"
+        "localizedText": "one"
       }
     }
   },
   "GO": {
     "id": "GO",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -141,6 +155,7 @@
   },
   "GAME_MODE_FFA_EXPLANATION": {
     "id": "GAME_MODE_FFA_EXPLANATION",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -156,6 +171,7 @@
   },
   "GAME_MODE_TODDLER_EXPLANATION": {
     "id": "GAME_MODE_TODDLER_EXPLANATION",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -171,6 +187,7 @@
   },
   "GAME_MODE_WEREWOLF_EXPLANATION": {
     "id": "GAME_MODE_WEREWOLF_EXPLANATION",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -186,21 +203,23 @@
   },
   "GAME_MODE_WEREWOLF_EXPLANATION_TWO": {
     "id": "GAME_MODE_WEREWOLF_EXPLANATION_TWO",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
-        "file": "game_mode_werewolf_explanation",
+        "file": "game_mode_werewolf_explanation_two",
         "localizedText": "So remember: if you accelerate to fast, you are out! The game starts now!"
       },
       "DE": {
         "language": "DE",
-        "file": "game_mode_werewolf_explanation",
+        "file": "game_mode_werewolf_explanation_two",
         "localizedText": "Vergesst nicht: Wenn ihr zu schnell beschleunigt, seid ihr raus! Das Spiel startet jetzt!"
       }
     }
   },
   "AQUA_WINS": {
     "id": "AQUA_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -211,6 +230,7 @@
   },
   "BLACK_WINS": {
     "id": "BLACK_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -221,6 +241,7 @@
   },
   "BLUE_WINS": {
     "id": "BLACK_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -231,6 +252,7 @@
   },
   "GREEN_WINS": {
     "id": "GREEN_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -241,6 +263,7 @@
   },
   "LIGHT_BLUE_WINS": {
     "id": "LIGHT_BLUE_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -251,6 +274,7 @@
   },
   "LIME_WINS": {
     "id": "LIME_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -261,6 +285,7 @@
   },
   "MAGENTA_WINS": {
     "id": "MAGENTA_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -271,6 +296,7 @@
   },
   "ORANGE_WINS": {
     "id": "ORANGE_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -281,6 +307,7 @@
   },
   "PINK_WINS": {
     "id": "PINK_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -291,6 +318,7 @@
   },
   "RED_WINS": {
     "id": "RED_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -301,6 +329,7 @@
   },
   "VIOLET_WINS": {
     "id": "VIOLET_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -311,6 +340,7 @@
   },
   "WHITE_WINS": {
     "id": "WHITE_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -321,6 +351,7 @@
   },
   "YELLOW_WINS": {
     "id": "YELLOW_WINS",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -331,6 +362,7 @@
   },
   "PLAYER_LOSE_1": {
     "id": "PLAYER_LOSE_1",
+    "isSpokenText": false,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -341,6 +373,7 @@
   },
   "PLAYER_LOSE_2": {
     "id": "PLAYER_LOSE_2",
+    "isSpokenText": false,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -351,6 +384,7 @@
   },
   "MINIMUM_PLAYERS_2": {
     "id": "MINIMUM_PLAYERS_2",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
@@ -361,6 +395,7 @@
   },
   "MINIMUM_PLAYERS_3": {
     "id": "MINIMUM_PLAYERS_3",
+    "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",

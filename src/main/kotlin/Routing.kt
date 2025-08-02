@@ -124,6 +124,13 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.Accepted)
             }
 
+            get("/playAllSounds") {
+                call.respond(HttpStatusCode.Accepted)
+                logger.info { "Start playing all sounds" }
+                SoundId.entries.forEach { id -> SoundManager.asyncAddSoundToQueue(id = id) }
+                logger.info { "Finished playing all sounds" }
+            }
+
             get("/playsound/{soundId}") {
                 logger.info { "play sound..." }
                 val soundName: String? = call.parameters["soundId"]
