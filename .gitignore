@@ -49,3 +49,6 @@ out/
 **.DS_Store
 /development/text-to-speech-curl/.env
 /development/text-to-speech-curl/node_modules/
+
+## ignore redudant sounds.json
+development/text-to-speech-curl/sounds.json
