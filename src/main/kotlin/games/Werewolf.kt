@@ -2,9 +2,9 @@ package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.config.Settings
+import de.vanfanel.joustmania.games.WerewolfFactions.VILLAGERS
+import de.vanfanel.joustmania.games.WerewolfFactions.WEREWOLVES
 import de.vanfanel.joustmania.hardware.PSMoveApi
-import de.vanfanel.joustmania.hardware.RUMBLE_HARDEST
-import de.vanfanel.joustmania.hardware.RUMBLE_MEDIUM
 import de.vanfanel.joustmania.hardware.RUMBLE_SOFTEST
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
@@ -18,62 +18,71 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
+enum class WerewolfFactions {
+    WEREWOLVES,
+    VILLAGERS
+}
+
 class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
     override val name = "Werewolf"
     override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
     override val minimumPlayers: Int = 3
-    override val gameSelectedSound: SoundId = SoundId.GAME_MODE_FFA
+    override val gameSelectedSound: SoundId = SoundId.GAME_MODE_WEREWOLF
+
+    override val playerLostAnimationColors = listOf(
+        MoveColor.VIOLET,
+        MoveColor.VIOLET_INACTIVE,
+        MoveColor.VIOLET,
+        MoveColor.VIOLET_INACTIVE,
+        MoveColor.BLACK
+    )
 
     val werewolfTeam = mutableSetOf<MacAddress>()
     val villagerTeam = mutableSetOf<MacAddress>()
 
     override suspend fun checkForGameFinished() {
-        // TODO FIX ME
-        /*
-        val allPlayers = currentPlayingController.keys
-
-        if (allPlayers.size - playersLost.size == 1) {
+        if ((werewolfTeam - this.playersLost).isEmpty()) {
             gameRunning = false
-            val winner = (allPlayers - playersLost).first()
-            playWinnerAnimationAndChangeGameState(winner)
+            playWinnerAnimationAndChangeGameState(VILLAGERS)
             return
         }
 
-        // should not happen, only if inside 5 ms every remaining player was defeated
-        if (allPlayers == playersLost) {
+        if ((villagerTeam - this.playersLost).isEmpty()) {
             gameRunning = false
-            val winner = playersLost.last()
-            playWinnerAnimationAndChangeGameState(winner)
-            return
+            playWinnerAnimationAndChangeGameState(WEREWOLVES)
         }
-         */
     }
 
-    private suspend fun playWinnerAnimationAndChangeGameState(winner: MacAddress) {
-        // TODO: if villagers win play different animation / sound then when werewolfs win
-        /*
+    private suspend fun playWinnerAnimationAndChangeGameState(winner: WerewolfFactions) {
         GameStateManager.setGameFinishing()
         SoundManager.stopSoundPlay()
         cleanUpGame()
 
-        val winnerStub: PSMoveStub? = currentPlayingController[winner]
-        winnerStub?.setColorAnimation(animation = RainbowAnimation)
-
-        val colorOfWinner = getMoveColor(winner)
-        val colorWinsSound = SoundId.Companion.colorToSound(colorOfWinner)
-
-        colorWinsSound?.let {
-            SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = it,
-                abortOnNewSound = false,
-                minDelay = 16000L
-            )
+        val winners = if (winner == WEREWOLVES) werewolfTeam else villagerTeam
+        val winnerStubs: Collection<PSMoveStub> =
+            currentPlayingController.filter { (key, _) -> winners.contains(key) }.values
+        winnerStubs.forEach {
+            it.setColorAnimation(animation = RainbowAnimation)
         }
-        winnerStub?.clearAnimation()
+
+        val winnerSound = if (winner == WEREWOLVES) SoundId.WEREWOLVES_WINS else SoundId.VILLAGERS_WINS
+
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = winnerSound,
+            abortOnNewSound = false,
+            minDelay = 16000L
+        )
+
+        winnerStubs.forEach { it.clearAnimation() }
         PSMoveApi.setColorOnAllMoveController(MoveColor.Companion.BLACK)
         delay(1000)
         GameStateManager.setGameFinished()
-         */
+    }
+
+    override fun playPlayerLostSound(macAddress: MacAddress) {
+        val playerLostSound =
+            if (werewolfTeam.contains(macAddress)) SoundId.A_WEREWOLF_PLAYER_LOSE else SoundId.A_VILLAGER_PLAYER_LOSE
+        SoundManager.asyncAddSoundToQueue(id = playerLostSound, abortOnNewSound = false)
     }
 
     override suspend fun start(players: Set<PSMoveStub>) {
@@ -102,8 +111,6 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         )
         logger.info { "explanation played" }
 
-
-
         currentPlayingController.forEach { player ->
             player.value.setColorAnimation(
                 ColorAnimation(
@@ -122,35 +129,47 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         delay(2000)
 
         werewolfTeam.forEach { address ->
-            currentPlayingController[address]?.setCurrentColor(MoveColor.Companion.RED, true)
+            currentPlayingController[address]?.setCurrentColor(MoveColor.Companion.RED_INACTIVE, true)
             currentPlayingController[address]?.setColorAnimation(
                 ColorAnimation(
                     colorToSet = listOf(
-                        MoveColor.Companion.BLACK, MoveColor.Companion.RED
+                        MoveColor.Companion.BLACK, MoveColor.Companion.RED_INACTIVE
                     ), durationInMS = 1000, loop = false
                 )
             )
         }
 
         villagerTeam.forEach { address ->
-            currentPlayingController[address]?.setCurrentColor(MoveColor.Companion.GREEN, true)
+            currentPlayingController[address]?.setCurrentColor(MoveColor.Companion.GREEN_INACTIVE, true)
             currentPlayingController[address]?.setColorAnimation(
                 ColorAnimation(
                     colorToSet = listOf(
-                        MoveColor.Companion.BLACK, MoveColor.Companion.GREEN
+                        MoveColor.Companion.BLACK, MoveColor.Companion.GREEN_INACTIVE
                     ), durationInMS = 1000, loop = false
                 )
             )
         }
 
         delay(3000)
-        currentPlayingController.forEach { (_, value) -> value.setCurrentColor(MoveColor.Companion.GREEN, true) }
+        currentPlayingController.forEach { (_, value) ->
+            value.setCurrentColor(MoveColor.Companion.GREEN, true)
+            this.setMoveColor(value.macAddress, MoveColor.Companion.GREEN)
+        }
 
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
             id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_TWO,
             abortOnNewSound = false
         )
-
+        delay(5000)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_THREE,
+            abortOnNewSound = false
+        )
+        delay(10000)
+        SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
+            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_FOUR,
+            abortOnNewSound = false
+        )
         delay(2000)
 
         this.gameRunning = true

@@ -208,12 +208,44 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_werewolf_explanation_two",
-        "localizedText": "So remember: if you accelerate to fast, you are out! The game starts now!"
+        "localizedText": "Now stand in a circle so that each player can see every other player. Then close your eyes and wait."
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_werewolf_explanation_two",
-        "localizedText": "Vergesst nicht: Wenn ihr zu schnell beschleunigt, seid ihr raus! Das Spiel startet jetzt!"
+        "localizedText": "Jetzt stellt euch alle in einen Kreis, sodass jeder Spieler jeden anderen Spieler sehen kann. Dann schließt eure Augen und wartet."
+      }
+    }
+  },
+  "GAME_MODE_WEREWOLF_EXPLANATION_THREE": {
+    "id": "GAME_MODE_WEREWOLF_EXPLANATION_THREE",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_werewolf_explanation_three",
+        "localizedText": "All werewolves, and only the werewolves, open your eyes NOW. Find your partners, nod to each other, and then close your eyes again."
+      },
+      "DE": {
+        "language": "DE",
+        "file": "game_mode_werewolf_explanation_three",
+        "localizedText": "Alle Werwölfe, und wirklich nur die Werwölfe öffnen JETZT ihre Augen. Sucht eure Partner, nickt euch zu und schließt dann wieder eure Augen."
+      }
+    }
+  },
+  "GAME_MODE_WEREWOLF_EXPLANATION_FOUR": {
+    "id": "GAME_MODE_WEREWOLF_EXPLANATION_FOUR",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_werewolf_explanation_four",
+        "localizedText": "The werewolves should now have their eyes closed. The game can now begin! Please open your eyes, everyone. From now on, if you accelerate too quickly, you're out! Let the wolf hunt begin..."
+      },
+      "DE": {
+        "language": "DE",
+        "file": "game_mode_werewolf_explanation_four",
+        "localizedText": "Die Werwölfe sollten ihre Augen jetzt geschlossen haben. Das Spiel kann nun beginnen! Bitte öffnet ALLE eure Augen. Ab jetzt gilt: Wenn ihr zu schnell beschleunigt, seid ihr raus! Möge die Wolfsjagd beginnen..."
       }
     }
   },
@@ -401,6 +433,50 @@
         "language": "EN",
         "file": "minimum_players_3",
         "localizedText": "To play this game, you need at least 3 players"
+      }
+    }
+  },
+  "WEREWOLVES_WINS": {
+    "id": "WEREWOLVES_WINS",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "werewolves_wins",
+        "localizedText": "Congratulation: The werewolves wins!"
+      }
+    }
+  },
+  "VILLAGERS_WINS": {
+    "id": "VILLAGERS_WINS",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "villagers_wins",
+        "localizedText": "Congratulation: The villagers wins!"
+      }
+    }
+  },
+  "A_WEREWOLF_PLAYER_LOSE": {
+    "id": "A_WEREWOLF_PLAYER_LOSE",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "werewolf_howling",
+        "localizedText": ""
+      }
+    }
+  },
+  "A_VILLAGER_PLAYER_LOSE": {
+    "id": "A_VILLAGER_PLAYER_LOSE",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "human_oh_no",
+        "localizedText": ""
       }
     }
   }

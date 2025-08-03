@@ -1,12 +1,8 @@
 package de.vanfanel.joustmania.sound
 
-import de.vanfanel.joustmania.sound.SoundId.*
-import de.vanfanel.joustmania.sound.SupportedSoundLocale.EN
-import de.vanfanel.joustmania.sound.SupportedSoundLocale.DE
 import de.vanfanel.joustmania.types.MoveColor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.nio.file.Paths
 import kotlin.jvm.javaClass
 
 /**
@@ -70,6 +66,8 @@ enum class SoundId {
     GAME_MODE_TODDLER_EXPLANATION,
     GAME_MODE_WEREWOLF_EXPLANATION,
     GAME_MODE_WEREWOLF_EXPLANATION_TWO,
+    GAME_MODE_WEREWOLF_EXPLANATION_THREE,
+    GAME_MODE_WEREWOLF_EXPLANATION_FOUR,
     AQUA_WINS,
     BLACK_WINS,
     BLUE_WINS,
@@ -86,7 +84,11 @@ enum class SoundId {
     PLAYER_LOSE_1,
     PLAYER_LOSE_2,
     MINIMUM_PLAYERS_2,
-    MINIMUM_PLAYERS_3
+    MINIMUM_PLAYERS_3,
+    WEREWOLVES_WINS,
+    VILLAGERS_WINS,
+    A_WEREWOLF_PLAYER_LOSE,
+    A_VILLAGER_PLAYER_LOSE,
     ;
 
     companion object {

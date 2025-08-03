@@ -66,6 +66,13 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
     override val playersLost: MutableSet<MacAddress> = mutableSetOf()
     private val _playerLostFlow: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val playerLostFlow: Flow<List<String>> = _playerLostFlow
+    open val playerLostAnimationColors = listOf(
+        MoveColor.RED,
+        MoveColor.RED_INACTIVE,
+        MoveColor.RED,
+        MoveColor.RED_INACTIVE,
+        MoveColor.BLACK
+    )
 
     protected var currentSensitivity: Sensibility = Sensibility.MEDIUM
 
@@ -112,17 +119,10 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
                 if (acceleration.change > 1.2 && gameRunning && !playersLost.contains(stub.macAddress)) {
                     if (acceleration.change > currentSensitivity.getSensibilityValues().deathThreshold) {
                         logger.info { "FFA: Move ${stub.macAddress} has acceleration ${acceleration.change} and lost the game" }
-                        val randomSoundId = listOf(SoundId.PLAYER_LOSE_1, SoundId.PLAYER_LOSE_2).random()
-                        SoundManager.asyncAddSoundToQueue(id = randomSoundId, abortOnNewSound = false)
+                        playPlayerLostSound(macAddress = stub.macAddress)
                         stub.setColorAnimation(
                             ColorAnimation(
-                                colorToSet = listOf(
-                                    MoveColor.RED,
-                                    MoveColor.RED_INACTIVE,
-                                    MoveColor.RED,
-                                    MoveColor.RED_INACTIVE,
-                                    MoveColor.BLACK
-                                ), durationInMS = 3000, loop = false
+                                colorToSet = playerLostAnimationColors, durationInMS = 3000, loop = false
                             )
                         )
                         addRumbleEvent(move = stub.macAddress, intensity = RUMBLE_HARDEST, durationInMs = 3000)
@@ -145,6 +145,11 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
             }
         }
         return currentJob
+    }
+
+    open fun playPlayerLostSound(macAddress: MacAddress){
+        val randomSoundId = listOf(SoundId.PLAYER_LOSE_1, SoundId.PLAYER_LOSE_2).random()
+        SoundManager.asyncAddSoundToQueue(id = randomSoundId, abortOnNewSound = false)
     }
 
     override suspend fun forceGameEnd() {
