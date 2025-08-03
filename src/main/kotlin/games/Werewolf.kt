@@ -98,8 +98,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
         initObservers(currentPlayingController.keys)
 
-        // set teams, per 5 players are one werewolf (minimum of one) rounded up
-        val amountOfWerewolves: Int = ceil(players.size / 5.0).toInt()
+        val amountOfWerewolves: Int = getAmountOfWerewolves(players.size)
         werewolfTeam.addAll(currentPlayingController.keys.shuffled().take(amountOfWerewolves))
         villagerTeam.addAll(currentPlayingController.keys.minus(werewolfTeam))
 
@@ -174,5 +173,29 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
         this.gameRunning = true
         GameStateManager.setGameRunning()
+    }
+
+    private fun getAmountOfWerewolves(amountOfPlayers: Int): Int {
+        val amountOfWerwolvesPerPlayers = mapOf(
+            3 to arrayOf(1),
+            4 to arrayOf(1),
+            5 to arrayOf(1, 1, 1, 2),
+            6 to arrayOf(1, 2),
+            7 to arrayOf(1, 2, 2, 2),
+            8 to arrayOf(2),
+            9 to arrayOf(2, 2, 3),
+            10 to arrayOf(2, 3),
+            11 to arrayOf(2, 3, 3),
+            12 to arrayOf(3),
+            13 to arrayOf(3, 3, 3, 4),
+            14 to arrayOf(3, 3, 4),
+            15 to arrayOf(3, 4),
+            16 to arrayOf(3, 4, 4),
+            17 to arrayOf(3, 4, 4, 4),
+            18 to arrayOf(4),
+            19 to arrayOf(4, 4, 5),
+        )
+        val amountOfWerewolves = amountOfWerwolvesPerPlayers[amountOfPlayers] ?: arrayOf(ceil(amountOfPlayers / 5.0).toInt())
+        return amountOfWerewolves.random()
     }
 }
