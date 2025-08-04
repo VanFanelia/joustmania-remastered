@@ -26,7 +26,6 @@ cp -r ./lib/linux "$PACKAGE_FOLDER/pi/lib"
 
 ## copy install and start script for pi
 cp ./scripts/pi/*.sh "$PACKAGE_FOLDER/pi"
-cp ./scripts/pi/settings.json "$PACKAGE_FOLDER/pi"
 cp ./scripts/pi/apfiles/* "$PACKAGE_FOLDER/pi/apfiles"
 
 ## copy finished jar
