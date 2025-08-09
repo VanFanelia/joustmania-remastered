@@ -5,7 +5,6 @@ import fs from 'fs';
 import {pipeline} from 'stream';
 import {promisify} from 'util';
 import md5 from 'md5';
-import { execSync } from 'child_process';
 
 const streamPipeline = promisify(pipeline);
 
@@ -40,7 +39,6 @@ for (const [soundKey, soundConfig] of Object.entries(sounds)) {
         const md5OfText = md5(text);
 
         const outputFilePath = `./output/${language.toLowerCase()}/mp3/${fileName}.${language}.${md5OfText}.mp3`;
-        const outputFilePathWav = `./output/${language.toLowerCase()}/wav/${fileName}.${language}.${md5OfText}.wav`
 
         // Check if MP3 exists
         if (fs.existsSync(outputFilePath)) {
@@ -50,34 +48,21 @@ for (const [soundKey, soundConfig] of Object.entries(sounds)) {
             await getSoundFileFromElevenLabs(outputFilePath, text);
             console.log(`Sound ${soundKey} generated successfully. Output file: ${outputFilePath}`);
         }
-
-        // Convert to WAV if not already converted
-        if (!fs.existsSync(outputFilePathWav)) {
-            console.log(`Converting MP3 to WAV: ${outputFilePath} → ${outputFilePathWav}`);
-            try {
-                execSync(`ffmpeg -i "${outputFilePath}" "${outputFilePathWav}"`);
-                console.log(`Conversion successful: ${outputFilePathWav}`);
-            } catch (error) {
-                console.error(`Error during conversion: ${error.message}`);
-            }
-        }
         
         // copy to resources if not exists there
-        const resourceFilePathWav = `../../src/main/resources/sound/${language.toLowerCase()}/wav/${fileName}.wav`;
+        const resourceFilePath = `../../src/main/resources/sound/${language.toLowerCase()}/${fileName}.mp3`;
 
-        if (!fs.existsSync(resourceFilePathWav)) {
-            console.log(`Copying WAV file to resources: ${outputFilePathWav} → ${resourceFilePathWav}`);
+        if (!fs.existsSync(resourceFilePath)) {
+            console.log(`Copying mp3 file: ${outputFilePath} → ${resourceFilePath}`);
             try {
-                fs.copyFileSync(outputFilePathWav, resourceFilePathWav);
-                console.log(`File copied to resources: ${resourceFilePathWav}`);
+                fs.copyFileSync(outputFilePath, resourceFilePath);
+                console.log(`File copied to resources: ${resourceFilePath}`);
             } catch (error) {
-                console.error(`Error copying WAV file: ${error.message}`);
+                console.error(`Error copying mp3 file: ${error.message}`);
             }
         }
     }
 }
-
-// go through every file in ./output/en/wav and replace
 
 async function getSoundFileFromElevenLabs(outputFile, textToGenerate) {
     const elevenLabs = new ElevenLabsClient();

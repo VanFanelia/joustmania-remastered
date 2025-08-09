@@ -9,8 +9,7 @@ import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioInputStream
 import javax.sound.sampled.AudioSystem
 
-
-val wavAudioFormat: AudioFormat = AudioFormat(44100f, 8, 1, false, false)
+val wavAudioFormat: AudioFormat = AudioFormat(44100f, 16, 1, true, false)
 
 fun convertMp3InputStreamToWavOutputStream(input: InputStream, output: OutputStream) {
     try {

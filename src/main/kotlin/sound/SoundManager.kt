@@ -90,9 +90,9 @@ object SoundManager {
                 try {
                     val nextSound = queue.poll()
                     lastSound = nextSound
-                    logger.info { "Playing ${nextSound.soundFile.getWavSoundPath()}" }
+                    logger.info { "Playing ${nextSound.soundFile.getMp3SoundPath()}" }
                     lastPlayJob = launch {
-                        playResource(nextSound.soundFile.getWavSoundPath())
+                        playResource(resourcePath = nextSound.soundFile.getMp3SoundPath(), isMp3 = true)
                     }
                     try {
                         lastPlayJob?.join()
@@ -127,7 +127,7 @@ object SoundManager {
         resourcePath: String,
         deviceIndex: Int = DEFAULT_SOUND_DEVICE_INDEX,
         volume: Float = 1.0f,
-        isMp3: Boolean = false
+        isMp3: Boolean = true
     ) {
         withContext(Dispatchers.IO) {
             var inputStream: InputStream? = null
@@ -142,6 +142,7 @@ object SoundManager {
                     return@withContext
                 }
 
+                // convert mp3 to wav if necessary
                 if (isMp3) {
                     logger.debug { "Converting mp3 to wav" }
                     val convertedBytes = convertMp3ToWav(inputStream)

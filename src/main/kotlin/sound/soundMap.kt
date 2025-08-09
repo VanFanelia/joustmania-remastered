@@ -36,13 +36,9 @@ data class SoundFile(
     val file: String,
     val localizedText: String,
 ) {
-    fun getWavSoundPath(): String {
-        return "/sound/${language.name.lowercase()}/wav/$file.wav"
-    }
-
     @Suppress("unused")
     fun getMp3SoundPath(): String {
-        return "/sound/${language.name.lowercase()}/mp3/$file.mp3"
+        return "/sound/${language.name.lowercase()}/$file.mp3"
     }
 }
 
