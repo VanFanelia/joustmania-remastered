@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.time.Instant
 import java.util.concurrent.LinkedBlockingQueue
@@ -21,6 +22,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+
 data class SoundQueueEntry(
     val soundFile: SoundFile,
     val abortOnNewSound: Boolean,
@@ -32,6 +34,8 @@ const val DEFAULT_SOUND_DEVICE_INDEX: Int = 0
 object SoundManager {
     private val logger = KotlinLogging.logger {}
     private val queue = LinkedBlockingQueue<SoundQueueEntry>()
+    private var currentBackgroundSound: SoundId? = null
+    private var currentBackgroundSoundJob: Job? = null
     private var isPlaying = false
     private var lastSound: SoundQueueEntry? = null
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
@@ -61,7 +65,11 @@ object SoundManager {
         }
     }
 
-    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(id: SoundId, abortOnNewSound: Boolean, minDelay: Long = 0L) =
+    suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(
+        id: SoundId,
+        abortOnNewSound: Boolean,
+        minDelay: Long = 0L
+    ) =
         suspendCoroutine { continuation ->
             val start = Instant.now().toEpochMilli()
             this.asyncAddSoundToQueue(id = id, abortOnNewSound = abortOnNewSound) {
@@ -102,7 +110,25 @@ object SoundManager {
         }
     }
 
-    private suspend fun playResource(resourcePath: String, deviceIndex: Int = DEFAULT_SOUND_DEVICE_INDEX) {
+    private fun convertMp3ToWav(inputStream: InputStream): ByteArray? {
+        try {
+            ByteArrayOutputStream().use { output ->
+                convertMp3InputStreamToWavOutputStream(inputStream, output)
+
+                return output.toByteArray()
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Cannot convert mp3 to wav" }
+            return null
+        }
+    }
+
+    private suspend fun playResource(
+        resourcePath: String,
+        deviceIndex: Int = DEFAULT_SOUND_DEVICE_INDEX,
+        volume: Float = 1.0f,
+        isMp3: Boolean = false
+    ) {
         withContext(Dispatchers.IO) {
             var inputStream: InputStream? = null
             var bufferedInputStream: BufferedInputStream? = null
@@ -114,6 +140,16 @@ object SoundManager {
                 if (inputStream == null) {
                     logger.error { "Cannot find file with path: $resourcePath" }
                     return@withContext
+                }
+
+                if (isMp3) {
+                    logger.debug { "Converting mp3 to wav" }
+                    val convertedBytes = convertMp3ToWav(inputStream)
+                    if (convertedBytes != null) {
+                        inputStream = convertedBytes.inputStream()
+                    } else {
+                        logger.error { "Cannot convert mp3 file to wav" }
+                    }
                 }
 
                 bufferedInputStream = BufferedInputStream(inputStream)
@@ -145,7 +181,7 @@ object SoundManager {
 
                 clip = selectedMixer.getLine(info) as Clip
                 clip.open(originalAudioInputStream)
-                setVolume(clip)
+                setVolume(clip, volume)
                 logger.debug { ("Clip opened successfully. length: ${clip.microsecondLength / 1000} ms") }
 
                 clip.start()
@@ -189,5 +225,26 @@ object SoundManager {
     fun stopSoundPlay() {
         logger.info { "Force stop for sound" }
         queue.clear()
+    }
+
+    fun stopBackgroundSound() {
+        currentBackgroundSoundJob?.cancel(CancellationException("Force stopped background sound"))
+    }
+
+
+    fun playBackground(soundId: SoundId) {
+        currentBackgroundSound = soundId
+        this.logger.info { "Playing background sound: ${soundId.name}" }
+        currentBackgroundSoundJob = CoroutineScope(Dispatchers.IO).launch {
+            while (currentBackgroundSound != null) {
+                currentBackgroundSound?.let {
+                    val soundFile = getSoundBy(it, locale)
+                    soundFile?.let { file ->
+                        playResource(resourcePath = file.getMp3SoundPath(), volume = 0.8f, isMp3 = true)
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -89,6 +89,9 @@ enum class SoundId {
     VILLAGERS_WINS,
     A_WEREWOLF_PLAYER_LOSE,
     A_VILLAGER_PLAYER_LOSE,
+    BITTERSWEET_BACKGROUND_MUSIC,
+    LOBBY_BACKGROUND_1,
+    LOBBY_BACKGROUND_2
     ;
 
     companion object {

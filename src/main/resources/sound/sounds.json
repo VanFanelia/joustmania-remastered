@@ -479,5 +479,38 @@
         "localizedText": ""
       }
     }
+  },
+  "BITTERSWEET_BACKGROUND_MUSIC": {
+    "id": "BITTERSWEET_BACKGROUND_MUSIC",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "bittersweet",
+        "localizedText": ""
+      }
+    }
+  },
+  "LOBBY_BACKGROUND_1": {
+    "id": "LOBBY_BACKGROUND_1",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "lobby_background_1",
+        "localizedText": ""
+      }
+    }
+  },
+  "LOBBY_BACKGROUND_2": {
+    "id": "LOBBY_BACKGROUND_2",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "lobby_background_2",
+        "localizedText": ""
+      }
+    }
   }
 }

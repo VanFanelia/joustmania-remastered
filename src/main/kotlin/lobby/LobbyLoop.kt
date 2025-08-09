@@ -18,10 +18,14 @@ import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_JOINED
 import de.vanfanel.joustmania.sound.SoundId.CONTROLLER_LEFT
 import de.vanfanel.joustmania.sound.SoundId.NEW_CONTROLLER
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.sound.SoundManager.playBackground
+import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.engine.launchOnCancellation
 import io.ktor.util.collections.ConcurrentSet
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -93,6 +97,7 @@ object LobbyLoop {
 
     }
 
+    @OptIn(InternalAPI::class)
     private fun initLobbyCoroutines() {
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             observeButtonPressForDebugging()
@@ -125,6 +130,13 @@ object LobbyLoop {
 
         lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
             forceStartWithAllControllerWhenAdminForcedByButtonPress()
+        })
+
+        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+            val sound = arrayOf(SoundId.LOBBY_BACKGROUND_1, SoundId.LOBBY_BACKGROUND_2).random()
+            playBackground(sound)
+        }.launchOnCancellation {
+            stopBackgroundSound()
         })
     }
 
@@ -339,7 +351,7 @@ object LobbyLoop {
                 newControllerConnected(newMove)
                 logger.info { "Added new PSMove controller ${newMove.macAddress} to lobby" }
             }
-            movesInLobby.removeIf { it -> !newMovesMacAddresses.contains(it) }
+            movesInLobby.removeIf { !newMovesMacAddresses.contains(it) }
         }
     }
 

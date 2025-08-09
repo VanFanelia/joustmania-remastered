@@ -65,6 +65,9 @@ dependencies {
     // used for sound
     implementation("javazoom:jlayer:1.0.1")
 
+    // used for mp3
+    implementation("com.googlecode.soundlibs:mp3spi:1.9.5.4")
+
     // JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("io.ktor:ktor-server-content-negotiation:3.1.1")
