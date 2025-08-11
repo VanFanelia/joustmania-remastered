@@ -44,6 +44,8 @@ interface Game {
     val playersLost: MutableSet<MacAddress>
     val playerLostFlow: Flow<List<MacAddress>>
 
+    fun playBackgroundMusic(): Job
+
     companion object {
         val listOfGames: List<Class<out Game>> = listOf(
             FreeForAll::class.java as Class<out Game>,
@@ -110,10 +112,7 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
 
     protected fun observeAcceleration(stubId: MacAddress): Job {
         val currentJob = CoroutineScope(CustomThreadDispatcher.GAME_LOOP).launch {
-            val stub = currentPlayingController[stubId]
-            if (stub == null) {
-                return@launch
-            }
+            val stub = currentPlayingController[stubId] ?: return@launch
 
             stub.accelerationFlow.collect { acceleration ->
                 if (acceleration.change > 1.2 && gameRunning && !playersLost.contains(stub.macAddress)) {

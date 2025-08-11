@@ -10,11 +10,15 @@ import de.vanfanel.joustmania.hardware.RUMBLE_SOFT
 import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.sound.SoundManager.playBackground
+import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.darken
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.engine.launchOnCancellation
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -40,6 +44,7 @@ class SortingToddler : Game {
 
     private var connectedControllerChangeJob: Job? = null
     private var disconnectedControllerJob: Job? = null
+    private var backgroundMusicJob: Job? = null
     private var numberOfPlayersOnGameStart: Int = 3
 
     private var maxRounds = 10
@@ -178,6 +183,17 @@ class SortingToddler : Game {
         }
 
         GameStateManager.setGameRunning()
+        backgroundMusicJob = playBackgroundMusic()
+    }
+
+    @OptIn(InternalAPI::class)
+    override fun playBackgroundMusic(): Job {
+        return CoroutineScope(Dispatchers.IO).launch {
+            val sound = arrayOf(SoundId.SORT_TODDLER_BACKGROUND_1).random()
+            playBackground(sound)
+        }.launchOnCancellation {
+            stopBackgroundSound()
+        }
     }
 
     override suspend fun checkForGameFinished() {
@@ -194,11 +210,13 @@ class SortingToddler : Game {
 
     override fun cleanUpGame() {
         gameLoopJob?.cancel()
-        currentPlayingController.forEach { it ->
+        currentPlayingController.forEach {
             it.value.clearAnimation()
         }
 
-        disconnectedControllerJob?.cancel("FreeForAll game go cleanup call")
+        disconnectedControllerJob?.cancel("SortingToddler game go cleanup call")
+        backgroundMusicJob?.cancel("SortingToddler game go cleanup call")
+        stopBackgroundSound()
     }
 
     override suspend fun forceGameEnd() {

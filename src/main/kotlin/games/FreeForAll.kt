@@ -11,11 +11,20 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundId.Companion.colorToSound
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.sound.SoundManager.playBackground
+import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.engine.launchOnCancellation
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
@@ -23,6 +32,8 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
     override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
     override val minimumPlayers: Int = 2
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_FFA
+
+    private var backgroundMusicJob: Job? = null
 
     companion object {
         val listOfPlayerColors = listOf(
@@ -180,10 +191,26 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
             player.value.setCurrentColor(colorToSet = getMoveColor(player.key))
         }
 
-
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(id = SoundId.GO, abortOnNewSound = false)
 
         this.gameRunning = true
+        backgroundMusicJob = playBackgroundMusic()
         GameStateManager.setGameRunning()
+    }
+
+    @OptIn(InternalAPI::class)
+    override fun playBackgroundMusic(): Job {
+        return CoroutineScope(Dispatchers.IO).launch {
+            val sound = arrayOf(SoundId.FREE_FOR_ALL_BACKGROUND_1).random()
+            playBackground(sound)
+        }.launchOnCancellation {
+            stopBackgroundSound()
+        }
+    }
+
+    override fun cleanUpGame() {
+        super.cleanUpGame()
+        backgroundMusicJob?.cancel("Free For All game ended so background music need to stop")
+        stopBackgroundSound()
     }
 }

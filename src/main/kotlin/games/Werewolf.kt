@@ -10,11 +10,20 @@ import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
+import de.vanfanel.joustmania.sound.SoundManager.playBackground
+import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.engine.launchOnCancellation
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
@@ -28,6 +37,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
     override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
     override val minimumPlayers: Int = 3
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_WEREWOLF
+    private var backgroundMusicJob: Job? = null
 
     override val playerLostAnimationColors = listOf(
         MoveColor.VIOLET,
@@ -74,7 +84,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         )
 
         winnerStubs.forEach { it.clearAnimation() }
-        PSMoveApi.setColorOnAllMoveController(MoveColor.Companion.BLACK)
+        PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
         delay(1000)
         GameStateManager.setGameFinished()
     }
@@ -94,7 +104,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
         currentPlayingController.clear()
         currentPlayingController.putAll(players.associateBy { it.macAddress })
-        PSMoveApi.setColorOnAllMoveController(MoveColor.Companion.YELLOW)
+        PSMoveApi.setColorOnAllMoveController(MoveColor.YELLOW)
 
         initObservers(currentPlayingController.keys)
 
@@ -114,7 +124,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
             player.value.setColorAnimation(
                 ColorAnimation(
                     colorToSet = listOf(
-                        MoveColor.Companion.YELLOW, MoveColor.Companion.BLACK
+                        MoveColor.YELLOW, MoveColor.BLACK
                     ), durationInMS = 1000, loop = false
                 )
             )
@@ -128,22 +138,22 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         delay(2000)
 
         werewolfTeam.forEach { address ->
-            currentPlayingController[address]?.setCurrentColor(MoveColor.Companion.RED_INACTIVE, true)
+            currentPlayingController[address]?.setCurrentColor(MoveColor.RED_INACTIVE, true)
             currentPlayingController[address]?.setColorAnimation(
                 ColorAnimation(
                     colorToSet = listOf(
-                        MoveColor.Companion.BLACK, MoveColor.Companion.RED_INACTIVE
+                        MoveColor.BLACK, MoveColor.RED_INACTIVE
                     ), durationInMS = 1000, loop = false
                 )
             )
         }
 
         villagerTeam.forEach { address ->
-            currentPlayingController[address]?.setCurrentColor(MoveColor.Companion.GREEN_INACTIVE, true)
+            currentPlayingController[address]?.setCurrentColor(MoveColor.GREEN_INACTIVE, true)
             currentPlayingController[address]?.setColorAnimation(
                 ColorAnimation(
                     colorToSet = listOf(
-                        MoveColor.Companion.BLACK, MoveColor.Companion.GREEN_INACTIVE
+                        MoveColor.BLACK, MoveColor.GREEN_INACTIVE
                     ), durationInMS = 1000, loop = false
                 )
             )
@@ -151,8 +161,8 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
         delay(3000)
         currentPlayingController.forEach { (_, value) ->
-            value.setCurrentColor(MoveColor.Companion.GREEN, true)
-            this.setMoveColor(value.macAddress, MoveColor.Companion.GREEN)
+            value.setCurrentColor(MoveColor.GREEN, true)
+            this.setMoveColor(value.macAddress, MoveColor.GREEN)
         }
 
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
@@ -172,7 +182,24 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         delay(2000)
 
         this.gameRunning = true
+        backgroundMusicJob = playBackgroundMusic()
         GameStateManager.setGameRunning()
+    }
+
+    @OptIn(InternalAPI::class)
+    override fun playBackgroundMusic(): Job {
+        return CoroutineScope(Dispatchers.IO).launch {
+            val sound = arrayOf(SoundId.WEREWOLF_BACKGROUND_1, SoundId.WEREWOLF_BACKGROUND_2).random()
+            playBackground(sound)
+        }.launchOnCancellation {
+            stopBackgroundSound()
+        }
+    }
+
+    override fun cleanUpGame() {
+        super.cleanUpGame()
+        backgroundMusicJob?.cancel("Werewolf game finished so background music need to be canceled")
+        stopBackgroundSound()
     }
 
     private fun getAmountOfWerewolves(amountOfPlayers: Int): Int {
@@ -195,7 +222,8 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
             18 to arrayOf(4),
             19 to arrayOf(4, 4, 5),
         )
-        val amountOfWerewolves = amountOfWerwolvesPerPlayers[amountOfPlayers] ?: arrayOf(ceil(amountOfPlayers / 5.0).toInt())
+        val amountOfWerewolves =
+            amountOfWerwolvesPerPlayers[amountOfPlayers] ?: arrayOf(ceil(amountOfPlayers / 5.0).toInt())
         return amountOfWerewolves.random()
     }
 }

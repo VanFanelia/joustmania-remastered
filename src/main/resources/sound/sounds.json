@@ -480,17 +480,6 @@
       }
     }
   },
-  "BITTERSWEET_BACKGROUND_MUSIC": {
-    "id": "BITTERSWEET_BACKGROUND_MUSIC",
-    "isSpokenText": false,
-    "soundFiles": {
-      "EN": {
-        "language": "EN",
-        "file": "bittersweet",
-        "localizedText": ""
-      }
-    }
-  },
   "LOBBY_BACKGROUND_1": {
     "id": "LOBBY_BACKGROUND_1",
     "isSpokenText": false,
@@ -509,6 +498,50 @@
       "EN": {
         "language": "EN",
         "file": "lobby_background_2",
+        "localizedText": ""
+      }
+    }
+  },
+  "WEREWOLF_BACKGROUND_1": {
+    "id": "WEREWOLF_BACKGROUND_1",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "werewolf_background_1",
+        "localizedText": ""
+      }
+    }
+  },
+  "WEREWOLF_BACKGROUND_2": {
+    "id": "WEREWOLF_BACKGROUND_2",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "werewolf_background_2",
+        "localizedText": ""
+      }
+    }
+  },
+  "FREE_FOR_ALL_BACKGROUND_1": {
+    "id": "FREE_FOR_ALL_BACKGROUND_1",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "free_for_all_background_1",
+        "localizedText": ""
+      }
+    }
+  },
+  "SORT_TODDLER_BACKGROUND_1": {
+    "id": "SORT_TODDLER_BACKGROUND_1",
+    "isSpokenText": false,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "sort_toddler_background_1",
         "localizedText": ""
       }
     }
