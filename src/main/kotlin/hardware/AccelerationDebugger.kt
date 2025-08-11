@@ -75,7 +75,7 @@ object AccelerationDebugger {
     init {
         CoroutineScope(Dispatchers.IO).launch {
             psMoveStubStatistics.collect { stats ->
-                logger.debug { "PSMove stats: $stats" }
+                logger.trace { "PSMove stats: $stats" }
             }
         }
     }
