@@ -5,6 +5,7 @@ import fs from 'fs';
 import {pipeline} from 'stream';
 import {promisify} from 'util';
 import md5 from 'md5';
+import { execSync } from 'child_process';
 
 const streamPipeline = promisify(pipeline);
 
@@ -50,17 +51,32 @@ for (const [soundKey, soundConfig] of Object.entries(sounds)) {
         }
         
         // copy to resources if not exists there
-        const resourceFilePath = `../../src/main/resources/sound/${language.toLowerCase()}/${fileName}.mp3`;
+        const targetResourceFilePathForMp3 = `../../src/main/resources/sound/${language.toLowerCase()}/mp3/${fileName}.mp3`;
 
-        if (!fs.existsSync(resourceFilePath)) {
-            console.log(`Copying mp3 file: ${outputFilePath} → ${resourceFilePath}`);
+        if (!fs.existsSync(targetResourceFilePathForMp3)) {
+            console.log(`Copying mp3 file: ${outputFilePath} → ${targetResourceFilePathForMp3}`);
             try {
-                fs.copyFileSync(outputFilePath, resourceFilePath);
-                console.log(`File copied to resources: ${resourceFilePath}`);
+                fs.copyFileSync(outputFilePath, targetResourceFilePathForMp3);
+                console.log(`File copied to resources: ${targetResourceFilePathForMp3}`);
             } catch (error) {
                 console.error(`Error copying mp3 file: ${error.message}`);
             }
         }
+
+        // generate wav if not exists there
+        const targetResourceFilePathForWav = `../../src/main/resources/sound/${language.toLowerCase()}/wav/${fileName}.wav`;
+
+        if (!fs.existsSync(targetResourceFilePathForWav)) {
+            console.log(`try to convert mp3 file to wav: ${outputFilePath} → ${targetResourceFilePathForWav}`);
+            try {
+                execSync(`ffmpeg -i "${outputFilePath}" -acodec pcm_s16le -ar 48000 -ac 2 "${targetResourceFilePathForWav}"`);
+                console.log(`File copied to resources: ${targetResourceFilePathForWav}`);
+            } catch (error) {
+                console.error(`Error converting mp3 file to wav: ${error.message}`);
+            }
+        }
+
+
     }
 }
 
