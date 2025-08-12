@@ -1,3 +1,7 @@
+# ignore generated wav files
+src/main/resources/sound/en/wav/*.wav
+src/main/resources/sound/de/wav/*.wav
+
 # ignore libs
 backup/
 lib/libopencv_*

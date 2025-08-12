@@ -12,6 +12,26 @@ npm --prefix joustmania-web-app run build
 rm -rf ./src/main/resources/static/*
 cp -r ./joustmania-web-app/dist/* ./src/main/resources/static
 
+## convert all mp3 to wav
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+input_dir="$script_dir/src/main/resources/sound/en/mp3"
+output_dir="$script_dir/src/main/resources/sound/en/wav"
+
+mkdir -p "$output_dir"
+
+for file in "$input_dir"/*.mp3; do
+  filename=$(basename "$file" .mp3)
+  target="$output_dir/$filename.wav"
+
+  if [ -f "$target" ]; then
+    echo "file $target exists. skip..."
+    continue
+  fi
+
+  ffmpeg -i "$file" "$target"
+done
+
+
 ## build jar
 ./gradlew clean
 java --version

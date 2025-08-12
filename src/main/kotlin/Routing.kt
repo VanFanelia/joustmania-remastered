@@ -124,10 +124,17 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.Accepted)
             }
 
-            get("/playAllSounds") {
+            get("/playAllSoundsAsMp3") {
                 call.respond(HttpStatusCode.Accepted)
                 logger.info { "Start playing all sounds" }
-                SoundId.entries.forEach { id -> SoundManager.asyncAddSoundToQueue(id = id) }
+                SoundId.entries.forEach { id -> SoundManager.asyncAddSoundToQueue(id = id, playMp3 = true) }
+                logger.info { "Finished playing all sounds" }
+            }
+
+            get("/playAllSoundsAsWav") {
+                call.respond(HttpStatusCode.Accepted)
+                logger.info { "Start playing all sounds" }
+                SoundId.entries.forEach { id -> SoundManager.asyncAddSoundToQueue(id = id, playMp3 = false) }
                 logger.info { "Finished playing all sounds" }
             }
 

@@ -27,6 +27,7 @@ data class SoundQueueEntry(
     val soundFile: SoundFile,
     val abortOnNewSound: Boolean,
     val onSoundFilePlayed: suspend () -> Unit = {},
+    val playMp3: Boolean = false
 )
 
 const val DEFAULT_SOUND_DEVICE_INDEX: Int = 0
@@ -41,7 +42,12 @@ object SoundManager {
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
     private var lastPlayJob: Job? = null
 
-    fun asyncAddSoundToQueue(id: SoundId, abortOnNewSound: Boolean = true, onSoundFilePlayed: suspend () -> Unit = {}) {
+    fun asyncAddSoundToQueue(
+        id: SoundId,
+        abortOnNewSound: Boolean = true,
+        playMp3: Boolean = false,
+        onSoundFilePlayed: suspend () -> Unit = {}
+    ) {
         val soundFile = getSoundBy(id, locale)
         if (soundFile == null) {
             logger.error { "Cannot find sound with id: $id . No item was added to sound play queue." }
@@ -53,7 +59,8 @@ object SoundManager {
             SoundQueueEntry(
                 soundFile = soundFile,
                 abortOnNewSound = abortOnNewSound,
-                onSoundFilePlayed = onSoundFilePlayed
+                onSoundFilePlayed = onSoundFilePlayed,
+                playMp3 = playMp3
             )
         )
         if (isPlaying && lastSound?.abortOnNewSound == true) {
@@ -90,9 +97,11 @@ object SoundManager {
                 try {
                     val nextSound = queue.poll()
                     lastSound = nextSound
-                    logger.info { "Playing ${nextSound.soundFile.getMp3SoundPath()}" }
+                    val soundFile =
+                        if (nextSound.playMp3) nextSound.soundFile.getMp3SoundPath() else nextSound.soundFile.getWavSoundPath()
+                    logger.info { "Playing $soundFile" }
                     lastPlayJob = launch {
-                        playResource(resourcePath = nextSound.soundFile.getMp3SoundPath(), isMp3 = true)
+                        playResource(resourcePath = soundFile, isMp3 = nextSound.playMp3)
                     }
                     try {
                         lastPlayJob?.join()
@@ -241,7 +250,7 @@ object SoundManager {
                 currentBackgroundSound?.let {
                     val soundFile = getSoundBy(it, locale)
                     soundFile?.let { file ->
-                        playResource(resourcePath = file.getMp3SoundPath(), volume = 0.8f, isMp3 = true)
+                        playResource(resourcePath = file.getWavSoundPath(), volume = 0.8f, isMp3 = false)
                     }
                 }
             }

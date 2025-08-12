@@ -71,10 +71,13 @@ Content-Type: application/json
 {}
 
 ### play sound test
-GET http://localhost:80/api/playsound/player_lose_2
+GET http://localhost:80/api/playsound/two
 
 ### get sound map
 GET http://localhost:80/api/soundmap
 
-### play all sounds
-GET http://localhost:80/api/playAllSounds
+### play all sounds as MP3
+GET http://localhost:80/api/playAllSoundsAsMp3
+
+### play all sounds as WAV
+GET http://localhost:80/api/playAllSoundsAsWav
