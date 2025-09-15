@@ -250,7 +250,7 @@ object SoundManager {
                 currentBackgroundSound?.let {
                     val soundFile = getSoundBy(it, locale)
                     soundFile?.let { file ->
-                        playResource(resourcePath = file.getWavSoundPath(), volume = 0.8f, isMp3 = false)
+                        //playResource(resourcePath = file.getWavSoundPath(), volume = 0.8f, isMp3 = false)
                     }
                 }
             }
