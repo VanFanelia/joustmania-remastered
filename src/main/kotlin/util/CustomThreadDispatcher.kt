@@ -8,13 +8,15 @@ import java.util.concurrent.ThreadFactory
 
 object CustomThreadDispatcher {
     val POLLING = Executors.newSingleThreadExecutor(NamedThreadFactory("MovePollThread")).asCoroutineDispatcher()
-    val COLOR_CALCULATION = Executors.newSingleThreadExecutor(NamedThreadFactory("ColorsCoroutineThread")).asCoroutineDispatcher()
     val GAME_LOOP = Executors.newSingleThreadExecutor(NamedThreadFactory("GameLoopCoroutineThread")).asCoroutineDispatcher()
+    val GAME_LOGIC = Executors.newSingleThreadExecutor(NamedThreadFactory("GameLogicCoroutineThread")).asCoroutineDispatcher()
+    val SOUND = Executors.newSingleThreadExecutor(NamedThreadFactory("SoundCoroutineThread")).asCoroutineDispatcher()
 
     fun shutdown() {
         POLLING.close()
-        COLOR_CALCULATION.close()
         GAME_LOOP.close()
+        GAME_LOGIC.close()
+        SOUND.close()
     }
 }
 

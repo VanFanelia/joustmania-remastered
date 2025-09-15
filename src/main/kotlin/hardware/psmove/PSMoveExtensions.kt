@@ -121,6 +121,11 @@ fun addRumbleEvent(move: MacAddress, intensity: Int, durationInMs: Long = 1000) 
     PSMOVE_RUMBLE_UPDATE_MAP[move] = listOf(newEvent, stopEvent)
 }
 
+fun clearRumble(move: MacAddress) {
+    PSMOVE_RUMBLE_UPDATE_MAP[move] = emptyList()
+    PSMOVE_RUMBLE_UPDATE_MAP[move] = listOf(RumbleCommands.STOP())
+}
+
 private fun getLatestRumbleEventAndRemoveFromList(move: MacAddress): RumbleCommands? {
     val events = getRumbleCommands(move)
     if (events.isEmpty()) {
@@ -175,7 +180,7 @@ data class PollResult(val buttons: Set<PSMoveButton>, val movingData: RawMovingD
  * To avoid memory issues, native crashes this method makes every native call called in sequence.
  * So all controller manipulations and readings are done one by one
  */
-suspend fun PSMove.refreshMoveStatus(): PollResult? {
+fun PSMove.refreshMoveStatus(): PollResult? {
     try {
         var callUpdate = false
         logger.trace { "[${this.getMacAddress()}] Polling data" }
@@ -210,7 +215,6 @@ suspend fun PSMove.refreshMoveStatus(): PollResult? {
             if (this.lastUpdateCalled + UPDATE_DELAY < System.currentTimeMillis()) {
                 this.update_leds()
                 this.lastUpdateCalled = System.currentTimeMillis()
-                delay(5)
             }
         }
         logger.trace { "[${this.getMacAddress()}] rumble poll called" }

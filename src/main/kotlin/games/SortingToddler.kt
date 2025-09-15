@@ -2,11 +2,11 @@ package de.vanfanel.joustmania.games
 
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.config.Settings
-import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.PSMoveApi
+import de.vanfanel.joustmania.hardware.RUMBLE_SOFT
+import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
-import de.vanfanel.joustmania.hardware.RUMBLE_SOFT
 import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
 import de.vanfanel.joustmania.sound.SoundId
 import de.vanfanel.joustmania.sound.SoundManager
@@ -15,6 +15,7 @@ import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.darken
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.engine.launchOnCancellation
@@ -91,7 +92,6 @@ class SortingToddler : Game {
             }
             return 5
         }
-
     }
 
     private fun initControllerConnectedObserver() {
@@ -138,7 +138,8 @@ class SortingToddler : Game {
         )
         logger.info { "explanation played" }
 
-        gameLoopJob = CoroutineScope(Dispatchers.IO).launch {
+        gameLoopJob = CoroutineScope(CustomThreadDispatcher.GAME_LOGIC).launch {
+            GameStateManager.setGameRunning()
             for (round in 1..maxRounds) {
                 logger.info { "Round $round/$maxRounds in toddler game with ${currentPlayingController.size}" }
                 val colorsNeeded = getColorsForPlayer(currentPlayingController.size)
@@ -182,7 +183,6 @@ class SortingToddler : Game {
             }
         }
 
-        GameStateManager.setGameRunning()
         backgroundMusicJob = playBackgroundMusic()
     }
 
@@ -214,6 +214,9 @@ class SortingToddler : Game {
             it.value.clearAnimation()
         }
 
+        PSMoveApi.clearRumbles(currentPlayingController.keys)
+
+        connectedControllerChangeJob?.cancel("SortingToddler game go cleanup call")
         disconnectedControllerJob?.cancel("SortingToddler game go cleanup call")
         backgroundMusicJob?.cancel("SortingToddler game go cleanup call")
         stopBackgroundSound()

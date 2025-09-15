@@ -191,7 +191,7 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
     }
 
-    suspend fun refreshMoveStatusAndEmitChanges() {
+    fun refreshMoveStatusAndEmitChanges() {
         try {
             val pollResult = PSMoveApi.refreshMoveStatus(macAddress) ?: return
             val now = Instant.now().toEpochMilli()

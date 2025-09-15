@@ -3,6 +3,7 @@ package de.vanfanel.joustmania.hardware
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PollResult
 import de.vanfanel.joustmania.hardware.psmove.addRumbleEvent
+import de.vanfanel.joustmania.hardware.psmove.clearRumble
 import de.vanfanel.joustmania.hardware.psmove.currentColor
 import de.vanfanel.joustmania.hardware.psmove.getMacAddress
 import de.vanfanel.joustmania.hardware.psmove.refreshMoveStatus
@@ -37,7 +38,7 @@ object PSMoveApi {
             .firstOrNull { it.getMacAddress() == macAddress }?.currentColor
     }
 
-    suspend fun refreshMoveStatus(macAddress: MacAddress): PollResult? {
+    fun refreshMoveStatus(macAddress: MacAddress): PollResult? {
         val move = PSMoveBluetoothConnectionWatcher.getMove(macAddress) ?: throw MoveNotFoundException(macAddress)
         return move.refreshMoveStatus()
     }
@@ -53,6 +54,12 @@ object PSMoveApi {
     fun rumble(moves: Set<MacAddress>, intensity: Int, durationInMs: Long = 1000) {
         moves.forEach {
             addRumbleEvent(move = it, intensity = intensity, durationInMs = durationInMs)
+        }
+    }
+
+    fun clearRumbles(moves: Set<MacAddress>) {
+        moves.forEach {
+            clearRumble(move = it)
         }
     }
 

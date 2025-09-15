@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania.sound
 
+import de.vanfanel.joustmania.util.CustomThreadDispatcher.SOUND
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,15 @@ object SoundManager {
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
     private var lastPlayJob: Job? = null
 
+    fun clearQueueFromAllOptionalSounds() {
+        queue.forEach {
+            if (it.abortOnNewSound) {
+                queue.remove(it)
+            }
+        }
+
+    }
+
     fun asyncAddSoundToQueue(
         id: SoundId,
         abortOnNewSound: Boolean = true,
@@ -55,6 +65,8 @@ object SoundManager {
         }
         logger.info { "Adding sound to queue: $id" }
 
+        clearQueueFromAllOptionalSounds()
+
         queue.offer(
             SoundQueueEntry(
                 soundFile = soundFile,
@@ -63,6 +75,7 @@ object SoundManager {
                 playMp3 = playMp3
             )
         )
+
         if (isPlaying && lastSound?.abortOnNewSound == true) {
             lastPlayJob?.cancel()
         }
@@ -92,7 +105,7 @@ object SoundManager {
 
     private fun playNext() {
         isPlaying = true
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(SOUND).launch {
             while (queue.isNotEmpty()) {
                 try {
                     val nextSound = queue.poll()
