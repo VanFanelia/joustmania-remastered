@@ -1,3 +1,4 @@
+import * as React from 'react'
 import {useEffect, useState} from 'react'
 import {Chart as ChartJS, registerables} from 'chart.js';
 import {Line} from 'react-chartjs-2'
@@ -5,7 +6,10 @@ import 'chartjs-adapter-date-fns';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayIcon from '@mui/icons-material/PlayCircle';
 import Box from "@mui/material/Box";
-import {Button, CircularProgress} from "@mui/material";
+import {Button, CircularProgress, Paper, Tab, TableContainer, Tabs, Typography} from "@mui/material";
+
+import {useThreadContext} from "../context/DebugThreadProvider.tsx";
+import {ThreadTreeNode} from "../components/ThreadTree.tsx";
 
 ChartJS.register(...registerables);
 
@@ -14,6 +18,7 @@ function Debug() {
     const [rawHttpJSON, setRawHttpJSON] = useState<any[]>([])
     const [chartData, setChartData] = useState<{ labels: any, datasets: any } | null>(null)
     const [pauseChart, setPauseChart] = useState<boolean>(false)
+    const [activeTab, setActiveTab] = useState<number>(0)
 
     const colors: string[] = [
         "#0066CC",
@@ -175,43 +180,89 @@ function Debug() {
         },
     };
 
+    const threadStats = useThreadContext();
+    console.log(threadStats)
+
+    const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+        setActiveTab(newValue)
+    }
+
+
+
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
-            <div className="card mb-4 flex flex-row justify-center">
-                {pauseChart ? (
-                    <Button variant="contained"
-                            className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
-                            style={{textTransform: "none"}}
-                            onClick={startChartUpdates}
-                            startIcon={<PlayIcon/>}
-                    >
-                        <span className={"text-lg"}>Play</span>
-                    </Button>) : (
-                    <Button variant="contained"
-                            className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
-                            style={{textTransform: "none"}}
-                            onClick={stopChartUpdates}
-                            startIcon={<PauseIcon/>}
-                    >
-                        <span className={"text-lg"}>Pause</span>
-                    </Button>)}
+            <Box sx={{width: '100%'}}>
+                <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
+                    <Tabs value={activeTab} onChange={handleTabChange} aria-label="debug tabs">
+                        <Tab label="Accelerations Chart"/>
+                        <Tab label="Threads"/>
+                    </Tabs>
+                </Box>
 
-            </div>
-
-            <div className={"min-w-full"} style={{height: "calc(100vh - 160px)"}}>
-                {(chartData != null && chartData.datasets.length > 0) ?
-                    (<Line
-                        key="AccelerationGraph"
-                        data={chartData}
-                        options={options}
-                    />)
-                    : (
-                        <div className="flex flex-col justify-center items-center h-full w-full">
-                            <CircularProgress size="80px" />
+                {/* Tab Panel 0 - Acceleration Chart */}
+                {activeTab === 0 && (
+                    <>
+                        <div className="card mb-4 flex flex-row justify-center">
+                            {pauseChart ? (
+                                <Button variant="contained"
+                                        className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
+                                        style={{textTransform: "none"}}
+                                        onClick={startChartUpdates}
+                                        startIcon={<PlayIcon/>}
+                                >
+                                    <span className={"text-lg"}>Play</span>
+                                </Button>) : (
+                                <Button variant="contained"
+                                        className={"flex flex-row justify-start justify-items-center items-center min-w-24"}
+                                        style={{textTransform: "none"}}
+                                        onClick={stopChartUpdates}
+                                        startIcon={<PauseIcon/>}
+                                >
+                                    <span className={"text-lg"}>Pause</span>
+                                </Button>)}
                         </div>
-                    )
-                }
-            </div>
+
+
+                        <div className={"min-w-full"} style={{height: "calc(100vh - 160px)"}}>
+                            {(chartData != null && chartData.datasets.length > 0) ?
+                                (<Line
+                                    key="AccelerationGraph"
+                                    data={chartData}
+                                    options={options}
+                                />)
+                                : (
+                                    <div className="flex flex-col justify-center items-center h-full w-full">
+                                        <CircularProgress size="80px"/>
+                                    </div>
+                                )
+                            }
+                        </div>
+                    </>
+                )}
+                {/* Tab Panel 1 - thread stats */}
+                {activeTab === 1 && (
+                    <Box sx={{p: 3}}>
+                        {threadStats ? (
+                            <>
+                                <Typography variant="h6" gutterBottom>
+                                    Thread Hierarchie (Gesamt: {threadStats.totalThreadCount} Threads)
+                                </Typography>
+                                <TableContainer component={Paper} sx={{minWidth: 650}}>
+                                    <ThreadTreeNode
+                                        group={threadStats.rootGroup}
+                                        level={0}
+                                    />
+                                </TableContainer>
+                            </>
+                        ) : (
+                            <Box sx={{display: 'flex', justifyContent: 'center', p: 4}}>
+                                <CircularProgress/>
+                            </Box>
+                        )}
+                    </Box>
+                )}
+
+            </Box>
         </Box>
     )
 }

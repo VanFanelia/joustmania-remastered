@@ -138,3 +138,53 @@ export class BlueToothControllerStats {
         this.pairedMotionController = pairedMotionController;
     }
 }
+
+export class ThreadData {
+    name: string;
+    id: number;
+    state: string;
+    isDaemon: boolean;
+    priority: number;
+    parentId?: number;
+    children?: number[];
+
+    constructor(name: string, id: number, state: string, isDaemon: boolean, priority: number, parentId: number, children: number[]) {
+        this.name = name;
+        this.id = id;
+        this.state = state;
+        this.isDaemon = isDaemon;
+        this.priority = priority;
+        this.parentId = parentId;
+        this.children = children;
+    }
+}
+
+export class ThreadGroupData {
+    name: string;
+    maxPriority: number;
+    isDaemon: boolean;
+    parentName?: string;
+    threads: ThreadData[];
+    subGroups: ThreadGroupData[];
+
+    constructor(name: string, maxPriority: number, isDaemon: boolean, parentName: string, threads: ThreadData[], subGroups: ThreadGroupData[]) {
+        this.name = name;
+        this.maxPriority = maxPriority;
+        this.isDaemon = isDaemon;
+        this.parentName = parentName;
+        this.threads = threads.sort((a, b) => a.id - b.id);
+        this.subGroups = subGroups.sort((a, b) => a.name.localeCompare(b.name));
+    }
+}
+
+export class ThreadHierarchy {
+    rootGroup: ThreadGroupData;
+    totalThreadCount: number;
+
+    constructor(rootGroup: ThreadGroupData, totalThreadCount: number) {
+        this.rootGroup = rootGroup;
+        this.totalThreadCount = totalThreadCount;
+    }
+}
+
+export const EmptyDefaultThreadHierarchy = new ThreadHierarchy(new ThreadGroupData("root", 10, false, "", [], []), 0)

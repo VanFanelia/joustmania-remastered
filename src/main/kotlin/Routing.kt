@@ -37,6 +37,7 @@ import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
 import de.vanfanel.joustmania.types.Sensibility
 import de.vanfanel.joustmania.types.Sensibility.Companion.parseSensibility
+import de.vanfanel.joustmania.util.getCompleteThreadHierarchy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.CacheControl
 import io.ktor.http.ContentType
@@ -44,7 +45,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
-import io.ktor.server.request.uri
 import io.ktor.server.response.cacheControl
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
@@ -234,7 +234,7 @@ fun Application.configureRouting() {
 
             post("/settings/sortToddler/duration") {
                 val newDuration = call.receive<SetSortToddlerRoundDuration>()
-                if (newDuration.duration < 10 || newDuration.duration > 180) {
+                if (newDuration.duration !in 10..180) {
                     return@post call.respond(HttpStatusCode.BadRequest)
                 }
                 Settings.setSortToddlerGameOptionRoundDuration(newDuration.duration)
@@ -246,7 +246,7 @@ fun Application.configureRouting() {
 
             post("/settings/sortToddler/amountOfRounds") {
                 val newAmount = call.receive<SetSortToddlerAmountOfRounds>()
-                if (newAmount.amountOfRounds < 1 || newAmount.amountOfRounds > 20) {
+                if (newAmount.amountOfRounds !in 1..20) {
                     return@post call.respond(HttpStatusCode.BadRequest)
                 }
                 Settings.setSortToddlerGameOptionAmountOfRounds(newAmount.amountOfRounds)
@@ -399,6 +399,20 @@ fun Application.configureRouting() {
                     psMoveStubStatistics.collect { statistics ->
                         logger.debug { "new psMoveStubStatistics pushed to client: $statistics" }
                         write("data: ${Json.encodeToString(statistics)}\n\n")
+                        flush()
+                    }
+                }
+            }
+
+            get("/sse/threads") {
+                call.response.cacheControl(CacheControl.NoCache(null))
+                logger.debug { "new client connected to sse/threads endpoint" }
+                call.respondTextWriter(contentType = ContentType.Text.EventStream) {
+                    while (true) {
+                        val getActiveThreads = getCompleteThreadHierarchy()
+
+                        write("data: ${Json.encodeToString(getActiveThreads)}\n\n")
+                        delay(5000)
                         flush()
                     }
                 }
