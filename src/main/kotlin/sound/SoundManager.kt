@@ -1,24 +1,19 @@
 package de.vanfanel.joustmania.sound
 
-import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.CustomThreadDispatcher.SOUND
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.BufferedInputStream
+import tinysound.Music
+import tinysound.TinySound
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.time.Instant
 import java.util.concurrent.LinkedBlockingQueue
-import javax.sound.sampled.AudioInputStream
-import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
-import javax.sound.sampled.DataLine
 import javax.sound.sampled.FloatControl
-import javax.sound.sampled.SourceDataLine
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -31,8 +26,6 @@ data class SoundQueueEntry(
     val playMp3: Boolean = false
 )
 
-const val DEFAULT_SOUND_DEVICE_INDEX: Int = 0
-
 object SoundManager {
     private val logger = KotlinLogging.logger {}
     private val queue = LinkedBlockingQueue<SoundQueueEntry>()
@@ -42,6 +35,10 @@ object SoundManager {
     private var lastSound: SoundQueueEntry? = null
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
     private var lastPlayJob: Job? = null
+
+    init {
+        TinySound.init()
+    }
 
     fun clearQueueFromAllOptionalSounds() {
         queue.forEach {
@@ -81,7 +78,7 @@ object SoundManager {
         }
 
         if (!isPlaying) {
-            playNext()
+            playNextSound()
         }
     }
 
@@ -103,7 +100,7 @@ object SoundManager {
             }
         }
 
-    private fun playNext() {
+    private fun playNextSound() {
         isPlaying = true
         CoroutineScope(SOUND).launch {
             while (queue.isNotEmpty()) {
@@ -114,7 +111,7 @@ object SoundManager {
                         if (nextSound.playMp3) nextSound.soundFile.getMp3SoundPath() else nextSound.soundFile.getWavSoundPath()
                     logger.info { "Playing $soundFile" }
                     lastPlayJob = launch {
-                        playResource(resourcePath = soundFile, isMp3 = nextSound.playMp3)
+                        playSound(resourcePath = soundFile)
                     }
                     try {
                         lastPlayJob?.join()
@@ -145,94 +142,28 @@ object SoundManager {
         }
     }
 
-    private suspend fun playResource(
+    private fun playSound(
         resourcePath: String,
-        deviceIndex: Int = DEFAULT_SOUND_DEVICE_INDEX,
-        volume: Float = 1.0f,
-        isMp3: Boolean = true
     ) {
-        withContext(CustomThreadDispatcher.SOUND) {
-            var inputStream: InputStream? = null
-            var bufferedInputStream: BufferedInputStream? = null
-            var originalAudioInputStream: AudioInputStream? = null
-            var clip: Clip? = null
-            try {
-                inputStream = javaClass.getResourceAsStream(resourcePath)
+        val soundToPlay = TinySound.loadSound(resourcePath, true)
+        soundToPlay.play()
+    }
 
-                if (inputStream == null) {
-                    logger.error { "Cannot find file with path: $resourcePath" }
-                    return@withContext
-                }
+    var currentPlayingMusic: Music? = null
 
-                // convert mp3 to wav if necessary
-                if (isMp3) {
-                    logger.debug { "Converting mp3 to wav" }
-                    val convertedBytes = convertMp3ToWav(inputStream)
-                    if (convertedBytes != null) {
-                        inputStream = convertedBytes.inputStream()
-                    } else {
-                        logger.error { "Cannot convert mp3 file to wav" }
-                    }
-                }
-
-                bufferedInputStream = BufferedInputStream(inputStream)
-                originalAudioInputStream = AudioSystem.getAudioInputStream(bufferedInputStream)
-
-                val outputMixers = getMixersWithAudioOutput()
-
-                logger.debug {
-                    "found ${outputMixers.size} Mixer: ${
-                        outputMixers.mapIndexed { index, info ->
-                            "#$index (${info.description})"
-                        }
-                    }"
-                }
-
-                if (deviceIndex < 0 || deviceIndex >= outputMixers.size) {
-                    logger.error { "Cannot find audio device with id: $deviceIndex " }
-                    return@withContext
-                }
-                val selectedMixer = AudioSystem.getMixer(outputMixers[deviceIndex])
-                logger.debug { "use mixer: ${selectedMixer.mixerInfo.name} ${selectedMixer.mixerInfo.description}" }
-
-                val info = DataLine.Info(Clip::class.java, originalAudioInputStream.format)
-
-                if (!selectedMixer.isLineSupported(info)) {
-                    logger.error { "The selected device does not support the audio format" }
-                    return@withContext
-                }
-
-                clip = selectedMixer.getLine(info) as Clip
-                clip.open(originalAudioInputStream)
-                setVolume(clip, volume)
-                logger.debug { ("Clip opened successfully. length: ${clip.microsecondLength / 1000} ms") }
-
-                clip.start()
-                logger.debug { "Clip started successfully." }
-
-                try {
-                    delay(clip.microsecondLength / 1000)
-                } catch (_: InterruptedException) {
-                    logger.info { "Interrupted while waiting for player finished current sound play" }
-                }
-            } finally {
-                clip?.stop()
-                logger.debug { "Clip stopped" }
-                clip?.close()
-                originalAudioInputStream?.close()
-                bufferedInputStream?.close()
-                inputStream?.close()
-                logger.debug { "Cleanup finished" }
-            }
+    private fun playBackgroundMusic(
+        resourcePath: String,
+    ) {
+        currentPlayingMusic?.let {
+            it.stop()
+            currentPlayingMusic = null
         }
+        val musicToPlay = TinySound.loadMusic(resourcePath, true)
+        currentPlayingMusic = musicToPlay
+        musicToPlay.play(true, 0.8)
     }
 
-    private fun getMixersWithAudioOutput() = AudioSystem.getMixerInfo().filter { mixerInfo ->
-        val mixer = AudioSystem.getMixer(mixerInfo)
-        val lineInfo = DataLine.Info(SourceDataLine::class.java, null)
-        mixer.isLineSupported(lineInfo)
-    }
-
+    @Deprecated("not yet implemented correct")
     private fun setVolume(clip: Clip, volume: Float = 1.0f) {
         val gainControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
         val dB = (gainControl.maximum - gainControl.minimum) * volume + gainControl.minimum
@@ -254,20 +185,14 @@ object SoundManager {
         currentBackgroundSoundJob?.cancel(CancellationException("Force stopped background sound"))
     }
 
-
     fun playBackground(soundId: SoundId) {
         currentBackgroundSound = soundId
         this.logger.info { "Playing background sound: ${soundId.name}" }
-        currentBackgroundSoundJob = CoroutineScope(CustomThreadDispatcher.BACKGROUND_SOUND).launch {
-            while (currentBackgroundSound != null) {
-                currentBackgroundSound?.let {
-                    val soundFile = getSoundBy(it, locale)
-                    soundFile?.let { file ->
-                        //playResource(resourcePath = file.getWavSoundPath(), volume = 0.8f, isMp3 = false)
-                    }
-                }
+        currentBackgroundSound?.let {
+            val soundFile = getSoundBy(it, locale)
+            soundFile?.let { file ->
+                playBackgroundMusic(file.getWavSoundPath())
             }
         }
-
     }
 }
