@@ -95,7 +95,7 @@ class SortingToddler : Game {
     }
 
     private fun initControllerConnectedObserver() {
-        connectedControllerChangeJob = CoroutineScope(Dispatchers.IO).launch {
+        connectedControllerChangeJob = CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moves ->
                 logger.info { "Connected PSMoves change during game. Detected ${moves.size} connected PSMoves. Update game" }
                 currentPlayingController.clear()
@@ -108,7 +108,7 @@ class SortingToddler : Game {
     }
 
     private fun initDisconnectionObserver() {
-        disconnectedControllerJob = CoroutineScope(Dispatchers.IO).launch {
+        disconnectedControllerJob = CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
                 moves.forEach { move ->
                     logger.info { "Move with address: ${move.macAddress} was disconnected. remove player from game" }
@@ -188,7 +188,7 @@ class SortingToddler : Game {
 
     @OptIn(InternalAPI::class)
     override fun playBackgroundMusic(): Job {
-        return CoroutineScope(Dispatchers.IO).launch {
+        return CoroutineScope(CustomThreadDispatcher.BACKGROUND_SOUND).launch {
             val sound = arrayOf(SoundId.SORT_TODDLER_BACKGROUND_1).random()
             playBackground(sound)
         }.launchOnCancellation {

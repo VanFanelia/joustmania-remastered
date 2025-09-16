@@ -57,15 +57,15 @@ fun main() {
     @Suppress("unused")
     val accelerationDebugger = AccelerationDebugger
 
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
         usbDevicesChangeWatcher.startEndlessLoopWithUSBDevicesScan()
     }
 
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
         psMoveBluetoothConnectionWatcher.startEndlessLoopWithPSMoveConnectionScan()
     }
 
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
         psMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { moves ->
             logger.info { "List of bluetooth connected PSMove Controller changed: " }
             logger.info { moves.map { move -> move.macAddress } }

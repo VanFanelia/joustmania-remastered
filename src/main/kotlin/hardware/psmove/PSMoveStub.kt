@@ -7,6 +7,7 @@ import de.vanfanel.joustmania.types.RawMovingData
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.PSMoveBatteryLevel
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -79,8 +80,8 @@ data class MoveStatistics(
 
 class PSMoveStub(val macAddress: MacAddress) {
     private val logger = KotlinLogging.logger {}
-    private val batteryLevelTicker = Ticker(10.seconds)
-    private val moveStatisticTicker = Ticker(10.seconds)
+    private val batteryLevelTicker = Ticker(10.seconds, CustomThreadDispatcher.BLUETOOTH)
+    private val moveStatisticTicker = Ticker(10.seconds, CustomThreadDispatcher.BLUETOOTH)
 
     private var colorAnimation: ColorAnimation? = null
     private var animationStarted: Long = 0
@@ -118,7 +119,7 @@ class PSMoveStub(val macAddress: MacAddress) {
 
     init {
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             batteryLevelTicker.tick.collect {
                 try {
                     checkBatteryLevel()
@@ -129,7 +130,7 @@ class PSMoveStub(val macAddress: MacAddress) {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.DEBUG_UI).launch {
             moveStatisticTicker.tick.collect {
                 _moveStatisticsFlow.tryEmit(
                     MoveStatistics(
@@ -143,7 +144,7 @@ class PSMoveStub(val macAddress: MacAddress) {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             _buttonPressedFlow.collect {
                 val oldButtonPressList = buttonsWithPressedState
                 val newButtonPressList = it
@@ -158,7 +159,7 @@ class PSMoveStub(val macAddress: MacAddress) {
         }
 
         batteryLevelTicker.start()
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             checkBatteryLevel()
         }
     }

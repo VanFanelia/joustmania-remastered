@@ -15,11 +15,11 @@ import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.engine.launchOnCancellation
 import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -188,7 +188,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
     @OptIn(InternalAPI::class)
     override fun playBackgroundMusic(): Job {
-        return CoroutineScope(Dispatchers.IO).launch {
+        return CoroutineScope(CustomThreadDispatcher.BACKGROUND_SOUND).launch {
             val sound = arrayOf(SoundId.WEREWOLF_BACKGROUND_1, SoundId.WEREWOLF_BACKGROUND_2).random()
             playBackground(sound)
         }.launchOnCancellation {
@@ -197,9 +197,9 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
     }
 
     override fun cleanUpGame() {
-        super.cleanUpGame()
         backgroundMusicJob?.cancel("Werewolf game finished so background music need to be canceled")
         stopBackgroundSound()
+        super.cleanUpGame()
     }
 
     private fun getAmountOfWerewolves(amountOfPlayers: Int): Int {

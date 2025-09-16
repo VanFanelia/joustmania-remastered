@@ -2,6 +2,7 @@ package de.vanfanel.joustmania.hardware
 
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.types.MacAddress
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.FixedSizeQueue
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -46,7 +47,7 @@ object AccelerationDebugger {
     }
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.DEBUG_UI).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.flatMapLatest { newMoves ->
                 newMoves.asFlow().flatMapMerge { move ->
                     move.accelerationFlow.map { accelerationData -> Pair(move.macAddress, accelerationData.change) }
@@ -57,7 +58,7 @@ object AccelerationDebugger {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.DEBUG_UI).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
                 moves.forEach { move ->
                     accelerationHistory.remove(move.macAddress)
@@ -73,7 +74,7 @@ object AccelerationDebugger {
     }
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.DEBUG_UI).launch {
             psMoveStubStatistics.collect { stats ->
                 logger.trace { "PSMove stats: $stats" }
             }

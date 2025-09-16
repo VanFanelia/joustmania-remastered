@@ -1,16 +1,16 @@
 package de.vanfanel.joustmania.util
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
-class Ticker(private val interval: Duration) {
+class Ticker(private val interval: Duration, private val dispatcher: CoroutineContext) {
 
     private val _state = MutableStateFlow(false) // True = läuft, False = gestoppt
     private val _tickerFlow = MutableSharedFlow<Long>(replay = 0)
@@ -24,7 +24,7 @@ class Ticker(private val interval: Duration) {
         if (_state.value) return // Bereits gestartet
         _state.value = true
 
-        job = CoroutineScope(Dispatchers.IO).launch {
+        job = CoroutineScope(dispatcher).launch {
             var count = 0L
             while (_state.value) {
                 _tickerFlow.emit(count++)

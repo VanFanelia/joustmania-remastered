@@ -22,6 +22,7 @@ import de.vanfanel.joustmania.sound.SoundManager.playBackground
 import de.vanfanel.joustmania.sound.SoundManager.stopBackgroundSound
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MoveColor
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.engine.launchOnCancellation
 import io.ktor.util.collections.ConcurrentSet
@@ -76,7 +77,7 @@ object LobbyLoop {
     val lastSelectedGameName: Flow<String> = _lastSelectedGameName
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
             var lastGameState: GameState? = null
             GameStateManager.currentGameState.collect { newState ->
                 logger.info { "Lobby got game state: $newState" }
@@ -99,40 +100,44 @@ object LobbyLoop {
 
     @OptIn(InternalAPI::class)
     private fun initLobbyCoroutines() {
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             observeButtonPressForDebugging()
         })
 
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             removeControllerFromLobbyOnDisconnect()
         })
 
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        // TODO this make no sense i think?
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             val connectedPSMoves = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
             connectedPSMoves?.forEach { moveStub ->
                 isActive[moveStub.macAddress] = false
                 moveStub.setNotActivatedInLobbyColor()
             }
             updateActiveMovesFlow()
+        })
+
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             changeActiveStateOnTriggerClicked()
         })
 
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             changeAdminStateWhen4FrontButtonsGotClicked()
         })
 
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             changeGameOnSelectButtonClicked()
         })
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             changeGameOnStartButtonClicked()
         })
 
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             forceStartWithAllControllerWhenAdminForcedByButtonPress()
         })
 
-        lobbyJobs.add(CoroutineScope(Dispatchers.IO).launch {
+        lobbyJobs.add(CoroutineScope(CustomThreadDispatcher.BACKGROUND_SOUND).launch {
             val sound = arrayOf(SoundId.LOBBY_BACKGROUND_1, SoundId.LOBBY_BACKGROUND_2).random()
             playBackground(sound)
         }.launchOnCancellation {
@@ -236,7 +241,7 @@ object LobbyLoop {
     private fun changeGame(newIndex: Int) {
         this.selectedGameIndex = newIndex
         val game: Game = listOfGames[newIndex].kotlin.constructors.first().call()
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
             _lastSelectedGameName.emit(game.name)
         }
 
@@ -297,7 +302,7 @@ object LobbyLoop {
             abortOnNewSound = false
         )
         val players = PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.firstOrNull()
-            ?.filter { activePlayers.contains(it.macAddress)}?.toSet() ?: emptySet()
+            ?.filter { activePlayers.contains(it.macAddress) }?.toSet() ?: emptySet()
         GameStateManager.startGame(
             selectedGame, players
         )

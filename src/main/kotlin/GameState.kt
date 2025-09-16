@@ -5,10 +5,10 @@ import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.lobby.LobbyLoop
 import de.vanfanel.joustmania.types.MacAddress
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +46,7 @@ object GameStateManager {
     private val lobbyLoop = LobbyLoop
 
     private var currentGame: Game? = null
-    private val gameWatcherTicker = Ticker(5.milliseconds)
+    private val gameWatcherTicker = Ticker(5.milliseconds, CustomThreadDispatcher.GAME_STATE)
     private var gameWatcherJob: Job? = null
 
     private val _playerLostFlow = MutableStateFlow<Set<MacAddress>>(emptySet())
@@ -56,7 +56,7 @@ object GameStateManager {
     private var playersInGame: Set<MacAddress> = emptySet()
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.collect { newMoves ->
                 if (_currentGameState.value == GameState.LOBBY) {
                     lobbyLoop.handleConnectedMovesChangeDuringGameStateLobby(newMoves)
@@ -64,7 +64,7 @@ object GameStateManager {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
             currentGameState.collect { newState ->
                 when (newState) {
                     GameState.LOBBY -> gameModeChangedToLobby()
@@ -90,7 +90,7 @@ object GameStateManager {
         logger.info { "Game has started." }
         gameWatcherTicker.start()
 
-        gameWatcherJob = CoroutineScope(Dispatchers.IO).launch {
+        gameWatcherJob = CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
             gameWatcherTicker.tick.collect {
                 currentGame?.checkForGameFinished()
             }
@@ -107,7 +107,7 @@ object GameStateManager {
         playersInGame = emptySet()
         gameWatcherJob?.cancel()
         playerLostJob?.cancel()
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
             _currentGameState.emit(GameState.LOBBY)
             _playerLostFlow.emit(emptySet())
         }
@@ -121,12 +121,12 @@ object GameStateManager {
         currentGame = game
         val currentGameState = _currentGameState.value
         if (currentGameState == GameState.LOBBY) {
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
                 playersInGame = players.map { it.macAddress }.toSet()
                 game.start(players = players)
             }
 
-            playerLostJob = CoroutineScope(Dispatchers.IO).launch {
+            playerLostJob = CoroutineScope(CustomThreadDispatcher.GAME_STATE).launch {
                 game.playerLostFlow.collect { playerLost ->
                     _playerLostFlow.emit(playerLost.toSet())
                 }

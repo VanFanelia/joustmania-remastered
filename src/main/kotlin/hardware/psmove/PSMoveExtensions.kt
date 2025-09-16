@@ -166,7 +166,7 @@ var PSMove.lastUpdateCalled: Long
         PSMOVE_LAST_UPDATE_CALLED[this.getMacAddress()] = value
     }
 
-const val UPDATE_DELAY = 5
+const val UPDATE_DELAY = 50
 
 /**
  * Polling

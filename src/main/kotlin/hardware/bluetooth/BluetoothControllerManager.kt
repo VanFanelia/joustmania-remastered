@@ -6,9 +6,9 @@ import de.vanfanel.joustmania.types.AdapterId
 import de.vanfanel.joustmania.types.BlueToothController
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.PairedDevice
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -20,7 +20,6 @@ import org.freedesktop.dbus.interfaces.DBusInterface
 import org.freedesktop.dbus.interfaces.ObjectManager
 import org.freedesktop.dbus.types.Variant
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.iterator
 
 
 // Magic adapter interface
@@ -54,7 +53,7 @@ object BluetoothControllerManager {
     val pairedDevices: Flow<Set<PairedDevice>> = _pairedDevices
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             usbDevicesChangeFlow.collect { _ ->
                 detectBluetoothController()
             }
@@ -99,7 +98,7 @@ object BluetoothControllerManager {
                     connection.getRemoteObject("org.bluez", adapterPath, Adapter1::class.java) as Adapter1
                 adapterObject.RemoveDevice(DBusPath(devicePath))
 
-                CoroutineScope(Dispatchers.IO).launch {
+                CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
                     removeFromPairedDeviceList(macAddress)
                     removeFromBluetoothControllerList(macAddress)
                 }
@@ -237,11 +236,11 @@ object BluetoothControllerManager {
 
     private suspend fun removeFromBluetoothControllerList(macAddress: MacAddress) {
         val current = _blueToothControllerFlow.value
-        val controllerWithClearedPairedMotionControllerList = current.map { it ->
+        val controllerWithClearedPairedMotionControllerList = current.map {
             it.copy(pairedMotionController = it.pairedMotionController.filter { device -> device.macAddress != macAddress }
                 .toSet())
         }
-        val clearedControllerList = controllerWithClearedPairedMotionControllerList.map { it ->
+        val clearedControllerList = controllerWithClearedPairedMotionControllerList.map {
             it.copy(pairedDevices = it.pairedDevices.filter { device -> device.macAddress != macAddress }.toSet())
         }
 

@@ -6,7 +6,6 @@ import de.vanfanel.joustmania.util.onlyAddedFromPrevious
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -38,7 +37,7 @@ object GlobalMoveTicker {
     private var shouldStopPolling = false
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
                 moves.forEach { move ->
                     currentMovesToWatch.remove(move.macAddress)
@@ -46,7 +45,7 @@ object GlobalMoveTicker {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyAddedFromPrevious().collect { moves ->
                 for (move in moves) {
                     currentMovesToWatch.putIfAbsent(move.macAddress, move)
@@ -59,8 +58,6 @@ object GlobalMoveTicker {
             while (true) {
                 val startOfPoll = System.nanoTime()
                 if (shouldStopPolling) break
-
-                calculateColorsForMove()
 
                 val unfinishedMoves: MutableList<MacAddress> = mutableListOf()
                 for (entry in pollJobs.entries) {
@@ -76,15 +73,14 @@ object GlobalMoveTicker {
                     }
                     val job = pollingScope.launch {
                         move.refreshMoveStatusAndEmitChanges()
+                        calculateColorForMove(move.macAddress)
                     }
                     pollJobs[move.macAddress] = job
                 }
 
                 val durationInMs = (System.nanoTime() - startOfPoll) / 1000000
                 if (durationInMs > 5) {
-                    //logger.trace { "PSMove status polling took $durationInMs ms. This is more then the 10ms threshold." }
-                } else {
-                    //logger.trace { "PSMove status polling took $durationInMs ms " }
+                    logger.trace { "PSMove status polling took $durationInMs ms. This is more then the 5ms threshold." }
                 }
                 Thread.sleep(5)
             }
@@ -104,6 +100,16 @@ object GlobalMoveTicker {
         val duration = (System.nanoTime() - startOfPoll) / 1000000
         if (duration > 50) {
             logger.debug { "PSMove color updates took $duration ms. This is more then the 50ms threshold." }
+        }
+    }
+
+    private fun calculateColorForMove(moveId: MacAddress) {
+        logger.trace { "Starting color calculation job for $moveId" }
+        val startOfPoll = System.nanoTime()
+        currentMovesToWatch[moveId]?.changeColorIfAnimationIsActive()
+        val duration = (System.nanoTime() - startOfPoll) / 1000000
+        if (duration > 10) {
+            logger.debug { "PSMove color updates took $duration ms. This is more then the 10ms threshold." }
         }
     }
 

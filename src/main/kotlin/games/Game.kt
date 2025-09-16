@@ -17,7 +17,6 @@ import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -99,7 +98,7 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
     }
 
     protected fun initDisconnectionObserver() {
-        disconnectedControllerJob = CoroutineScope(Dispatchers.IO).launch {
+        disconnectedControllerJob = CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
                 moves.forEach { move ->
                     logger.info { "Move with address: ${move.macAddress} was disconnected. Set Player to game Over" }
@@ -111,7 +110,7 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
     }
 
     protected fun observeAcceleration(stubId: MacAddress): Job {
-        val currentJob = CoroutineScope(CustomThreadDispatcher.GAME_LOOP).launch {
+        return CoroutineScope(CustomThreadDispatcher.OBSERVE_ACCELERATION).launch {
             val stub = currentPlayingController[stubId] ?: return@launch
 
             stub.accelerationFlow.collect { acceleration ->
@@ -143,10 +142,9 @@ abstract class GameWithAcceleration(val logger: KLogger) : Game {
                 }
             }
         }
-        return currentJob
     }
 
-    open fun playPlayerLostSound(macAddress: MacAddress){
+    open fun playPlayerLostSound(macAddress: MacAddress) {
         val randomSoundId = listOf(SoundId.PLAYER_LOSE_1, SoundId.PLAYER_LOSE_2).random()
         SoundManager.asyncAddSoundToQueue(id = randomSoundId, abortOnNewSound = false)
     }

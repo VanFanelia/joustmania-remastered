@@ -9,6 +9,7 @@ import de.vanfanel.joustmania.hardware.psmove.getMacAddress
 import de.vanfanel.joustmania.hardware.psmove.indicatePairingComplete
 import de.vanfanel.joustmania.hardware.psmove.trust
 import de.vanfanel.joustmania.types.PairedDevice
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.thp.psmove.ConnectionType
 import io.thp.psmove.PSMove
@@ -29,7 +30,7 @@ object PSMovePairingManager {
     private val pairedMoveController = mutableSetOf<PairedDevice>()
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             pairedDevices.collect { pairedDevices ->
                 pairedDevices.map { device ->
                     checkForMoveControllerAndAddToListIfMatched(device)
@@ -37,7 +38,7 @@ object PSMovePairingManager {
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             usbDevicesChangeFlow.collect { allConnectedUSBDevices ->
                 logger.debug { "new usb devices connected. Current connected devices: $allConnectedUSBDevices" }
                 allConnectedUSBDevices.map { device ->
@@ -68,7 +69,7 @@ object PSMovePairingManager {
                     continue
                 }
 
-                CoroutineScope(Dispatchers.IO).launch {
+                CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
                     val pairedResult = move.pair_custom(adapter.macAddress)
                     logger.info { "Pairing returned: $pairedResult" }
 
@@ -94,7 +95,7 @@ object PSMovePairingManager {
     }
 
     fun disconnectAndForgetAllPairedPSMove() {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.BLUETOOTH).launch {
             pairedMoveController.map {
                 logger.info { "Try to disconnect and forget Move Controller with Mac: ${it.macAddress}" }
                 BluetoothControllerManager.clearBluetoothDeviceFromAdapter(it.macAddress)

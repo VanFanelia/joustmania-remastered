@@ -4,9 +4,9 @@ import de.vanfanel.joustmania.types.Config
 import de.vanfanel.joustmania.types.Config.Companion.DEFAULT_CONFIG
 import de.vanfanel.joustmania.types.Language
 import de.vanfanel.joustmania.types.Sensibility
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -70,7 +70,7 @@ object Settings {
         } catch (e: Exception) {
             logger.error(e) { "Could not save config. Error: ${e.message}" }
         }
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(CustomThreadDispatcher.DEBUG_UI).launch {
             _currentConfigFlow.emit(currentConfig)
         }
     }

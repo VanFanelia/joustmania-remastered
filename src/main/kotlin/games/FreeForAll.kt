@@ -205,7 +205,7 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
     @OptIn(InternalAPI::class)
     override fun playBackgroundMusic(): Job {
-        return CoroutineScope(Dispatchers.IO).launch {
+        return CoroutineScope(CustomThreadDispatcher.BACKGROUND_SOUND).launch {
             val sound = arrayOf(SoundId.FREE_FOR_ALL_BACKGROUND_1).random()
             playBackground(sound)
         }.launchOnCancellation {

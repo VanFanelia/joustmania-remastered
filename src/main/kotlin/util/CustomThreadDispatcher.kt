@@ -8,26 +8,45 @@ import java.util.concurrent.ThreadFactory
 
 
 object CustomThreadDispatcher {
-    val POLLING = Executors.newSingleThreadExecutor(NamedThreadFactory("MovePollThread")).asCoroutineDispatcher()
-    val GAME_LOOP =
-        Executors.newSingleThreadExecutor(NamedThreadFactory("GameLoopCoroutineThread")).asCoroutineDispatcher()
+    val POLLING =
+        Executors.newFixedThreadPool(16, NamedThreadFactory("MovePollingSinglePool-Thread", priority = 6) ).asCoroutineDispatcher()
+    val OBSERVE_ACCELERATION =
+        Executors.newFixedThreadPool(4, NamedThreadFactory("AccelerationFixPool-Thread", priority = 6)).asCoroutineDispatcher()
     val GAME_LOGIC =
-        Executors.newSingleThreadExecutor(NamedThreadFactory("GameLogicCoroutineThread")).asCoroutineDispatcher()
-    val SOUND = Executors.newSingleThreadExecutor(NamedThreadFactory("SoundCoroutineThread")).asCoroutineDispatcher()
+        Executors.newSingleThreadExecutor(NamedThreadFactory("GameLogicSinglePool-Thread", priority = 5)).asCoroutineDispatcher()
+    val GAME_STATE =
+        Executors.newSingleThreadExecutor(NamedThreadFactory("GameStateSinglePool-Thread", priority = 5)).asCoroutineDispatcher()
+    val SOUND = Executors.newSingleThreadExecutor(NamedThreadFactory("SoundSinglePool-Thread", priority = 3)).asCoroutineDispatcher()
+    val BACKGROUND_SOUND = Executors.newSingleThreadExecutor(NamedThreadFactory("BackgroundSoundSinglePool-Thread", priority = 2))
+        .asCoroutineDispatcher()
+    val BLUETOOTH =
+        Executors.newFixedThreadPool(3, NamedThreadFactory("BluetoothFixPool-Thread", priority = 6)).asCoroutineDispatcher()
+    val DEBUG_UI = Executors.newCachedThreadPool(NamedThreadFactory("DebugUICachedPool-Thread", priority = 1)).asCoroutineDispatcher()
+    val GAME_CONTROLLER_ACTION =
+        Executors.newSingleThreadExecutor(NamedThreadFactory("GameControllerActionSinglePool-Thread", priority = 7))
+            .asCoroutineDispatcher()
 
     fun shutdown() {
         POLLING.close()
-        GAME_LOOP.close()
+        OBSERVE_ACCELERATION.close()
         GAME_LOGIC.close()
+        GAME_STATE.close()
         SOUND.close()
+        BACKGROUND_SOUND.close()
+        BLUETOOTH.close()
+        DEBUG_UI.close()
+        GAME_CONTROLLER_ACTION.close()
     }
 }
 
-class NamedThreadFactory(private val baseName: String) : ThreadFactory {
+class NamedThreadFactory(private val baseName: String, private val priority: Int = Thread.NORM_PRIORITY) :
+    ThreadFactory {
     private var counter = 0
 
     override fun newThread(r: Runnable): Thread {
-        return Thread(r, "$baseName-${counter++}")
+        val thread = Thread(r, "$baseName-${counter++}")
+        thread.priority = priority
+        return thread
     }
 }
 

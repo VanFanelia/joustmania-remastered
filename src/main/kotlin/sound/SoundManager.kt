@@ -1,9 +1,9 @@
 package de.vanfanel.joustmania.sound
 
+import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.CustomThreadDispatcher.SOUND
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -151,7 +151,7 @@ object SoundManager {
         volume: Float = 1.0f,
         isMp3: Boolean = true
     ) {
-        withContext(Dispatchers.IO) {
+        withContext(CustomThreadDispatcher.SOUND) {
             var inputStream: InputStream? = null
             var bufferedInputStream: BufferedInputStream? = null
             var originalAudioInputStream: AudioInputStream? = null
@@ -258,7 +258,7 @@ object SoundManager {
     fun playBackground(soundId: SoundId) {
         currentBackgroundSound = soundId
         this.logger.info { "Playing background sound: ${soundId.name}" }
-        currentBackgroundSoundJob = CoroutineScope(Dispatchers.IO).launch {
+        currentBackgroundSoundJob = CoroutineScope(CustomThreadDispatcher.BACKGROUND_SOUND).launch {
             while (currentBackgroundSound != null) {
                 currentBackgroundSound?.let {
                     val soundFile = getSoundBy(it, locale)
