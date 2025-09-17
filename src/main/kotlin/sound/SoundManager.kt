@@ -38,6 +38,7 @@ object SoundManager {
 
     init {
         TinySound.init()
+        TinySound.setGlobalVolume(1.0)
     }
 
     fun clearQueueFromAllOptionalSounds() {
@@ -112,6 +113,7 @@ object SoundManager {
                     logger.info { "Playing $soundFile" }
                     lastPlayJob = launch {
                         playSound(resourcePath = soundFile)
+                        delay(nextSound.soundFile.durationInMs)
                     }
                     try {
                         lastPlayJob?.join()
@@ -160,7 +162,7 @@ object SoundManager {
         }
         val musicToPlay = TinySound.loadMusic(resourcePath, true)
         currentPlayingMusic = musicToPlay
-        musicToPlay.play(true, 0.8)
+        musicToPlay.play(true, 0.05)
     }
 
     @Deprecated("not yet implemented correct")

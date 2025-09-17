@@ -6,7 +6,8 @@
       "EN": {
         "language": "EN",
         "file": "new_controller",
-        "localizedText": "New Controller connected"
+        "localizedText": "New Controller connected",
+        "durationInMs": 1620
       }
     }
   },
@@ -17,7 +18,8 @@
       "EN": {
         "language": "EN",
         "file": "controller_disconnected",
-        "localizedText": "Controller disconnected"
+        "localizedText": "Controller disconnected",
+        "durationInMs": 1802
       }
     }
   },
@@ -28,7 +30,8 @@
       "EN": {
         "language": "EN",
         "file": "admin_granted",
-        "localizedText": "admin rights granted"
+        "localizedText": "admin rights granted",
+        "durationInMs": 1567
       }
     }
   },
@@ -39,7 +42,8 @@
       "EN": {
         "language": "EN",
         "file": "admin_revoked",
-        "localizedText": "admin rights revoked"
+        "localizedText": "admin rights revoked",
+        "durationInMs": 1750
       }
     }
   },
@@ -50,7 +54,8 @@
       "EN": {
         "language": "EN",
         "file": "controller_joined",
-        "localizedText": "Controller joined"
+        "localizedText": "Controller joined",
+        "durationInMs": 1672
       }
     }
   },
@@ -61,7 +66,8 @@
       "EN": {
         "language": "EN",
         "file": "controller_left",
-        "localizedText": "Controller left"
+        "localizedText": "Controller left",
+        "durationInMs": 1489
       }
     }
   },
@@ -72,7 +78,8 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_ffa",
-        "localizedText": "Game Mode: Free For All"
+        "localizedText": "Game Mode: Free For All",
+        "durationInMs": 2403
       }
     }
   },
@@ -83,7 +90,8 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_toddlers",
-        "localizedText": "Game Mode: Sort Toddlers"
+        "localizedText": "Game Mode: Sort Toddlers",
+        "durationInMs": 1855
       }
     }
   },
@@ -94,7 +102,8 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_werewolf",
-        "localizedText": "Game Mode: Werewolf"
+        "localizedText": "Game Mode: Werewolf",
+        "durationInMs": 1855
       }
     }
   },
@@ -105,7 +114,8 @@
       "EN": {
         "language": "EN",
         "file": "all_players_ready",
-        "localizedText": "All players are ready."
+        "localizedText": "All players are ready.",
+        "durationInMs": 1489
       }
     }
   },
@@ -116,7 +126,8 @@
       "EN": {
         "language": "EN",
         "file": "three",
-        "localizedText": "three"
+        "localizedText": "three",
+        "durationInMs": 1019
       }
     }
   },
@@ -127,7 +138,8 @@
       "EN": {
         "language": "EN",
         "file": "two",
-        "localizedText": " 2 "
+        "localizedText": " 2 ",
+        "durationInMs": 862
       }
     }
   },
@@ -138,7 +150,8 @@
       "EN": {
         "language": "EN",
         "file": "one",
-        "localizedText": "one"
+        "localizedText": "one",
+        "durationInMs": 679
       }
     }
   },
@@ -149,7 +162,8 @@
       "EN": {
         "language": "EN",
         "file": "go",
-        "localizedText": "GO!"
+        "localizedText": "GO!",
+        "durationInMs": 731
       }
     }
   },
@@ -160,12 +174,14 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_ffa_explanation",
-        "localizedText": "A new round of \"Free for all\" is started. Protect your controller and try to accelerate your opponents' controllers at the same time. If you accelerate too quickly, you are out. The last player wins. Everyone ready? The game starts in:"
+        "localizedText": "A new round of \"Free for all\" is started. Protect your controller and try to accelerate your opponents' controllers at the same time. If you accelerate too quickly, you are out. The last player wins. Everyone ready? The game starts in:",
+        "durationInMs": 20140
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_ffa_explanation",
-        "localizedText": "Eine neue Runde \"Jeder gegen Jeden\" wird gestartet. Beschütze deinen Controller und versuche gleichzeitig die Controller deiner Gegner zu Beschleunigen. Beschleunigst du zu schnell bist du raus. Der letzte Spieler gewinnt. Alle Bereit? Das spiel startet in:"
+        "localizedText": "Eine neue Runde \"Jeder gegen Jeden\" wird gestartet. Beschütze deinen Controller und versuche gleichzeitig die Controller deiner Gegner zu Beschleunigen. Beschleunigst du zu schnell bist du raus. Der letzte Spieler gewinnt. Alle Bereit? Das spiel startet in:",
+        "durationInMs": 20140
       }
     }
   },
@@ -176,12 +192,14 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_toddler_explanation",
-        "localizedText": "We start a round of color sorting game: Just sort yourselves by color! Here we go"
+        "localizedText": "We start a round of color sorting game: Just sort yourselves by color! Here we go",
+        "durationInMs": 5094
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_toddler_explanation",
-        "localizedText": "Wir starten eine Runde Farbkasten-Spiel: Sortiert euch einfach nach Farben! Los gehts"
+        "localizedText": "Wir starten eine Runde Farbkasten-Spiel: Sortiert euch einfach nach Farben! Los gehts",
+        "durationInMs": 5094
       }
     }
   },
@@ -192,12 +210,14 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_werewolf_explanation",
-        "localizedText": "Let's play a round of werewolf! There are two teams: the villagers and the werewolves. The team that has eliminated all opponents at the end wins. You will be shown which team you are on straight away. Now hide your controller so that only you can see the color. If your controller lights up red, you are werewolves. If it lights up green, you are villagers. Everyone ready? Your team is now displayed!"
+        "localizedText": "Let's play a round of werewolf! There are two teams: the villagers and the werewolves. The team that has eliminated all opponents at the end wins. You will be shown which team you are on straight away. Now hide your controller so that only you can see the color. If your controller lights up red, you are werewolves. If it lights up green, you are villagers. Everyone ready? Your team is now displayed!",
+        "durationInMs": 31713
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_werewolf_explanation",
-        "localizedText": "Lasst uns eine Runde Werwolf spielen! Es gibt zwei Teams: die Dorfbewohner und die Werwölfe. Das Team, das am Ende alle Gegner eliminiert hat, gewinnt. In welchem Team ihr seid, wird euch gleich angezeigt. Versteckt nun eure Controller, sodass nur ihr die Farbe sehen könnt. Leuchtet euer Controller rot, seid ihr Werwölfe. Leuchtet er grün, seid ihr Dorfbewohner. Alle bereit? Euer Team wird jetzt angezeigt!"
+        "localizedText": "Lasst uns eine Runde Werwolf spielen! Es gibt zwei Teams: die Dorfbewohner und die Werwölfe. Das Team, das am Ende alle Gegner eliminiert hat, gewinnt. In welchem Team ihr seid, wird euch gleich angezeigt. Versteckt nun eure Controller, sodass nur ihr die Farbe sehen könnt. Leuchtet euer Controller rot, seid ihr Werwölfe. Leuchtet er grün, seid ihr Dorfbewohner. Alle bereit? Euer Team wird jetzt angezeigt!",
+        "durationInMs": 31713
       }
     }
   },
@@ -208,12 +228,14 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_werewolf_explanation_two",
-        "localizedText": "Now stand in a circle so that each player can see every other player. Then close your eyes and wait."
+        "localizedText": "Now stand in a circle so that each player can see every other player. Then close your eyes and wait.",
+        "durationInMs": 6949
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_werewolf_explanation_two",
-        "localizedText": "Jetzt stellt euch alle in einen Kreis, sodass jeder Spieler jeden anderen Spieler sehen kann. Dann schließt eure Augen und wartet."
+        "localizedText": "Jetzt stellt euch alle in einen Kreis, sodass jeder Spieler jeden anderen Spieler sehen kann. Dann schließt eure Augen und wartet.",
+        "durationInMs": 6949
       }
     }
   },
@@ -224,12 +246,14 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_werewolf_explanation_three",
-        "localizedText": "All werewolves, and only the werewolves, open your eyes NOW. Find your partners, nod to each other, and then close your eyes again."
+        "localizedText": "All werewolves, and only the werewolves, open your eyes NOW. Find your partners, nod to each other, and then close your eyes again.",
+        "durationInMs": 9744
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_werewolf_explanation_three",
-        "localizedText": "Alle Werwölfe, und wirklich nur die Werwölfe öffnen JETZT ihre Augen. Sucht eure Partner, nickt euch zu und schließt dann wieder eure Augen."
+        "localizedText": "Alle Werwölfe, und wirklich nur die Werwölfe öffnen JETZT ihre Augen. Sucht eure Partner, nickt euch zu und schließt dann wieder eure Augen.",
+        "durationInMs": 9744
       }
     }
   },
@@ -240,12 +264,14 @@
       "EN": {
         "language": "EN",
         "file": "game_mode_werewolf_explanation_four",
-        "localizedText": "The werewolves should now have their eyes closed. The game can now begin! Please open your eyes, everyone. From now on, if you accelerate too quickly, you're out! Let the wolf hunt begin..."
+        "localizedText": "The werewolves should now have their eyes closed. The game can now begin! Please open your eyes, everyone. From now on, if you accelerate too quickly, you're out! Let the wolf hunt begin...",
+        "durationInMs": 13505
       },
       "DE": {
         "language": "DE",
         "file": "game_mode_werewolf_explanation_four",
-        "localizedText": "Die Werwölfe sollten ihre Augen jetzt geschlossen haben. Das Spiel kann nun beginnen! Bitte öffnet ALLE eure Augen. Ab jetzt gilt: Wenn ihr zu schnell beschleunigt, seid ihr raus! Möge die Wolfsjagd beginnen..."
+        "localizedText": "Die Werwölfe sollten ihre Augen jetzt geschlossen haben. Das Spiel kann nun beginnen! Bitte öffnet ALLE eure Augen. Ab jetzt gilt: Wenn ihr zu schnell beschleunigt, seid ihr raus! Möge die Wolfsjagd beginnen...",
+        "durationInMs": 13505
       }
     }
   },
@@ -256,7 +282,8 @@
       "EN": {
         "language": "EN",
         "file": "aqua_wins",
-        "localizedText": "player \"aqua\" wins!"
+        "localizedText": "player \"aqua\" wins!",
+        "durationInMs": 1907
       }
     }
   },
@@ -267,18 +294,20 @@
       "EN": {
         "language": "EN",
         "file": "black_wins",
-        "localizedText": "player \"black\" wins!"
+        "localizedText": "player \"black\" wins!",
+        "durationInMs": 1802
       }
     }
   },
   "BLUE_WINS": {
-    "id": "BLACK_WINS",
+    "id": "BLUE_WINS",
     "isSpokenText": true,
     "soundFiles": {
       "EN": {
         "language": "EN",
         "file": "blue_wins",
-        "localizedText": "player \"blue\" wins!"
+        "localizedText": "player \"blue\" wins!",
+        "durationInMs": 1567
       }
     }
   },
@@ -289,7 +318,8 @@
       "EN": {
         "language": "EN",
         "file": "green_wins",
-        "localizedText": "player \"green\" wins!"
+        "localizedText": "player \"green\" wins!",
+        "durationInMs": 1855
       }
     }
   },
@@ -300,7 +330,8 @@
       "EN": {
         "language": "EN",
         "file": "light_blue_wins",
-        "localizedText": "player \"light blue\" wins!"
+        "localizedText": "player \"light blue\" wins!",
+        "durationInMs": 2038
       }
     }
   },
@@ -311,7 +342,8 @@
       "EN": {
         "language": "EN",
         "file": "lime_wins",
-        "localizedText": "player \"lime\" wins!"
+        "localizedText": "player \"lime\" wins!",
+        "durationInMs": 1750
       }
     }
   },
@@ -322,7 +354,8 @@
       "EN": {
         "language": "EN",
         "file": "magenta_wins",
-        "localizedText": "player \"magenta\" wins!"
+        "localizedText": "player \"magenta\" wins!",
+        "durationInMs": 1907
       }
     }
   },
@@ -333,7 +366,8 @@
       "EN": {
         "language": "EN",
         "file": "orange_wins",
-        "localizedText": "player \"orange\" wins!"
+        "localizedText": "player \"orange\" wins!",
+        "durationInMs": 1855
       }
     }
   },
@@ -344,7 +378,8 @@
       "EN": {
         "language": "EN",
         "file": "pink_wins",
-        "localizedText": "player \"pink\" wins!"
+        "localizedText": "player \"pink\" wins!",
+        "durationInMs": 1672
       }
     }
   },
@@ -355,7 +390,8 @@
       "EN": {
         "language": "EN",
         "file": "red_wins",
-        "localizedText": "player \"red\" wins!"
+        "localizedText": "player \"red\" wins!",
+        "durationInMs": 1672
       }
     }
   },
@@ -366,7 +402,8 @@
       "EN": {
         "language": "EN",
         "file": "violet_wins",
-        "localizedText": "player \"violet\" wins!"
+        "localizedText": "player \"violet\" wins!",
+        "durationInMs": 1802
       }
     }
   },
@@ -377,7 +414,8 @@
       "EN": {
         "language": "EN",
         "file": "white_wins",
-        "localizedText": "player \"white\" wins!"
+        "localizedText": "player \"white\" wins!",
+        "durationInMs": 1802
       }
     }
   },
@@ -388,7 +426,8 @@
       "EN": {
         "language": "EN",
         "file": "yellow_wins",
-        "localizedText": "player \"yellow\" wins!"
+        "localizedText": "player \"yellow\" wins!",
+        "durationInMs": 1672
       }
     }
   },
@@ -399,7 +438,8 @@
       "EN": {
         "language": "EN",
         "file": "player_lose_1",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 3056
       }
     }
   },
@@ -410,7 +450,8 @@
       "EN": {
         "language": "EN",
         "file": "player_lose_2",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 3056
       }
     }
   },
@@ -421,7 +462,8 @@
       "EN": {
         "language": "EN",
         "file": "minimum_players_2",
-        "localizedText": "To play this game, you need at least 2 players"
+        "localizedText": "To play this game, you need at least 2 players",
+        "durationInMs": 2952
       }
     }
   },
@@ -432,7 +474,8 @@
       "EN": {
         "language": "EN",
         "file": "minimum_players_3",
-        "localizedText": "To play this game, you need at least 3 players"
+        "localizedText": "To play this game, you need at least 3 players",
+        "durationInMs": 3056
       }
     }
   },
@@ -443,7 +486,8 @@
       "EN": {
         "language": "EN",
         "file": "werewolves_wins",
-        "localizedText": "Congratulation: The werewolves wins!"
+        "localizedText": "Congratulation: The werewolves wins!",
+        "durationInMs": 2325
       }
     }
   },
@@ -454,7 +498,8 @@
       "EN": {
         "language": "EN",
         "file": "villagers_wins",
-        "localizedText": "Congratulation: The villagers wins!"
+        "localizedText": "Congratulation: The villagers wins!",
+        "durationInMs": 2926
       }
     }
   },
@@ -465,7 +510,8 @@
       "EN": {
         "language": "EN",
         "file": "werewolf_howling",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 3056
       }
     }
   },
@@ -476,7 +522,8 @@
       "EN": {
         "language": "EN",
         "file": "human_oh_no",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 3056
       }
     }
   },
@@ -487,7 +534,8 @@
       "EN": {
         "language": "EN",
         "file": "lobby_background_1",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 138200
       }
     }
   },
@@ -498,7 +546,8 @@
       "EN": {
         "language": "EN",
         "file": "lobby_background_2",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 144640
       }
     }
   },
@@ -509,7 +558,8 @@
       "EN": {
         "language": "EN",
         "file": "werewolf_background_1",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 479960
       }
     }
   },
@@ -520,7 +570,8 @@
       "EN": {
         "language": "EN",
         "file": "werewolf_background_2",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 479960
       }
     }
   },
@@ -531,7 +582,8 @@
       "EN": {
         "language": "EN",
         "file": "free_for_all_background_1",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 479960
       }
     }
   },
@@ -542,7 +594,8 @@
       "EN": {
         "language": "EN",
         "file": "sort_toddler_background_1",
-        "localizedText": ""
+        "localizedText": "",
+        "durationInMs": 199960
       }
     }
   }
