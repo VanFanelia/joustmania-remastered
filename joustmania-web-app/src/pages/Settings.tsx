@@ -1,7 +1,18 @@
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import {Alert, Avatar, FormHelperText, ListItemAvatar, ListItemText, Select, Switch, TextField} from "@mui/material";
+import {
+    Alert,
+    Avatar,
+    FormHelperText,
+    ListItemAvatar,
+    ListItemText,
+    Select,
+    Slider,
+    Stack,
+    Switch,
+    TextField
+} from "@mui/material";
 import LocalPoliceIcon from '@mui/icons-material/LocalPolice';
 import * as React from "react";
 import {ChangeEvent, useEffect, useState} from "react";
@@ -17,10 +28,11 @@ import {SensibilityLevel, useSettingsContext} from "../context/SettingsProvider.
 import {
     setGameOptionSortToddlerAmountOfRounds,
     setGameOptionSortToddlerRoundDuration,
-    setLanguage,
-    setSensitivity
+    setLanguage, setMusicVolume,
+    setSensitivity, setGlobalVolume
 } from "../api/settings.api.client.ts";
 import {ApiStatus} from "../api/api.definitions.tsx";
+import {MusicNote, SurroundSound, VolumeDown, VolumeUp} from "@mui/icons-material";
 
 const supportedLanguages: Map<string, string> = new Map<string, string>(
     [['en', "Englisch"], ['de', 'German']]
@@ -30,6 +42,8 @@ function Settings() {
     const [everyoneCanBecomeAdmin, setEveryoneCanBecomeAdmin] = useState(true);
     const [currentLanguage, setCurrentLanguage] = useState<string>("en");
     const [currentSensibility, setCurrentSensibility] = useState<SensibilityLevel>(SensibilityLevel.MEDIUM);
+    const [currentMusicVolume, setCurrentMusicVolume] = useState<number>(50);
+    const [currentGlobalVolume, setCurrentGlobalVolume] = useState<number>(50);
     const [sortToddlerRoundDuration, setSortToddlerRoundDuration] = useState(30);
     const [sortToddlerAmountOfRounds, setSortToddlerAmountOfRounds] = useState(10);
 
@@ -62,6 +76,27 @@ function Settings() {
         })
     }
 
+    const handleMusicVolumeChange = (_: Event, newValue: number) => {
+        setCurrentMusicVolume(newValue);
+        setMusicVolume(newValue ).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    };
+
+    const handleGlobalVolumeChange = (_: Event, newValue: number) => {
+        setCurrentGlobalVolume(newValue);
+        setGlobalVolume(newValue ).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    };
+
+
     const config = useSettingsContext();
 
     useEffect(() => {
@@ -70,6 +105,8 @@ function Settings() {
             setCurrentLanguage(config.language.toLowerCase())
             setSortToddlerRoundDuration(config.sortToddlerGameOptions.roundDuration)
             setSortToddlerAmountOfRounds(config.sortToddlerGameOptions.amountOfRounds)
+            setCurrentMusicVolume(config.musicVolume)
+            setCurrentGlobalVolume(config.globalVolume)
         }
     }, [config])
 
@@ -101,6 +138,19 @@ function Settings() {
             })
         }
     }
+
+    const SLIDER_MAX = 100;
+    const SLIDER_MIN = 0;
+    const sliderMarks = [
+        {
+            value: SLIDER_MIN,
+            label: '',
+        },
+        {
+            value: SLIDER_MAX,
+            label: '',
+        },
+    ];
 
     return (
 
@@ -228,6 +278,42 @@ function Settings() {
                                     20</FormHelperText>
                             )
                         }
+                    </FormControl>
+                </ListItem>
+            </List>
+
+            <h2 className="mb-2 text-2xl">Music & Sound</h2>
+            <List className={"w-full"} sx={{bgcolor: 'background.paper'}}>
+                <ListItem className="w-full flex justify-between">
+                    <ListItemAvatar>
+                        <Avatar>
+                            <MusicNote style={{color: "#000"}}/>
+                        </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Music Volume"/>
+                    <FormControl sx={{m: 1, maxWidth: 500}}>
+                        <Stack spacing={2} direction="row" sx={{alignItems: 'center', mb: 1, minWidth: 200}}>
+                            <VolumeDown style={{color: "#000"}}/>
+                            <Slider aria-label="Music" marks={sliderMarks} step={5} value={currentMusicVolume}
+                                    onChange={handleMusicVolumeChange}/>
+                            <VolumeUp style={{color: "#000"}}/>
+                        </Stack>
+                    </FormControl>
+                </ListItem>
+                <ListItem className="w-full flex justify-between">
+                    <ListItemAvatar>
+                        <Avatar>
+                            <SurroundSound style={{color: "#000"}}/>
+                        </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary="Global Volume"/>
+                    <FormControl sx={{m: 1, maxWidth: 500}}>
+                        <Stack spacing={2} direction="row" sx={{alignItems: 'center', mb: 1, minWidth: 200}}>
+                            <VolumeDown style={{color: "#000"}}/>
+                            <Slider aria-label="Global" marks={sliderMarks} step={5} value={currentGlobalVolume}
+                                    onChange={handleGlobalVolumeChange}/>
+                            <VolumeUp style={{color: "#000"}}/>
+                        </Stack>
                     </FormControl>
                 </ListItem>
             </List>

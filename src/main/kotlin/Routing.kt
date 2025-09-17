@@ -6,9 +6,11 @@ import de.vanfanel.joustmania.GameStateManager.playerLostFlow
 import de.vanfanel.joustmania.config.ForceStartGameDto
 import de.vanfanel.joustmania.config.SetGameMode
 import de.vanfanel.joustmania.config.SetLanguage
+import de.vanfanel.joustmania.config.SetMusicVolume
 import de.vanfanel.joustmania.config.SetSensitivity
 import de.vanfanel.joustmania.config.SetSortToddlerAmountOfRounds
 import de.vanfanel.joustmania.config.SetSortToddlerRoundDuration
+import de.vanfanel.joustmania.config.SetGlobalVolume
 import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.hardware.AccelerationDebugger
@@ -265,6 +267,20 @@ fun Application.configureRouting() {
 
                 LobbyLoop.setCurrentGameMode(newGameMode.gameMode)
                 call.respond(HttpStatusCode.OK, "Set game mode to ${newGameMode.gameMode}")
+            }
+
+            post("/settings/globalVolume") {
+                val newGlobalVolume = call.receive<SetGlobalVolume>()
+                val volume: Int = newGlobalVolume.globalVolume
+                Settings.setGlobalVolume(volume)
+                call.respond(HttpStatusCode.OK, "Sound volume updated to $volume")
+            }
+
+            post("/settings/musicVolume") {
+                val newMusicVolume = call.receive<SetMusicVolume>()
+                val volume: Int = newMusicVolume.musicVolume
+                Settings.setMusicVolume(volume)
+                call.respond(HttpStatusCode.OK, "Music volume updated to $volume")
             }
 
             // manipulate game

@@ -29,24 +29,32 @@ class Config {
     language: Language;
     enableAP: boolean;
     sortToddlerGameOptions: SortToddlerGameOptions;
+    globalVolume: number;
+    musicVolume: number;
 
     constructor(
         sensibility: SensibilityLevel,
         language: Language,
         enableAP: boolean,
-        sortToddlerGameOptions: SortToddlerGameOptions
+        sortToddlerGameOptions: SortToddlerGameOptions,
+        globalVolume: number,
+        musicVolume: number,
     ) {
         this.sensibility = sensibility;
         this.language = language;
         this.enableAP = enableAP;
         this.sortToddlerGameOptions = sortToddlerGameOptions;
+        this.globalVolume = globalVolume;
+        this.musicVolume = musicVolume;
     }
 
     static DEFAULT_CONFIG = new Config(
         SensibilityLevel.MEDIUM,
         Language.EN,
         false,
-        new SortToddlerGameOptions(10, 30)
+        new SortToddlerGameOptions(30, 10),
+        50,
+        50,
     );
 }
 

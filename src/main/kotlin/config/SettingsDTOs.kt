@@ -25,3 +25,9 @@ data class SetSortToddlerRoundDuration(val duration: Int)
 
 @Serializable
 data class SetSortToddlerAmountOfRounds(val amountOfRounds: Int)
+
+@Serializable
+data class SetGlobalVolume(val globalVolume: Int)
+
+@Serializable
+data class SetMusicVolume(val musicVolume: Int)

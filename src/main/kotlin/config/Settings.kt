@@ -89,6 +89,24 @@ object Settings {
         return currentConfig.sensibility
     }
 
+    fun getMusicVolume(): Int {
+        return currentConfig.musicVolume
+    }
+
+    fun setMusicVolume(volume: Int) {
+        currentConfig = currentConfig.copy(musicVolume = volume)
+        saveSettings()
+    }
+
+    fun getGlobalVolume(): Int {
+        return currentConfig.globalVolume
+    }
+
+    fun setGlobalVolume(volume: Int) {
+        currentConfig = currentConfig.copy(globalVolume = volume)
+        saveSettings()
+    }
+
     fun setSortToddlerGameOptionRoundDuration(duration: Int) {
         currentConfig = currentConfig.copy(sortToddlerGameOptions = currentConfig.sortToddlerGameOptions.copy(roundDuration = duration))
         saveSettings()

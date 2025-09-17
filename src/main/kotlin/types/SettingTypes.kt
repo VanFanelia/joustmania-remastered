@@ -68,14 +68,18 @@ data class Config(
     val sensibility: Sensibility,
     val language: Language,
     val enableAP: Boolean,
-    val sortToddlerGameOptions: SortToddlerGameOptions
+    val sortToddlerGameOptions: SortToddlerGameOptions,
+    val globalVolume: Int = 50,
+    val musicVolume: Int = 50,
 ) {
     companion object {
         val DEFAULT_CONFIG = Config(
             sensibility = Sensibility.MEDIUM,
             language = Language.EN,
             enableAP = false,
-            sortToddlerGameOptions = SortToddlerGameOptions(roundDuration = 30, amountOfRounds = 10)
+            sortToddlerGameOptions = SortToddlerGameOptions(roundDuration = 30, amountOfRounds = 10),
+            globalVolume = 50,
+            musicVolume = 50,
         )
     }
 }

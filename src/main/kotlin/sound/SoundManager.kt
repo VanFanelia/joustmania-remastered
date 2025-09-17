@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania.sound
 
+import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.util.CustomThreadDispatcher.SOUND
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -35,10 +36,19 @@ object SoundManager {
     private var lastSound: SoundQueueEntry? = null
     private var locale: SupportedSoundLocale = SupportedSoundLocale.EN
     private var lastPlayJob: Job? = null
+    private var musicVolume: Double = 0.5
 
     init {
         TinySound.init()
-        TinySound.setGlobalVolume(1.0)
+        TinySound.setGlobalVolume((Settings.getGlobalVolume() / 100.0))
+
+        CoroutineScope(SOUND).launch {
+            Settings.currentConfigFlow.collect {
+                logger.info { "New global volume: ${it.globalVolume}, new music volume: ${it.musicVolume}" }
+                TinySound.setGlobalVolume((it.globalVolume / 100.0))
+                setMusicVolume(it.musicVolume / 100.0)
+            }
+        }
     }
 
     fun clearQueueFromAllOptionalSounds() {
@@ -47,7 +57,6 @@ object SoundManager {
                 queue.remove(it)
             }
         }
-
     }
 
     fun asyncAddSoundToQueue(
@@ -162,7 +171,12 @@ object SoundManager {
         }
         val musicToPlay = TinySound.loadMusic(resourcePath, true)
         currentPlayingMusic = musicToPlay
-        musicToPlay.play(true, 0.05)
+        musicToPlay.play(true, 0.10 * musicVolume)
+    }
+
+    private fun setMusicVolume(musicVolume: Double) {
+        this.musicVolume = musicVolume
+        currentPlayingMusic?.setVolume(0.10 * musicVolume)
     }
 
     @Deprecated("not yet implemented correct")
