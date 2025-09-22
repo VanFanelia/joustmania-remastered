@@ -5,7 +5,7 @@ import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import PSMoveController from '../assets/PSMoveController.svg?react';
 import {Paper} from "@mui/material";
 import {Link} from 'react-router-dom';
-import {DeveloperMode, Settings, SportsEsports} from '@mui/icons-material';
+import {DeveloperMode, Settings, SportsEsports, VideoSettings} from '@mui/icons-material';
 
 export default function SimpleBottomNavigation() {
     const [value, setValue] = React.useState(0);
@@ -19,6 +19,7 @@ export default function SimpleBottomNavigation() {
                     setValue(newValue);
                 }}
             >
+                <BottomNavigationAction label="Main Controll" icon={<VideoSettings/>} component={Link} to="/main"/>
                 <BottomNavigationAction label="Game" icon={<SportsEsports/>} component={Link} to="/game"/>
                 <BottomNavigationAction label="Settings" icon={<Settings/>} component={Link} to="/settings"/>
                 <BottomNavigationAction label="Hardware" icon={<PSMoveController width={32} height={32} style={{

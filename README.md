@@ -59,6 +59,10 @@ Neeed for Install:
 Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=false" instead of the default of true does (after restarting bluez) eliminate this issue, making it possible to connect controllers without issue, and without compiling my own bluez!
 ```
 
+## next games:
+- Ninja Bomb (Random Time between 2 and 3 minutes. Sounds get faster and faster)
+- Zombie (Max Time 3 Minutes)
+- Protect the King (one is the king, if he dies, the hole team loses, all other are knights. If Knights get beaten, they need to press the Z Button and Shake the stick to get color again, the king cannot move fast, is very sensitve)
 
 ## todos:
 - on new player connected via usb, change duration to 3-4 seconds of white to wait for bluetooth restarting
@@ -75,3 +79,7 @@ Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=f
 ### nice to have
 - colored logs
 - fix select audio output
+
+
+### thanks and credits 
+- Thanks to https://openmoji.org/ for the awesome open source icons
