@@ -53,7 +53,6 @@ fun main() {
     @Suppress("unused")
     val settings = Settings
 
-    // TODO only activate acceleration debugger in debug mode?
     @Suppress("unused")
     val accelerationDebugger = AccelerationDebugger
 

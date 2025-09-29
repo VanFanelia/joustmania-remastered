@@ -107,6 +107,18 @@
       }
     }
   },
+  "GAME_MODE_ZOMBIE":  {
+    "id": "GAME_MODE_ZOMBIE",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_zombie",
+        "localizedText": "Game Mode: Zombie",
+        "durationInMs":  1803
+      }
+    }
+  },
   "ALL_PLAYERS_READY": {
     "id": "ALL_PLAYERS_READY",
     "isSpokenText": true,
@@ -272,6 +284,66 @@
         "file": "game_mode_werewolf_explanation_four",
         "localizedText": "Die Werwölfe sollten ihre Augen jetzt geschlossen haben. Das Spiel kann nun beginnen! Bitte öffnet ALLE eure Augen. Ab jetzt gilt: Wenn ihr zu schnell beschleunigt, seid ihr raus! Möge die Wolfsjagd beginnen...",
         "durationInMs": 13505
+      }
+    }
+  },
+  "GAME_MODE_ZOMBIE_LOBBY_EXPLANATION": {
+    "id": "GAME_MODE_ZOMBIE_LOBBY_EXPLANATION",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_zombie_lobby_explanation",
+        "localizedText": "Game Mode Zombie: If you want to play as Zombie, press the big Move Button on the front of your controller to switch role. To Start the game, all players need to confirm there role with the big trigger button on the backside.",
+        "durationInMs": 13636
+      }
+    }
+  },
+  "GAME_MODE_ZOMBIE_TOO_MANY_ZOMBIES": {
+    "id": "GAME_MODE_ZOMBIE_TOO_MANY_ZOMBIES",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_zombie_too_many_zombies",
+        "localizedText": "The maximum number of zombies has been exceeded. One ore more player need to press the PSMove button on the front to leave the zombie team",
+        "durationInMs": 8386
+      }
+    }
+  },
+  "GAME_MODE_ZOMBIE_HUMAN_WINS": {
+    "id": "GAME_MODE_ZOMBIE_HUMAN_WINS",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_zombie_human_wins",
+        "localizedText": "Congratulations, you have survived the zombie apocalypse. Humanity has prevailed.",
+        "durationInMs": 5382
+      }
+    }
+  },
+  "GAME_MODE_ZOMBIE_ZOMBIES_WINS": {
+    "id": "GAME_MODE_ZOMBIE_ZOMBIES_WINS",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_zombie_zombies_wins",
+        "localizedText": "Oh no, humanity is one step closer to extinction. The zombies have won.",
+        "durationInMs":  5042
+      }
+    }
+  },
+  "GAME_MODE_ZOMBIE_A_PERSON_WAS_BITTEN_BY_ZOMBIE": {
+    "id": "GAME_MODE_ZOMBIE_A_PERSON_WAS_BITTEN_BY_ZOMBIE",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_zombie_a_person_was_bitten_by_zombie",
+        "localizedText": "ARGH! Another human got bitten.",
+        "durationInMs": 2090
       }
     }
   },

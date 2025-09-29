@@ -11,7 +11,6 @@ import de.vanfanel.joustmania.util.CustomThreadDispatcher
 import de.vanfanel.joustmania.util.Ticker
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -147,10 +146,9 @@ class PSMoveStub(val macAddress: MacAddress) {
         CoroutineScope(CustomThreadDispatcher.GAME_CONTROLLER_ACTION).launch {
             _buttonPressedFlow.collect {
                 val oldButtonPressList = buttonsWithPressedState
-                val newButtonPressList = it
                 oldButtonPressList.addAll(it)
                 //check if released
-                val buttonsReleased = oldButtonPressList - newButtonPressList
+                val buttonsReleased = oldButtonPressList - it
                 if (buttonsReleased.isNotEmpty()) {
                     _buttonClickFlow.tryEmit(buttonsReleased)
                     oldButtonPressList.removeAll(buttonsReleased)
@@ -199,7 +197,7 @@ class PSMoveStub(val macAddress: MacAddress) {
             if (firstPoll == null) {
                 firstPoll = now
             }
-            pollCount = pollCount + 1
+            pollCount += 1
 
             // calculate average poll time
             if (pollCount > 2) {
@@ -254,6 +252,10 @@ class PSMoveStub(val macAddress: MacAddress) {
 
     val getForceStartClickFlow: Flow<Unit> = _buttonClickFlow.filter {
         it.contains(PSMoveButton.MOVE_MENU) && it.contains(PSMoveButton.PLAYSTATION)
+    }.map { }
+
+    val getMoveClickFlow: Flow<Unit> = _buttonClickFlow.filter {
+        it.contains(PSMoveButton.MOVE_MENU)
     }.map { }
 
     private fun checkBatteryLevel() {

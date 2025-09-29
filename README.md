@@ -63,6 +63,7 @@ Changing /etc/bluetooth/input.cfg on my arch machine to use "ClassicBondedOnly=f
 - Ninja Bomb (Random Time between 2 and 3 minutes. Sounds get faster and faster)
 - Zombie (Max Time 3 Minutes)
 - Protect the King (one is the king, if he dies, the hole team loses, all other are knights. If Knights get beaten, they need to press the Z Button and Shake the stick to get color again, the king cannot move fast, is very sensitve)
+- Shake or Fail (alle leuchten orange, 1,5-2 mal so viele controller wie spieler. Dann werden die Controller verteilt und scharf geschaltet (werden dann grün) jetzt müssen sie immer dort wo sie waren gerüttelt werden bevor sie wieder Rot sind.)
 
 ## todos:
 - on new player connected via usb, change duration to 3-4 seconds of white to wait for bluetooth restarting

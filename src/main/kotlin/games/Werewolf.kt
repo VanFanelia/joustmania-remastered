@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania.games
 
+import GameWithAcceleration
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.games.WerewolfFactions.VILLAGERS
@@ -28,8 +29,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.ceil
 
 enum class WerewolfFactions {
-    WEREWOLVES,
-    VILLAGERS
+    WEREWOLVES, VILLAGERS
 }
 
 class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
@@ -40,11 +40,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
     private var backgroundMusicJob: Job? = null
 
     override val playerLostAnimationColors = listOf(
-        MoveColor.VIOLET,
-        MoveColor.VIOLET_INACTIVE,
-        MoveColor.VIOLET,
-        MoveColor.VIOLET_INACTIVE,
-        MoveColor.BLACK
+        MoveColor.VIOLET, MoveColor.VIOLET_INACTIVE, MoveColor.VIOLET, MoveColor.VIOLET_INACTIVE, MoveColor.BLACK
     )
 
     val werewolfTeam = mutableSetOf<MacAddress>()
@@ -78,9 +74,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         val winnerSound = if (winner == WEREWOLVES) SoundId.WEREWOLVES_WINS else SoundId.VILLAGERS_WINS
 
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = winnerSound,
-            abortOnNewSound = false,
-            minDelay = 16000L
+            id = winnerSound, abortOnNewSound = false, minDelay = 16000L
         )
 
         winnerStubs.forEach { it.clearAnimation() }
@@ -115,8 +109,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         SoundManager.clearSoundQueue()
         logger.info { "play explanation..." }
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION,
-            abortOnNewSound = false
+            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION, abortOnNewSound = false
         )
         logger.info { "explanation played" }
 
@@ -130,9 +123,7 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
             )
         }
         PSMoveApi.rumble(
-            moves = currentPlayingController.keys,
-            intensity = RUMBLE_SOFTEST,
-            durationInMs = 500
+            moves = currentPlayingController.keys, intensity = RUMBLE_SOFTEST, durationInMs = 500
         )
 
         delay(2000)
@@ -166,18 +157,15 @@ class Werewolf : GameWithAcceleration(logger = KotlinLogging.logger {}) {
         }
 
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_TWO,
-            abortOnNewSound = false
+            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_TWO, abortOnNewSound = false
         )
         delay(5000)
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_THREE,
-            abortOnNewSound = false
+            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_THREE, abortOnNewSound = false
         )
         delay(10000)
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_FOUR,
-            abortOnNewSound = false
+            id = SoundId.GAME_MODE_WEREWOLF_EXPLANATION_FOUR, abortOnNewSound = false
         )
         delay(2000)
 

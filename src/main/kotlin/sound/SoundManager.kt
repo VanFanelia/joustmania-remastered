@@ -59,6 +59,19 @@ object SoundManager {
         }
     }
 
+    fun asyncAddSoundToQueueIfQueueIsEmpty(
+        id: SoundId,
+        abortOnNewSound: Boolean = true,
+        playMp3: Boolean = false,
+        onSoundFilePlayed: suspend () -> Unit = {}
+    ) {
+        if (!isPlaying) {
+            asyncAddSoundToQueue(
+                id = id, abortOnNewSound = abortOnNewSound, playMp3 = playMp3, onSoundFilePlayed = onSoundFilePlayed
+            )
+        }
+    }
+
     fun asyncAddSoundToQueue(
         id: SoundId,
         abortOnNewSound: Boolean = true,
@@ -93,22 +106,19 @@ object SoundManager {
     }
 
     suspend fun addSoundToQueueAndWaitForPlayerFinishedThisSound(
-        id: SoundId,
-        abortOnNewSound: Boolean,
-        minDelay: Long = 0L
-    ) =
-        suspendCoroutine { continuation ->
-            val start = Instant.now().toEpochMilli()
-            this.asyncAddSoundToQueue(id = id, abortOnNewSound = abortOnNewSound) {
-                val duration = Instant.now().toEpochMilli() - start
-                if (duration < minDelay) {
-                    val delay = minDelay - duration
-                    logger.debug { "Sound play time was less then minDelay. Add a delay of $delay ms" }
-                    delay(minDelay - duration)
-                }
-                continuation.resume(Unit)
+        id: SoundId, abortOnNewSound: Boolean, minDelay: Long = 0L
+    ) = suspendCoroutine { continuation ->
+        val start = Instant.now().toEpochMilli()
+        this.asyncAddSoundToQueue(id = id, abortOnNewSound = abortOnNewSound) {
+            val duration = Instant.now().toEpochMilli() - start
+            if (duration < minDelay) {
+                val delay = minDelay - duration
+                logger.debug { "Sound play time was less then minDelay. Add a delay of $delay ms" }
+                delay(minDelay - duration)
             }
+            continuation.resume(Unit)
         }
+    }
 
     private fun playNextSound() {
         isPlaying = true

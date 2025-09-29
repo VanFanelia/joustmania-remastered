@@ -1,5 +1,6 @@
 package de.vanfanel.joustmania.games
 
+import GameWithAcceleration
 import de.vanfanel.joustmania.GameStateManager
 import de.vanfanel.joustmania.config.Settings
 import de.vanfanel.joustmania.hardware.PSMoveApi
@@ -21,7 +22,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.engine.launchOnCancellation
 import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -77,9 +77,7 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
 
         colorWinsSound?.let {
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = it,
-                abortOnNewSound = false,
-                minDelay = 16000L
+                id = it, abortOnNewSound = false, minDelay = 16000L
             )
         }
         winnerStub?.clearAnimation()
@@ -117,8 +115,7 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
             SoundManager.clearSoundQueue()
             logger.info { "play explanation..." }
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = SoundId.GAME_MODE_FFA_EXPLANATION,
-                abortOnNewSound = false
+                id = SoundId.GAME_MODE_FFA_EXPLANATION, abortOnNewSound = false
             )
             logger.info { "explanation played" }
 
@@ -134,16 +131,12 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
                 )
             }
             PSMoveApi.rumble(
-                moves = currentPlayingController.keys,
-                intensity = RUMBLE_SOFTEST,
-                durationInMs = 500
+                moves = currentPlayingController.keys, intensity = RUMBLE_SOFTEST, durationInMs = 500
             )
 
 
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = SoundId.THREE,
-                abortOnNewSound = false,
-                minDelay = 1000L
+                id = SoundId.THREE, abortOnNewSound = false, minDelay = 1000L
             )
 
             currentPlayingController.forEach { player ->
@@ -156,15 +149,11 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
                 )
             }
             PSMoveApi.rumble(
-                moves = currentPlayingController.keys,
-                intensity = RUMBLE_MEDIUM,
-                durationInMs = 500
+                moves = currentPlayingController.keys, intensity = RUMBLE_MEDIUM, durationInMs = 500
             )
 
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = SoundId.TWO,
-                abortOnNewSound = false,
-                minDelay = 1000L
+                id = SoundId.TWO, abortOnNewSound = false, minDelay = 1000L
             )
 
 
@@ -178,16 +167,12 @@ class FreeForAll : GameWithAcceleration(logger = KotlinLogging.logger {}) {
                 )
             }
             PSMoveApi.rumble(
-                moves = currentPlayingController.keys,
-                intensity = RUMBLE_HARDEST,
-                durationInMs = 500
+                moves = currentPlayingController.keys, intensity = RUMBLE_HARDEST, durationInMs = 500
             )
 
 
             SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-                id = SoundId.ONE,
-                abortOnNewSound = false,
-                minDelay = 1000L
+                id = SoundId.ONE, abortOnNewSound = false, minDelay = 1000L
             )
 
             currentPlayingController.forEach { player ->

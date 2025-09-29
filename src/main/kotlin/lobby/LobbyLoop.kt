@@ -7,6 +7,7 @@ import de.vanfanel.joustmania.games.Game
 import de.vanfanel.joustmania.games.Game.Companion.gameNameToIndex
 import de.vanfanel.joustmania.games.Game.Companion.gameNamesToGameObject
 import de.vanfanel.joustmania.games.Game.Companion.listOfGames
+import de.vanfanel.joustmania.hardware.PSMoveApi
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
 import de.vanfanel.joustmania.hardware.psmove.PSMoveStub
 import de.vanfanel.joustmania.sound.SoundId
@@ -86,6 +87,7 @@ object LobbyLoop {
                     selectedGameIndex = null
                     isActive.clear()
                     _activeMoves.emit(emptyList())
+                    PSMoveApi.setColorOnAllMoveController(MoveColor.ORANGE_INACTIVE)
                     initLobbyCoroutines()
                 } else {
                     lobbyJobs.forEach { job -> job.cancel() }
