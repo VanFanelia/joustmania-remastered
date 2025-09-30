@@ -109,8 +109,8 @@ function Settings() {
         }
     }, [config])
 
-    const hasRoundDurationError = (roundDuration: any) => !roundDuration || (roundDuration < 10 || roundDuration > 180)
-    const hasAmountOfRoundsError = (amountOfRounds: any) => !amountOfRounds || (amountOfRounds < 1 || amountOfRounds > 20)
+    const hasRoundDurationError = (roundDuration: number) => !roundDuration || (roundDuration < 10 || roundDuration > 180)
+    const hasAmountOfRoundsError = (amountOfRounds: number) => !amountOfRounds || (amountOfRounds < 1 || amountOfRounds > 20)
 
     const handleSortToddlerRoundDurationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const roundDuration = parseInt(event.target.value as string)
