@@ -338,6 +338,8 @@ fun Application.configureRouting() {
                 call.response.cacheControl(CacheControl.NoCache(null))
                 logger.debug { "new client connected to sse/settings endpoint" }
                 call.respondTextWriter(contentType = ContentType.Text.EventStream) {
+                    write("data: ${Json.encodeToString(Settings.currentConfig)}\n\n")
+                    flush()
                     Settings.currentConfigFlow.collect { value ->
                         logger.debug { "new settings pushed to client: $value" }
                         write("data: ${Json.encodeToString(value)}\n\n")

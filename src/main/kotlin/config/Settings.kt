@@ -54,6 +54,9 @@ object Settings {
             logger.error(e) { "Failed to load config file. Set current config to default" }
         } finally {
             currentConfig = loadedConfig ?: DEFAULT_CONFIG
+            CoroutineScope(CustomThreadDispatcher.DEBUG_UI).launch {
+                _currentConfigFlow.emit(currentConfig)
+            }
         }
     }
 

@@ -32,6 +32,8 @@ import {ApiStatus} from "../api/api.definitions.tsx";
 import AbortGameButtonWithDialog from "../components/AbortGameButtonWithDialog.tsx";
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 import {GameMode, getDisplayName} from "../util/gameConstants.tsx";
+import {useSettingsContext} from "../context/SettingsProvider.tsx";
+import {setGlobalVolume, setMusicVolume} from "../api/settings.api.client.ts";
 
 function MainControl() {
     const SLIDER_MAX = 100;
@@ -91,6 +93,38 @@ function MainControl() {
         })
     }
 
+    const [currentMusicVolume, setCurrentMusicVolume] = useState<number>(50);
+    const [currentGlobalVolume, setCurrentGlobalVolume] = useState<number>(50);
+
+    const config = useSettingsContext();
+
+    useEffect(() => {
+        if (config !== null) {
+            setCurrentMusicVolume(config.musicVolume)
+            setCurrentGlobalVolume(config.globalVolume)
+        }
+    }, [config])
+
+    const handleMusicVolumeChange = (_: Event, newValue: number) => {
+        setCurrentMusicVolume(newValue);
+        setMusicVolume(newValue).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    };
+
+    const handleGlobalVolumeChange = (_: Event, newValue: number) => {
+        setCurrentGlobalVolume(newValue);
+        setGlobalVolume(newValue).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    };
+
     const isGameRunning = gameState != "Lobby";
     const headline =
         isGameRunning ? "Lobby: Waiting for game selection" : `Game running: ${currentGame}`;
@@ -144,10 +178,8 @@ function MainControl() {
                             <Stack spacing={2} direction="row"
                                    sx={{alignItems: 'center', mb: 1, minWidth: 200, marginBottom: 0}}>
                                 <VolumeDown style={{color: "#000"}}/>
-                                <Slider aria-label="Global" marks={sliderMarks} step={5} value={30}
-                                        onChange={() => {
-                                            console.log("huhu")
-                                        }}/>
+                                <Slider aria-label="Global" marks={sliderMarks} step={5} value={currentGlobalVolume}
+                                        onChange={handleGlobalVolumeChange}/>
                                 <VolumeUp style={{color: "#000"}}/>
                             </Stack>
                         </div>
@@ -161,10 +193,8 @@ function MainControl() {
                             <Stack spacing={2} direction="row"
                                    sx={{alignItems: 'center', mb: 1, minWidth: 200, marginBottom: 0}}>
                                 <VolumeDown style={{color: "#000"}}/>
-                                <Slider aria-label="Global" marks={sliderMarks} step={5} value={30}
-                                        onChange={() => {
-                                            console.log("huhu")
-                                        }}/>
+                                <Slider aria-label="Global" marks={sliderMarks} step={5} value={currentMusicVolume}
+                                        onChange={handleMusicVolumeChange}/>
                                 <VolumeUp style={{color: "#000"}}/>
                             </Stack>
                         </div>

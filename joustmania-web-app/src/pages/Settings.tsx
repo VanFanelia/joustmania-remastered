@@ -96,7 +96,6 @@ function Settings() {
         })
     };
 
-
     const config = useSettingsContext();
 
     useEffect(() => {
