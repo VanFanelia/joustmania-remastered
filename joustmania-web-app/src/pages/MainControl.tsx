@@ -6,10 +6,11 @@ import werewolfImage from '../assets/werewolf.banner.full.png';
 import zombieImage from '../assets/zombie.banner.full.png';
 import protectTheKingImage from '../assets/protect-the-king.banner.full.png';
 import ninjaBombImage from '../assets/ninja-bomb.banner.full.png';
+import shakeNRunImage from '../assets/shake-n-run.banner.full.png';
 import Diversity3Icon from "@mui/icons-material/Diversity3";
-// @ts-ignore
+// @ts-expect-error the auto transform into a React component seems to be an error for the linter
 import SkullsAndBonesIcon from '../assets/skulls-and-bones.svg?react';
-// @ts-ignore
+// @ts-expect-error he auto transform into a React component seems to be an error for the linter
 import PSMoveControllerIcon from '../assets/PSMoveController.svg?react';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import {ArrowForwardIos, MusicNote, SurroundSound, VolumeDown, VolumeUp} from "@mui/icons-material";
@@ -30,7 +31,8 @@ function MainControl() {
 
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
-            <Box className="flex flex-col justify-between" sx={{minWidth: 768, height: '100vh', overflow: 'hidden'}}>
+            <Box className="flex flex-col justify-between"
+                 sx={{minWidth: 768, height: 'calc(100vh - 56px)', overflow: 'hidden'}}>
                 <div className="flex flex-row justify-between items-center">
                     <Typography gutterBottom variant="h5" component="span" sx={{minWidth: 200}}>
                         Aktuelles Spiel: FFA
@@ -56,7 +58,9 @@ function MainControl() {
                         <Button size="large" variant="contained" color="error">Stop Game</Button>
                     </div>
                 </div>
-                <SelectGameSlider/>
+                <div style={{flex: 1, minHeight: 0, display: 'flex'}}>
+                    <SelectGameSlider/>
+                </div>
                 <div className="flex flex-row justify-between p-2 m-2">
                     <div className="flex flex-row justify-between gap-12">
                         <div className="flex flex-row gap-2 justify-between self-center">
@@ -110,7 +114,7 @@ function MainControl() {
 
 function SelectGameSlider() {
 
-    let intervalId: any;
+    let intervalId: number | undefined = undefined;
     const stopScroll = () => {
         clearInterval(intervalId);
         window.removeEventListener("mouseup", stopScroll);
@@ -161,7 +165,8 @@ function SelectGameSlider() {
                  onMouseOver={() => autoScroll(-5)}>
                 <ArrowBackIosNewIcon height={48} width={48} className="self-center"/>
             </div>
-            <div id="sideScroller" className="flex flex-row gap-4 overflow-x-auto max-w-screen w-full p-8">
+            <div id="sideScroller" className="flex flex-row gap-4 overflow-x-auto max-w-screen w-full p-8 items-center"
+                 style={{maxWidth: "calc(100vw - 128px)"}}>
 
                 <GameCard image={freeForAllImage} title={"Free For all"} onStart={() => {
                 }} onForceStart={() => {
@@ -179,13 +184,18 @@ function SelectGameSlider() {
                 }} onForceStart={() => {
                 }}/>
 
-                <GameCard image={ninjaBombImage} title={"Ninja Bomb"} onStart={() => {
+                <GameCard isDeactivated image={ninjaBombImage} title={"Ninja Bomb"} onStart={() => {
                 }} onForceStart={() => {
                 }}/>
 
-                <GameCard image={protectTheKingImage} title={"Protect the King"} onStart={() => {
+                <GameCard isDeactivated image={shakeNRunImage} title={"Shake n Run"} onStart={() => {
                 }} onForceStart={() => {
                 }}/>
+
+                <GameCard isDeactivated image={protectTheKingImage} title={"Protect the King"} onStart={() => {
+                }} onForceStart={() => {
+                }}/>
+
             </div>
             <div className="flex-col content-center z-10 h-full w-8" onClick={scrollRight}
                  onMouseOver={() => autoScroll(5)}>
@@ -196,28 +206,33 @@ function SelectGameSlider() {
 }
 
 interface GameCardProps {
+    isDeactivated?: boolean
     image: string,
     title: string,
-
     onStart: () => void,
-
     onForceStart: () => void
 }
 
-function GameCard({image, title, onStart, onForceStart}: GameCardProps) {
-    return <Card sx={{minWidth: 400}}>
-        <CardMedia sx={{height: 267}}
-                   image={image}
-                   title={title}>
-        </CardMedia>
+function GameCard({isDeactivated = false, image, title, onStart, onForceStart}: GameCardProps) {
+    return <Card sx={{minWidth: {xs: 200, md: 400, xl: 600}, height: "fit-content"}} className="pb-2">
+        <CardMedia
+            sx={{
+                minHeight: {xs: 134, md: 268, xl: 402},
+                filter: isDeactivated ? 'grayscale(100%)' : "none",
+            }}
+            image={image}
+            title={title}
+        />
         <CardContent>
-            <Typography gutterBottom variant="h5" component="div">
+            <Typography gutterBottom variant="h5" component="div" color={isDeactivated ? "text.disabled" : "text.primary"}>
                 {title}
             </Typography>
         </CardContent>
         <CardActions className="flex flex-row gap-4" sx={{justifyContent: 'space-between'}}>
-            <Button className="flex-1" size="large" variant="outlined" onClick={onStart}>Start</Button>
-            <Button className="flex-2" size="large" variant="contained" color="primary" onClick={onForceStart}>Force
+            <Button className="flex-1" size="large" variant="outlined" onClick={onStart}
+                    disabled={isDeactivated}>Start</Button>
+            <Button className="flex-2" size="large" variant="contained" color="primary" onClick={onForceStart}
+                    disabled={isDeactivated}>Force
                 Start All</Button>
         </CardActions>
     </Card>
