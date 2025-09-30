@@ -21,16 +21,9 @@ import {forceStartGame, forceStopGame} from "../api/game.api.client.ts";
 import {ApiStatus} from "../api/api.definitions.tsx";
 import SportsKabaddi from '@mui/icons-material/SportsKabaddi';
 import {setGameMode} from "../api/settings.api.client.ts";
+import {possibleGames} from "../util/gameConstants.tsx";
 
 function Game() {
-    const possibleGames: Map<string, string> = new Map<string, string>(
-        [
-            ['FreeForAll', "Free For All"],
-            ['SortingToddler', 'Sorting Toddler'],
-            ['Werewolf', 'Werewolf'],
-        ]
-    );
-
     const [currentGame, setCurrentGame] = useState<string>('FreeForAll');
     const [gameState, setGameState] = useState<string>("Lobby");
     const [activePlayer, setActivePlayer] = useState<number>(0);

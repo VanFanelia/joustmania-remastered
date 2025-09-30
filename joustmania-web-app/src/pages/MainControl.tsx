@@ -1,5 +1,16 @@
 import Box from "@mui/material/Box";
-import {Alert, Avatar, Button, Card, CardActions, CardContent, CardMedia, Slider, Stack, Typography} from "@mui/material";
+import {
+    Alert,
+    Avatar,
+    Button,
+    Card,
+    CardActions,
+    CardContent,
+    CardMedia,
+    Slider,
+    Stack,
+    Typography
+} from "@mui/material";
 import freeForAllImage from '../assets/free-for-all.banner.full.png';
 import sortingToddlerImage from '../assets/sorting-toddler.banner.full.png';
 import werewolfImage from '../assets/werewolf.banner.full.png';
@@ -16,10 +27,11 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import {ArrowForwardIos, MusicNote, SurroundSound, VolumeDown, VolumeUp} from "@mui/icons-material";
 import {useEffect, useState} from "react";
 import {useGameStatsContext} from "../context/GameStatsProvider.tsx";
-import {forceStopGame} from "../api/game.api.client.ts";
+import {forceStartGame, forceStopGame} from "../api/game.api.client.ts";
 import {ApiStatus} from "../api/api.definitions.tsx";
 import AbortGameButtonWithDialog from "../components/AbortGameButtonWithDialog.tsx";
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
+import {GameMode, getDisplayName} from "../util/gameConstants.tsx";
 
 function MainControl() {
     const SLIDER_MAX = 100;
@@ -47,7 +59,7 @@ function MainControl() {
 
     }, [bluetoothDevices])
 
-    const [currentGame, setCurrentGame] = useState<string>('FreeForAll');
+    const [currentGame, setCurrentGame] = useState<string>(GameMode.FREE_FOR_ALL);
     const [gameState, setGameState] = useState<string>("Lobby");
 
     const gameStats = useGameStatsContext();
@@ -113,7 +125,10 @@ function MainControl() {
                     </div>
                 </div>
                 <div style={{flex: 1, minHeight: 0, display: 'flex'}}>
-                    <SelectGameSlider/>
+                    <SelectGameSlider onGameStartError={(reason: string) => {
+                        setShowAlert(true)
+                        setError(reason)
+                    }}/>
                 </div>
                 <div className="flex flex-row justify-between p-2 m-2">
                     <div className="flex flex-row justify-between gap-12">
@@ -169,7 +184,11 @@ function MainControl() {
         ;
 }
 
-function SelectGameSlider() {
+interface SelectGameSliderProps {
+    onGameStartError: (reason: string) => void
+}
+
+function SelectGameSlider({onGameStartError}: SelectGameSliderProps) {
 
     let intervalId: number | undefined = undefined;
     const stopScroll = () => {
@@ -216,6 +235,14 @@ function SelectGameSlider() {
         window.addEventListener("mouseleave", stopScroll);
     }
 
+    function callForceStartGame(gameMode: string, forceActivateAllController: boolean) {
+        forceStartGame(gameMode, forceActivateAllController).then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                onGameStartError(result.reason ?? "Unknown Error")
+            }
+        })
+    }
+
     return (
         <div className="flex flex-row justify-between p-2 m-2">
             <div className="flex-col content-center z-10 h-full w-8" onClick={scrollLeft}
@@ -225,21 +252,41 @@ function SelectGameSlider() {
             <div id="sideScroller" className="flex flex-row gap-4 overflow-x-auto max-w-screen w-full p-8 items-center"
                  style={{maxWidth: "calc(100vw - 128px)"}}>
 
-                <GameCard image={freeForAllImage} title={"Free For all"} onStart={() => {
-                }} onForceStart={() => {
-                }}/>
+                <GameCard image={freeForAllImage}
+                          title={getDisplayName(GameMode.FREE_FOR_ALL)}
+                          onStart={() => {
+                              callForceStartGame(GameMode.FREE_FOR_ALL, false)
+                          }}
+                          onForceStart={() => {
+                              callForceStartGame(GameMode.FREE_FOR_ALL, true)
+                          }}/>
 
-                <GameCard image={sortingToddlerImage} title={"Sorting Toddler"} onStart={() => {
-                }} onForceStart={() => {
-                }}/>
+                <GameCard image={sortingToddlerImage}
+                          title={getDisplayName(GameMode.SORTING_TODDLER)}
+                          onStart={() => {
+                              callForceStartGame(GameMode.SORTING_TODDLER, false)
+                          }}
+                          onForceStart={() => {
+                              callForceStartGame(GameMode.SORTING_TODDLER, true)
+                          }}/>
 
-                <GameCard image={werewolfImage} title={"Werewolf"} onStart={() => {
-                }} onForceStart={() => {
-                }}/>
+                <GameCard image={werewolfImage}
+                          title={getDisplayName(GameMode.WEREWOLF)}
+                          onStart={() => {
+                              callForceStartGame(GameMode.WEREWOLF, false)
+                          }}
+                          onForceStart={() => {
+                              callForceStartGame(GameMode.WEREWOLF, true)
+                          }}/>
 
-                <GameCard image={zombieImage} title={"Zombie"} onStart={() => {
-                }} onForceStart={() => {
-                }}/>
+                <GameCard image={zombieImage}
+                          title={getDisplayName(GameMode.ZOMBIE)}
+                          onStart={() => {
+                              callForceStartGame(GameMode.ZOMBIE, false)
+                          }}
+                          onForceStart={() => {
+                              callForceStartGame(GameMode.ZOMBIE, true)
+                          }}/>
 
                 <GameCard isDeactivated image={ninjaBombImage} title={"Ninja Bomb"} onStart={() => {
                 }} onForceStart={() => {
