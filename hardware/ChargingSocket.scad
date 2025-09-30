@@ -70,10 +70,10 @@ difference(){
         }
     }
     
-    
     pinHeight=8;
     pinBaseDiameter=2;
     pinCorpusDiameter=1.2;
+    
     // cut wire lines vertical
     translate([6 + ((sizeOfContact) / 2),0, zPositionOfContact - 10]) {
         cube([sizeOfContact-1,sizeOfContact-1, 20], center = true);  
