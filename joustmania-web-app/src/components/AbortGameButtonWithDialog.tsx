@@ -8,12 +8,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Box from "@mui/material/Box";
 import Dangerous from '@mui/icons-material/Dangerous';
 
-
 interface AbortGameButtonWithDialogProps {
+    disabled?: boolean,
     onConfirm: () => void
 }
 
 export default function AbortGameButtonWithDialog({
+                                                      disabled = false,
                                                       onConfirm
                                                   }: AbortGameButtonWithDialogProps) {
     const [open, setOpen] = React.useState(false);
@@ -34,7 +35,8 @@ export default function AbortGameButtonWithDialog({
 
     return (
         <React.Fragment>
-            <Button variant="contained" size={"large"} color={"warning"} endIcon={<Dangerous/>} onClick={handleClickOpen}>
+            <Button disabled={disabled} variant="contained" size={"large"} color={"warning"} endIcon={<Dangerous/>}
+                    onClick={handleClickOpen}>
                 Force Stop Game
             </Button>
 

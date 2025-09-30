@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import {Avatar, Button, Card, CardActions, CardContent, CardMedia, Slider, Stack, Typography} from "@mui/material";
+import {Alert, Avatar, Button, Card, CardActions, CardContent, CardMedia, Slider, Stack, Typography} from "@mui/material";
 import freeForAllImage from '../assets/free-for-all.banner.full.png';
 import sortingToddlerImage from '../assets/sorting-toddler.banner.full.png';
 import werewolfImage from '../assets/werewolf.banner.full.png';
@@ -14,6 +14,12 @@ import SkullsAndBonesIcon from '../assets/skulls-and-bones.svg?react';
 import PSMoveControllerIcon from '../assets/PSMoveController.svg?react';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import {ArrowForwardIos, MusicNote, SurroundSound, VolumeDown, VolumeUp} from "@mui/icons-material";
+import {useEffect, useState} from "react";
+import {useGameStatsContext} from "../context/GameStatsProvider.tsx";
+import {forceStopGame} from "../api/game.api.client.ts";
+import {ApiStatus} from "../api/api.definitions.tsx";
+import AbortGameButtonWithDialog from "../components/AbortGameButtonWithDialog.tsx";
+import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 
 function MainControl() {
     const SLIDER_MAX = 100;
@@ -29,33 +35,81 @@ function MainControl() {
         },
     ];
 
+    const [activePlayer, setActivePlayer] = useState<number>(0);
+    const [connectedController, setConnectedController] = useState<number>(0);
+
+    const bluetoothDevices = useBluetoothContext();
+
+    useEffect(() => {
+        setConnectedController(bluetoothDevices.reduce((previousValue, bluetoothController) => {
+            return previousValue + bluetoothController.pairedMotionController.filter(controller => controller.connected).length
+        }, 0))
+
+    }, [bluetoothDevices])
+
+    const [currentGame, setCurrentGame] = useState<string>('FreeForAll');
+    const [gameState, setGameState] = useState<string>("Lobby");
+
+    const gameStats = useGameStatsContext();
+
+    useEffect(() => {
+        setGameState(gameStats.currentGameState);
+        setActivePlayer(gameStats.activeController.length)
+        setCurrentGame(gameStats.selectedGame)
+    }, [gameStats]);
+
+    const [error, setError] = useState<string | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
+
+    useEffect(() => {
+        if (showAlert) {
+            const timer = setTimeout(() => {
+                setShowAlert(false);
+            }, 10000); // 10 Sekunden
+            return () => clearTimeout(timer); // Aufräumen, falls Alert früher verschwindet
+        }
+    }, [showAlert]);
+
+    function callForceStopGame() {
+        forceStopGame().then((result) => {
+            if (result.status == ApiStatus.ERROR) {
+                setShowAlert(true)
+                setError(result.reason)
+            }
+        })
+    }
+
+    const isGameRunning = gameState != "Lobby";
+    const headline =
+        isGameRunning ? "Lobby: Waiting for game selection" : `Game running: ${currentGame}`;
+
     return (
         <Box className="rootPage p-4 scroll-auto mb-14">
             <Box className="flex flex-col justify-between"
                  sx={{minWidth: 768, height: 'calc(100vh - 56px)', overflow: 'hidden'}}>
                 <div className="flex flex-row justify-between items-center">
                     <Typography gutterBottom variant="h5" component="span" sx={{minWidth: 200}}>
-                        Aktuelles Spiel: FFA
+                        {headline}
                     </Typography>
 
                     <Typography gutterBottom variant="subtitle1" component="span" sx={{minWidth: 200}}>
                         <div className={"flex flex-row gap-2 items-center"}>
-                            11 <Diversity3Icon/>
+                            {connectedController} <Diversity3Icon/>
                             <span className="mr-8 ml-8">|</span>
-                            3 <PSMoveControllerIcon width={32} height={32} style={{
+                            {activePlayer} <PSMoveControllerIcon width={32} height={32} style={{
                             color: "#ffa500",
                             transform: "rotate(20deg)",
                             opacity: 1
                         }}/>
                             <span className="mr-8 ml-8">|</span>
                             <SkullsAndBonesIcon alt="Skulls and Bones" width={32} height={32}/>
-                            3
+                            {gameStats.playerLost.length}
                         </div>
 
                     </Typography>
 
                     <div style={{minWidth: 200}}>
-                        <Button size="large" variant="contained" color="error">Stop Game</Button>
+                        <AbortGameButtonWithDialog disabled={!isGameRunning} onConfirm={callForceStopGame}/>
                     </div>
                 </div>
                 <div style={{flex: 1, minHeight: 0, display: 'flex'}}>
@@ -107,6 +161,9 @@ function MainControl() {
                     </div>
                 </div>
             </Box>
+            {showAlert && (
+                <Alert severity="error" className={"absolute bottom-16"}>{error}</Alert>
+            )}
         </Box>
     )
         ;
@@ -224,7 +281,8 @@ function GameCard({isDeactivated = false, image, title, onStart, onForceStart}: 
             title={title}
         />
         <CardContent>
-            <Typography gutterBottom variant="h5" component="div" color={isDeactivated ? "text.disabled" : "text.primary"}>
+            <Typography gutterBottom variant="h5" component="div"
+                        color={isDeactivated ? "text.disabled" : "text.primary"}>
                 {title}
             </Typography>
         </CardContent>

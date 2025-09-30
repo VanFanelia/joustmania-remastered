@@ -10,7 +10,7 @@ import {Alert, Avatar, ListItemAvatar, ListItemText} from "@mui/material";
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
-// @ts-ignore
+// @ts-expect-error he auto transform into a React component seems to be an error for the linter
 import PSMoveController from '../assets/PSMoveController.svg?react';
 import {useBluetoothContext} from "../context/BluetoothProvider.tsx";
 import {useGameStatsContext} from "../context/GameStatsProvider.tsx";
