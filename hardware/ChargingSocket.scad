@@ -6,8 +6,15 @@ sphereRadius=21;
 sizeOfContact = 3.2;
 widthOfStabilizer = 2;
 heightOfContact = 12;
-heightOfStabilizer = 4.5;
+heightOfStabilizer = 3.5;
 zPositionOfContact = -sphereRadius + bottom;
+
+pinsInnerDistance = 19 / 2;
+pinsOuterDistance = 25 / 2;
+
+pinsToleranz = 1;
+pinsWidth = 6 - pinsToleranz; // -1 = toleranz
+
 
 correctSideMarkerWidth = 3.6;
 correctSideMarkerDepth = 4.1;
@@ -15,11 +22,15 @@ correctSizeMarkerHeight = 10.4;
 correctSizeMarkerZPosition = -sphereRadius + bottom;
 correctSideMarkerOffset = 14.6;
 
+// debugger
+//#cube([19,2,6], center = true);
+//#cube([25,2,3], center = true);
+
 difference(){
     union(){
         difference(){
-            translate([0, 0, -5]) {
-              cube([50, 50, 30], center = true);
+            translate([0, 0, -10]) {
+              cube([50, 50, 25], center = true);
             }
             translate([0, 0, bottom]) {
               sphere(r = sphereRadius);
@@ -31,22 +42,22 @@ difference(){
                 cube([correctSideMarkerWidth, 20, 24], center = true);
             }
         }
-
-
-        translate([6 + (sizeOfContact / 2),0, zPositionOfContact]) {
-            cube([sizeOfContact,sizeOfContact, heightOfContact], center = true);
+        
+        
+        translate([pinsInnerDistance - (sizeOfContact / 2),0, zPositionOfContact]) {
+            cube([sizeOfContact + 1,sizeOfContact, heightOfContact], center = true);
             
-            translate([(widthOfStabilizer), 0, heightOfContact / 2]) {
-             cube([widthOfStabilizer, sizeOfContact, heightOfContact + heightOfStabilizer], center = true);    
+            translate([pinsWidth / 2 + pinsToleranz / 2 , 0, heightOfContact / 2]) {
+                cube([widthOfStabilizer, sizeOfContact, heightOfContact + heightOfStabilizer], center = true);    
             }
             
         }
 
-        translate([-6 - (sizeOfContact / 2),0, zPositionOfContact]) {
-            cube([sizeOfContact,sizeOfContact,heightOfContact], center = true);
+        translate([-pinsInnerDistance + (sizeOfContact / 2),0, zPositionOfContact]) {
+            cube([sizeOfContact + 1  ,sizeOfContact,heightOfContact], center = true);
             
-            translate([(-widthOfStabilizer), 0, heightOfContact / 2]) {
-             cube([widthOfStabilizer, sizeOfContact, heightOfContact + heightOfStabilizer], center = true);    
+            translate([-(pinsWidth / 2) - pinsToleranz / 2 , 0, heightOfContact / 2]) {
+                cube([widthOfStabilizer, sizeOfContact, heightOfContact + heightOfStabilizer], center = true);    
             }
         }  
 
@@ -70,9 +81,9 @@ difference(){
         }
     }
     
-    pinHeight=8;
-    pinBaseDiameter=2;
-    pinCorpusDiameter=1.2;
+    pinHeight=8 + 2;
+    pinBaseDiameter=2 + 1.2;
+    pinCorpusDiameter=1.2 + 0.5;
     
     // cut wire lines vertical
     translate([6 + ((sizeOfContact) / 2),0, zPositionOfContact - 10]) {
