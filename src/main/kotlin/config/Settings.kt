@@ -119,6 +119,10 @@ object Settings {
         currentConfig = currentConfig.copy(sortToddlerGameOptions = currentConfig.sortToddlerGameOptions.copy(amountOfRounds = amount))
         saveSettings()
     }
+
+    fun isDebugEnabled(): Boolean {
+        return currentConfig.debug
+    }
 }
 
 

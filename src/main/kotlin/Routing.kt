@@ -424,7 +424,7 @@ fun Application.configureRouting() {
                 call.response.cacheControl(CacheControl.NoCache(null))
                 logger.debug { "new client connected to sse/stubsStatistics endpoint" }
                 call.respondTextWriter(contentType = ContentType.Text.EventStream) {
-                    psMoveStubStatistics.collect { statistics ->
+                    psMoveStubStatistics().collect { statistics ->
                         logger.debug { "new psMoveStubStatistics pushed to client: $statistics" }
                         write("data: ${Json.encodeToString(statistics)}\n\n")
                         flush()

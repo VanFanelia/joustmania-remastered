@@ -71,6 +71,7 @@ data class Config(
     val sortToddlerGameOptions: SortToddlerGameOptions,
     val globalVolume: Int = 50,
     val musicVolume: Int = 50,
+    val debug: Boolean = false,
 ) {
     companion object {
         val DEFAULT_CONFIG = Config(
@@ -80,6 +81,7 @@ data class Config(
             sortToddlerGameOptions = SortToddlerGameOptions(roundDuration = 30, amountOfRounds = 10),
             globalVolume = 50,
             musicVolume = 50,
+            debug = false,
         )
     }
 }
