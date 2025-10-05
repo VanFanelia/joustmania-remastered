@@ -17,6 +17,7 @@ import de.vanfanel.joustmania.hardware.AccelerationDebugger
 import de.vanfanel.joustmania.hardware.AccelerationDebugger.psMoveStubStatistics
 import de.vanfanel.joustmania.hardware.PSMoveApi
 import de.vanfanel.joustmania.hardware.PSMovePairingManager
+import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager
 import de.vanfanel.joustmania.hardware.bluetooth.BluetoothControllerManager.blueToothControllerFlow
 import de.vanfanel.joustmania.hardware.psmove.ColorAnimation
 import de.vanfanel.joustmania.hardware.psmove.PSMoveBluetoothConnectionWatcher
@@ -34,6 +35,7 @@ import de.vanfanel.joustmania.types.BlueToothControllerStats
 import de.vanfanel.joustmania.types.GameStats
 import de.vanfanel.joustmania.types.Language
 import de.vanfanel.joustmania.types.Language.Companion.parseLanguage
+import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.types.MotionControllerStats
 import de.vanfanel.joustmania.types.MoveColor
 import de.vanfanel.joustmania.types.RainbowAnimation
@@ -51,6 +53,7 @@ import io.ktor.server.response.cacheControl
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.response.respondTextWriter
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -157,6 +160,13 @@ fun Application.configureRouting() {
             // Hardware commands
             get("/clear-devices") {
                 PSMovePairingManager.disconnectAndForgetAllPairedPSMove()
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            delete("/clear-device/{macAddress}") {
+                val macAddress: String? = call.parameters["macAddress"]
+
+                BluetoothControllerManager.clearBluetoothDeviceFromAdapter(macAddress as MacAddress)
                 call.respond(HttpStatusCode.NoContent)
             }
 

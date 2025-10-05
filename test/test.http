@@ -81,3 +81,7 @@ GET http://localhost:80/api/playAllSoundsAsMp3
 
 ### play all sounds as WAV
 GET http://localhost:80/api/playAllSoundsAsWav
+
+
+### test force stop game
+DELETE http://joust.mania/api/clear-device/04:76:6e:b8:29:64
