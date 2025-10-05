@@ -7,7 +7,7 @@ sizeOfContact = 3.2;
 widthOfStabilizer = 2;
 heightOfContact = 12;
 heightOfStabilizer = 3.5;
-zPositionOfContact = -sphereRadius + bottom;
+zPositionOfContact = -sphereRadius + bottom - 0.5;
 
 pinsInnerDistance = 19 / 2;
 pinsOuterDistance = 25 / 2;
@@ -23,14 +23,20 @@ correctSizeMarkerZPosition = -sphereRadius + bottom;
 correctSideMarkerOffset = 14.6;
 
 // debugger
-//#cube([19,2,6], center = true);
-//#cube([25,2,3], center = true);
+/*
+#cube([19,2,6], center = true);
+#cube([25,2,3], center = true);
+
+translate([0,0,-6])
+#cube([12,2,3], center = true);
+*/
+
 
 difference(){
     union(){
         difference(){
             translate([0, 0, -10]) {
-              cube([50, 50, 25], center = true);
+              cube([50, 50, 35], center = true);
             }
             translate([0, 0, bottom]) {
               sphere(r = sphereRadius);
@@ -45,7 +51,9 @@ difference(){
         
         
         translate([pinsInnerDistance - (sizeOfContact / 2),0, zPositionOfContact]) {
-            cube([sizeOfContact + 1,sizeOfContact, heightOfContact], center = true);
+            translate([0.2,0,0]){
+                cube([sizeOfContact + 0.7,sizeOfContact, heightOfContact], center = true);
+            }
             
             translate([pinsWidth / 2 + pinsToleranz / 2 , 0, heightOfContact / 2]) {
                 cube([widthOfStabilizer, sizeOfContact, heightOfContact + heightOfStabilizer], center = true);    
@@ -54,7 +62,10 @@ difference(){
         }
 
         translate([-pinsInnerDistance + (sizeOfContact / 2),0, zPositionOfContact]) {
-            cube([sizeOfContact + 1  ,sizeOfContact,heightOfContact], center = true);
+            
+            translate([-0.2,0,0]){
+                cube([sizeOfContact + 0.7 ,sizeOfContact,heightOfContact], center = true);
+            }
             
             translate([-(pinsWidth / 2) - pinsToleranz / 2 , 0, heightOfContact / 2]) {
                 cube([widthOfStabilizer, sizeOfContact, heightOfContact + heightOfStabilizer], center = true);    
@@ -81,9 +92,9 @@ difference(){
         }
     }
     
-    pinHeight=8 + 2;
-    pinBaseDiameter=2 + 1.2;
-    pinCorpusDiameter=1.2 + 0.5;
+    pinHeight=10;
+    pinBaseDiameter=2.5;
+    pinCorpusDiameter=1.5;
     
     // cut wire lines vertical
     translate([6 + ((sizeOfContact) / 2),0, zPositionOfContact - 10]) {
