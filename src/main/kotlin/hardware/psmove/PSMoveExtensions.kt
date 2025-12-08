@@ -67,6 +67,7 @@ var PSMove.currentColor: MoveColor
     }
 
 const val COLOR_UPDATE_INTERVALL_MS = 1000L
+const val MINIMAL_ANIMATION_COLOR_UPDATE_INTERVAL_MS = 200L
 val PSMOVE_COLOR_UPDATE_MAP: MutableMap<MacAddress, Long> = ConcurrentHashMap()
 val PSMOVE_LAST_COLOR_SET_COLOR_MAP: MutableMap<MacAddress, MoveColor> = ConcurrentHashMap()
 
@@ -74,7 +75,7 @@ val PSMove.colorUpdatedNeeded: Boolean
     get() {
         val lastUpdate = PSMOVE_COLOR_UPDATE_MAP[this.getMacAddress()] ?: return true
         val needUpdateByTime = lastUpdate + COLOR_UPDATE_INTERVALL_MS < System.currentTimeMillis()
-        val newColorNeeded = PSMOVE_COLOR_MAP[this.getMacAddress()] != PSMOVE_LAST_COLOR_SET_COLOR_MAP[this.getMacAddress()]
+        val newColorNeeded = lastUpdate + MINIMAL_ANIMATION_COLOR_UPDATE_INTERVAL_MS < System.currentTimeMillis() && PSMOVE_COLOR_MAP[this.getMacAddress()] != PSMOVE_LAST_COLOR_SET_COLOR_MAP[this.getMacAddress()]
 
         return needUpdateByTime || newColorNeeded
     }
@@ -211,7 +212,7 @@ fun PSMove.refreshMoveStatus(): PollResult? {
             }
         }
         if (callUpdate) {
-            // This updates the color and the rumble state. Only call it if a minimum of 100 ms passed
+            // This updates the color and the rumble state. Only call it if a minimum of 50s ms passed
             if (this.lastUpdateCalled + UPDATE_DELAY < System.currentTimeMillis()) {
                 this.update_leds()
                 this.lastUpdateCalled = System.currentTimeMillis()
