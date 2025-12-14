@@ -311,7 +311,7 @@ class RedAlert : Game {
     /**
      * Turn a controller GREEN (after shake from red OR warning state)
      */
-    private suspend fun turnControllerGreen(mac: MacAddress) {
+    private fun turnControllerGreen(mac: MacAddress) {
         redControllers.remove(mac)
         warningControllers.remove(mac)
         greenControllers.add(mac)
@@ -424,10 +424,15 @@ class RedAlert : Game {
 
         // Play loss sound
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = SoundId.PLAYER_LOSE_2, // TODO: Add game over sound
+            id = SoundId.ALL_PLAYERS_LOSE,
             abortOnNewSound = false,
             minDelay = 3000L
         )
+
+        // Clear animations before returning to the lobby
+        currentPlayingController.forEach { (_, stub) ->
+            stub.clearAnimation()
+        }
 
         PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
         delay(1000)
@@ -458,10 +463,17 @@ class RedAlert : Game {
 
         // Play victory sound
         SoundManager.addSoundToQueueAndWaitForPlayerFinishedThisSound(
-            id = SoundId.GO, // TODO: Add victory sound
+            id = SoundId.ALL_PLAYERS_WIN,
             abortOnNewSound = false,
             minDelay = 3000L
         )
+
+        delay(5000)
+
+        // Clear animations before returning to the lobby
+        currentPlayingController.forEach { (_, stub) ->
+            stub.clearAnimation()
+        }
 
         PSMoveApi.setColorOnAllMoveController(MoveColor.BLACK)
         delay(1000)

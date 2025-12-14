@@ -527,6 +527,30 @@
       }
     }
   },
+  "ALL_PLAYERS_WIN": {
+    "id": "ALL_PLAYERS_WIN",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "all_players_win",
+        "localizedText": "Congratulations. You have won the game!",
+        "durationInMs": 2586
+      }
+    }
+  },
+  "ALL_PLAYERS_LOSE": {
+    "id": "ALL_PLAYERS_LOSE",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "all_players_lose",
+        "localizedText": "Oh no, you were to slow. You have lost the game!",
+        "durationInMs": 3291
+      }
+    }
+  },
   "PLAYER_LOSE_1": {
     "id": "PLAYER_LOSE_1",
     "isSpokenText": false,
