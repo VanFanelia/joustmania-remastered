@@ -18,6 +18,7 @@ import zombieImage from '../assets/zombie.banner.full.png';
 import protectTheKingImage from '../assets/protect-the-king.banner.full.png';
 import ninjaBombImage from '../assets/ninja-bomb.banner.full.png';
 import shakeNRunImage from '../assets/shake-n-run.banner.full.png';
+import redAlertImage from '../assets/red-alert.banner.full.png'
 import Diversity3Icon from "@mui/icons-material/Diversity3";
 // @ts-expect-error the auto transform into a React component seems to be an error for the linter
 import SkullsAndBonesIcon from '../assets/skulls-and-bones.svg?react';
@@ -316,6 +317,15 @@ function SelectGameSlider({onGameStartError}: SelectGameSliderProps) {
                           }}
                           onForceStart={() => {
                               callForceStartGame(GameMode.ZOMBIE, true)
+                          }}/>
+
+                <GameCard image={redAlertImage}
+                          title={getDisplayName(GameMode.RED_ALERT)}
+                          onStart={() => {
+                              callForceStartGame(GameMode.RED_ALERT, false)
+                          }}
+                          onForceStart={() => {
+                              callForceStartGame(GameMode.RED_ALERT, true)
                           }}/>
 
                 <GameCard isDeactivated image={ninjaBombImage} title={"Ninja Bomb"} onStart={() => {

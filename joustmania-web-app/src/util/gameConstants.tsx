@@ -5,6 +5,7 @@ export enum GameMode {
     SORTING_TODDLER = "SortingToddler",
     WEREWOLF = "Werewolf",
     ZOMBIE = "Zombie",
+    RED_ALERT = "RedAlert",
 }
 
 export function getDisplayName(gameMode: GameMode): string {
@@ -17,5 +18,6 @@ export const possibleGames: Map<string, string> = new Map<string, string>(
         [GameMode.SORTING_TODDLER, 'Sorting Toddler'],
         [GameMode.WEREWOLF, 'Werewolf'],
         [GameMode.ZOMBIE, 'Zombie'],
+        [GameMode.RED_ALERT, 'Red Alert'],
     ]
 );

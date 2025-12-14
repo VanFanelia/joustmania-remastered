@@ -42,7 +42,7 @@ import kotlin.time.Duration.Companion.seconds
 class RedAlert : Game {
     override val name = "RedAlert"
     override val currentPlayingController: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
-    override val minimumPlayers: Int = 3
+    override val minimumPlayers: Int = 2
     override val gameSelectedSound: SoundId = SoundId.GAME_MODE_RED_ALERT
 
     private val logger = KotlinLogging.logger {}
