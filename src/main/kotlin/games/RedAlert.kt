@@ -51,9 +51,9 @@ class RedAlert : Game {
     private var gameRunning: Boolean = false
     private var gameStartTime: Long = 0
 
-    private val redControllers = mutableSetOf<MacAddress>()
-    private val warningControllers = mutableSetOf<MacAddress>() // Controllers in warning state (orange)
-    private val greenControllers = mutableSetOf<MacAddress>()
+    private val redControllers = ConcurrentHashMap.newKeySet<MacAddress>()
+    private val warningControllers = ConcurrentHashMap.newKeySet<MacAddress>() // Controllers in warning state (orange)
+    private val greenControllers = ConcurrentHashMap.newKeySet<MacAddress>()
 
     // Configuration (will be made configurable later)
     private val maxRedPercentage = 0.5 // 50% of controllers
@@ -287,6 +287,9 @@ class RedAlert : Game {
                 if (warningControllers.contains(mac)) {
                     turnControllerRed(mac)
                 }
+
+                // Small delay to prevent busy-wait loop when the controller is red
+                delay(100)
             }
         }
     }
@@ -375,8 +378,8 @@ class RedAlert : Game {
         val elapsedTime = System.currentTimeMillis() - gameStartTime
         val minDurationReached = elapsedTime >= minGameDuration.inWholeMilliseconds
 
-        // LOSS CONDITION: Too many red controllers
-        if (redPercentage > maxRedPercentage) {
+        // LOSS CONDITION: Too many red controllers AND minimum duration reached
+        if (minDurationReached && redPercentage > maxRedPercentage) {
             logger.info { "LOSS: $redCount/$totalControllers controllers are red (${(redPercentage * 100).toInt()}%)" }
             handleGameLoss()
             return
