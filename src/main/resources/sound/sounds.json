@@ -119,6 +119,18 @@
       }
     }
   },
+  "GAME_MODE_RED_ALERT": {
+    "id": "GAME_MODE_RED_ALERT",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_red_alert",
+        "localizedText": "Game Mode: Red Alert",
+        "durationInMs": 1855
+      }
+    }
+  },
   "ALL_PLAYERS_READY": {
     "id": "ALL_PLAYERS_READY",
     "isSpokenText": true,
@@ -212,6 +224,18 @@
         "file": "game_mode_toddler_explanation",
         "localizedText": "Wir starten eine Runde Farbkasten-Spiel: Sortiert euch einfach nach Farben! Los gehts",
         "durationInMs": 5094
+      }
+    }
+  },
+  "GAME_MODE_RED_ALERT_EXPLANATION":  {
+    "id": "GAME_MODE_RED_ALERT_EXPLANATION",
+    "isSpokenText": true,
+    "soundFiles": {
+      "EN": {
+        "language": "EN",
+        "file": "game_mode_red_alert_explanation",
+        "localizedText": "We start a round of 'Red Alert'. Place all controllers around you on different Spots as far away as you like. Your all playing together. If a controller turns Red, shake it to get it back to green. If too many controllers turn Red you lose. Survive 5 minutes and you win! All Ready? Let's start in: ",
+        "durationInMs": 21969
       }
     }
   },

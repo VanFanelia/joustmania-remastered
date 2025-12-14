@@ -75,8 +75,6 @@ for (const [soundKey, soundConfig] of Object.entries(sounds)) {
                 console.error(`Error converting mp3 file to wav: ${error.message}`);
             }
         }
-
-
     }
 }
 

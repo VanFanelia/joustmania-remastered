@@ -32,7 +32,8 @@ interface Game {
             FreeForAll::class.java as Class<out Game>,
             SortingToddler::class.java as Class<out Game>,
             Werewolf::class.java as Class<out Game>,
-            Zombie::class.java as Class<out Game>
+            Zombie::class.java as Class<out Game>,
+            RedAlert::class.java as Class<out Game>
         )
 
         val gameNamesToGameObject =
