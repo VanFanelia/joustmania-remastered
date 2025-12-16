@@ -2,15 +2,18 @@ package de.vanfanel.joustmania.hardware.psmove
 
 import de.vanfanel.joustmania.types.MacAddress
 import de.vanfanel.joustmania.util.CustomThreadDispatcher
+import de.vanfanel.joustmania.util.NamedThreadFactory
 import de.vanfanel.joustmania.util.onlyAddedFromPrevious
 import de.vanfanel.joustmania.util.onlyRemovedFromPrevious
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 
 /**
  * The `GlobalMoveTicker` singleton is responsible for managing and monitoring the connected PSMove controllers.
@@ -28,7 +31,8 @@ object GlobalMoveTicker {
 
     private val currentMovesToWatch: MutableMap<MacAddress, PSMoveStub> = ConcurrentHashMap()
 
-    private val pollingScope = CoroutineScope(CustomThreadDispatcher.POLLING + SupervisorJob())
+    // Each controller gets its own dedicated thread to prevent blocking issues
+    private val controllerDispatchers: MutableMap<MacAddress, ExecutorCoroutineDispatcher> = ConcurrentHashMap()
     private var pollJobs: MutableMap<MacAddress, Job> = ConcurrentHashMap()
 
     private var pollingThread: Thread? = null
@@ -41,6 +45,9 @@ object GlobalMoveTicker {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyRemovedFromPrevious().collect { moves ->
                 moves.forEach { move ->
                     currentMovesToWatch.remove(move.macAddress)
+                    // Clean up dispatcher for removed controller
+                    controllerDispatchers.remove(move.macAddress)?.close()
+                    logger.debug { "Removed dispatcher for controller ${move.macAddress}" }
                 }
             }
         }
@@ -49,6 +56,14 @@ object GlobalMoveTicker {
             PSMoveBluetoothConnectionWatcher.bluetoothConnectedPSMoves.onlyAddedFromPrevious().collect { moves ->
                 for (move in moves) {
                     currentMovesToWatch.putIfAbsent(move.macAddress, move)
+                    // Create a dedicated dispatcher for this controller
+                    if (!controllerDispatchers.containsKey(move.macAddress)) {
+                        val dispatcher = Executors.newSingleThreadExecutor(
+                            NamedThreadFactory("PSMove-${move.macAddress.takeLast(8)}", priority = 6)
+                        ).asCoroutineDispatcher()
+                        controllerDispatchers[move.macAddress] = dispatcher
+                        logger.debug { "Created dedicated dispatcher for controller ${move.macAddress}" }
+                    }
                 }
             }
         }
@@ -71,7 +86,13 @@ object GlobalMoveTicker {
                         logger.debug { "Move ${move.macAddress} is still polling. Skip it :(" }
                         continue
                     }
-                    val job = pollingScope.launch {
+                    // Use dedicated dispatcher for this controller to prevent blocking others
+                    val dispatcher = controllerDispatchers[move.macAddress]
+                    if (dispatcher == null) {
+                        logger.warn { "No dispatcher found for controller ${move.macAddress}" }
+                        continue
+                    }
+                    val job = CoroutineScope(dispatcher + SupervisorJob()).launch {
                         move.refreshMoveStatusAndEmitChanges()
                         calculateColorForMove(move.macAddress)
                     }
@@ -91,18 +112,6 @@ object GlobalMoveTicker {
         pollingThread.start()
     }
 
-    private fun calculateColorsForMove() {
-        logger.trace { "Starting color calculation job" }
-        val startOfPoll = System.nanoTime()
-        for (move in currentMovesToWatch) {
-            move.value.changeColorIfAnimationIsActive()
-        }
-        val duration = (System.nanoTime() - startOfPoll) / 1000000
-        if (duration > 50) {
-            logger.debug { "PSMove color updates took $duration ms. This is more then the 50ms threshold." }
-        }
-    }
-
     private fun calculateColorForMove(moveId: MacAddress) {
         logger.trace { "Starting color calculation job for $moveId" }
         val startOfPoll = System.nanoTime()
@@ -116,6 +125,12 @@ object GlobalMoveTicker {
     fun stopPSMoveJobs() {
         pollingThread?.interrupt() // Thread unterbrechen
         pollingThread?.join(1000) // Warten bis Thread beendet ist (max 1s)
-        pollingScope.cancel()
+
+        // Close all controller-specific dispatchers
+        controllerDispatchers.values.forEach { dispatcher ->
+            dispatcher.close()
+        }
+        controllerDispatchers.clear()
+        logger.info { "Closed all controller dispatchers" }
     }
 }
